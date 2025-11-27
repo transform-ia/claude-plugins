@@ -13,10 +13,6 @@ shift
 pkg="${1:?ERROR: Package name required. Usage: /go:init <directory> <package-name>}"
 
 root=$("$SCRIPT_DIR/find-git-root.sh" "$dir")
-pod_ref=$("$SCRIPT_DIR/find-dev-pod.sh" "$root")
+pod=$("$SCRIPT_DIR/find-dev-pod.sh" "$root")
 
-# pod_ref is namespace/podname
-ns="${pod_ref%%/*}"
-pod="${pod_ref##*/}"
-
-kubectl exec -n "$ns" "$pod" -- sh -c "cd $root && go mod init $pkg"
+kubectl exec "$pod" -- sh -c "cd $root && go mod init $pkg"
