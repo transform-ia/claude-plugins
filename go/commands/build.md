@@ -1,4 +1,4 @@
 ---
-description: Build the Go project (test compilation)
+description: "Build Go project: /go:build <directory>"
 ---
 !${CLAUDE_PLUGIN_ROOT}/scripts/build-exec.sh $ARGUMENTS
