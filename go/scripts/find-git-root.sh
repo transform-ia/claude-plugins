@@ -1,15 +1,21 @@
 #!/bin/bash
-# Find git repository root from current or given directory
-# Usage: find-git-root.sh [directory]
-# Exit 1 if not in a git repo
+# Find git repository root from given directory
+# Usage: find-git-root.sh <directory>
+# Exit 2 if not in a git repo (blocking error)
 
-dir="${1:-$PWD}"
-root=$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null)
+set -euo pipefail
 
-if [[ -z "$root" ]]; then
-    echo "ERROR: Not inside a git repository." >&2
+dir="${1:?ERROR: Directory argument required}"
+
+root=$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null) || {
+    echo "" >&2
+    echo "═══════════════════════════════════════════════════════════════" >&2
+    echo "ERROR: Not inside a git repository: $dir" >&2
+    echo "═══════════════════════════════════════════════════════════════" >&2
+    echo "" >&2
     echo "Please navigate to a git repository or clone one first." >&2
-    exit 1
-fi
+    echo "" >&2
+    exit 2
+}
 
 echo "$root"
