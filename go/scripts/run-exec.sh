@@ -1,12 +1,17 @@
 #!/bin/bash
-# Run the built binary in dev pod
-# Usage: run-exec.sh [args...]
+# Execute 'go run .' in dev pod
+# Usage: run-exec.sh <directory> [args...]
+# Finds git root from directory and runs go run . there
 
-set -e
+set -euo pipefail
+trap 'echo "SCRIPT ERROR: Unexpected failure in run-exec.sh" >&2; exit 2' ERR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-root=$("$SCRIPT_DIR/find-git-root.sh")
+dir="${1:?ERROR: Directory argument required. Usage: /go:run <directory> [args...]}"
+shift
+
+root=$("$SCRIPT_DIR/find-git-root.sh" "$dir")
 pod=$("$SCRIPT_DIR/find-dev-pod.sh" "$root")
 
-kubectl exec "$pod" -- /tmp/cmd "$@"
+kubectl exec "$pod" -- sh -c "cd $root && go run . $*"

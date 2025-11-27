@@ -1,4 +1,4 @@
 ---
-description: Build the Go binary
+description: Build the Go project (test compilation)
 ---
-!${CLAUDE_PLUGIN_ROOT}/scripts/go-exec.sh build -o /tmp/cmd .
+!${CLAUDE_PLUGIN_ROOT}/scripts/build-exec.sh $ARGUMENTS

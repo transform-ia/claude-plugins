@@ -1,23 +1,16 @@
 #!/bin/bash
 # Execute 'golangci-lint' in dev pod
-# Usage: lint-exec.sh [directory]
-# Default: run --fix ./...
-# With directory: run --fix <directory>/...
+# Usage: lint-exec.sh <directory>
+# Finds git root from directory and runs golangci-lint run --fix ./... there
 
 set -euo pipefail
-
-trap 'echo "SCRIPT ERROR: Unexpected failure in lint-exec.sh" >&2; exit 1' ERR
+trap 'echo "SCRIPT ERROR: Unexpected failure in lint-exec.sh" >&2; exit 2' ERR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# If first arg is a directory, use it as the target
-target="./..."
-if [[ $# -ge 1 && -d "$1" ]]; then
-    target="$1/..."
-    shift
-fi
+dir="${1:?ERROR: Directory argument required. Usage: /go:lint <directory>}"
 
-root=$("$SCRIPT_DIR/find-git-root.sh")
+root=$("$SCRIPT_DIR/find-git-root.sh" "$dir")
 pod=$("$SCRIPT_DIR/find-dev-pod.sh" "$root")
 
-kubectl exec "$pod" -- golangci-lint run --fix "$target" "$@"
+kubectl exec "$pod" -- sh -c "cd $root && golangci-lint run --fix ./..."
