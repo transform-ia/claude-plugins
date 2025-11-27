@@ -1,17 +1,17 @@
 #!/bin/bash
 # Execute 'go test' in dev pod
-# Usage: test-exec.sh <directory> [args...]
-# Finds git root from directory and runs go test -v ./... there
+# Usage: test-exec.sh <directory> [package]
+# Package defaults to ./... if not specified
 
 set -euo pipefail
-trap 'echo "SCRIPT ERROR: Unexpected failure in test-exec.sh" >&2; exit 2' ERR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-dir="${1:?ERROR: Directory argument required. Usage: /go:test <directory> [args...]}"
+dir="${1:?ERROR: Directory argument required. Usage: /go:test <directory> [package]}"
 shift
+pkg="${1:-./...}"
 
-root=$("$SCRIPT_DIR/find-git-root.sh" "$dir")
-pod=$("$SCRIPT_DIR/find-dev-pod.sh" "$root")
+root=$("$SCRIPT_DIR/find-git-root.sh" "$dir") || exit 2
+pod=$("$SCRIPT_DIR/find-dev-pod.sh" "$root") || exit 2
 
-kubectl exec "$pod" -- sh -c "cd $root && go test -v ./... $*"
+kubectl exec "$pod" -- go test -v "$pkg" || exit 2

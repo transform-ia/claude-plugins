@@ -1,16 +1,14 @@
 #!/bin/bash
 # Execute 'go mod tidy' in dev pod
 # Usage: tidy-exec.sh <directory>
-# Finds git root from directory and runs go mod tidy there
 
 set -euo pipefail
-trap 'echo "SCRIPT ERROR: Unexpected failure in tidy-exec.sh" >&2; exit 2' ERR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 dir="${1:?ERROR: Directory argument required. Usage: /go:tidy <directory>}"
 
-root=$("$SCRIPT_DIR/find-git-root.sh" "$dir")
-pod=$("$SCRIPT_DIR/find-dev-pod.sh" "$root")
+root=$("$SCRIPT_DIR/find-git-root.sh" "$dir") || exit 2
+pod=$("$SCRIPT_DIR/find-dev-pod.sh" "$root") || exit 2
 
-kubectl exec "$pod" -- sh -c "cd $root && go mod tidy"
+kubectl exec "$pod" -- go mod tidy || exit 2
