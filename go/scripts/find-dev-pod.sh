@@ -5,11 +5,12 @@
 
 set -euo pipefail
 
-workspace="$1"
-if [[ -z "$workspace" ]]; then
-    echo "ERROR: Workspace path required" >&2
+if [[ $# -eq 0 ]] || [[ -z "${1:-}" ]]; then
+    echo "ERROR: Directory argument required. Usage: find-dev-pod.sh <workspace-path>" >&2
     exit 2
 fi
+
+workspace="$1"
 
 # Convert path to label format: /workspace/sandbox/org/repo -> workspace-sandbox-org-repo
 label_value=$(echo "$workspace" | tr '/' '-' | sed 's/^-//' | cut -c1-63)
