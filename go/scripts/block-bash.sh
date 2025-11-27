@@ -6,28 +6,16 @@
 #   0 = Allow (success)
 #   2 = BLOCKING error - stops Claude, shows error
 #   other = Non-blocking - Claude continues (BAD for enforcement!)
-#
-# CRITICAL: Any script failure MUST exit 2 to block Claude
 
 set -euo pipefail
-
-# Trap any error and convert to exit 2 (blocking)
 trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in block-bash.sh" >&2; exit 2' ERR
 
 input=$(cat)
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
 
-# Allow plugin's own scripts (invoked by /go:* commands)
-# Match various patterns Claude might use:
-#   - Direct path: /path/to/claude-plugins/go/scripts/foo.sh
-#   - With cd: cd /path && ./lint-exec.sh
-#   - Relative: ./lint-exec.sh (after cd)
-if [[ "$command" == *"claude-plugins/go/scripts"* ]] || \
-   [[ "$command" == *"-exec.sh"* ]] || \
-   [[ "$command" == *"find-git-root.sh"* ]] || \
-   [[ "$command" == *"find-dev-pod.sh"* ]] || \
-   [[ "$command" == *"sync-go-mcp.sh"* ]]; then
-    exit 0  # Allow plugin scripts
+# Allow plugin's own scripts (absolute path, no cd)
+if [[ "$command" == */claude-plugins/go/scripts/* ]]; then
+    exit 0
 fi
 
 # Provide helpful redirect for go/golangci-lint
@@ -39,15 +27,15 @@ if [[ "$command" =~ ^go[[:space:]] ]]; then
     echo "  /go:test <dir>        - go test" >&2
     echo "  /go:lint <dir>        - golangci-lint" >&2
     echo "  /go:run <dir>         - go run ." >&2
-    exit 2  # Block
+    exit 2
 fi
 
 if [[ "$command" =~ ^golangci-lint ]]; then
     echo "BLOCKED: Use /go:lint <dir> instead of direct golangci-lint." >&2
-    exit 2  # Block
+    exit 2
 fi
 
 # Block ALL other Bash commands
 echo "BLOCKED: Go plugin does not allow Bash commands." >&2
 echo "Use /go:* commands for Go operations." >&2
-exit 2  # Block
+exit 2
