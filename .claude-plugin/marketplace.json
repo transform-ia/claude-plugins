@@ -1,1 +1,19 @@
-{"version": 1}
+{
+  "name": "transform-ia-plugins",
+  "version": 1,
+  "owner": {
+    "name": "Transform IA",
+    "email": "dev@transformia.ca"
+  },
+  "plugins": [
+    {
+      "name": "go",
+      "source": "./go",
+      "description": "Go development with Kubernetes dev containers",
+      "version": "0.1.0",
+      "author": {
+        "name": "Transform IA"
+      }
+    }
+  ]
+}
