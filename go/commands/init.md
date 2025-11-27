@@ -1,4 +1,4 @@
 ---
 description: Initialize a new Go module
 ---
-!${CLAUDE_PLUGIN_ROOT}/scripts/go-exec.sh mod init $ARGUMENTS
+!${CLAUDE_PLUGIN_ROOT}/scripts/init-exec.sh $ARGUMENTS
