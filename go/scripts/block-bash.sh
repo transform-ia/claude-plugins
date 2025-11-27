@@ -18,7 +18,15 @@ input=$(cat)
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
 
 # Allow plugin's own scripts (invoked by /go:* commands)
-if [[ "$command" == *"/claude-plugins/go/scripts/"* ]]; then
+# Match various patterns Claude might use:
+#   - Direct path: /path/to/claude-plugins/go/scripts/foo.sh
+#   - With cd: cd /path && ./lint-exec.sh
+#   - Relative: ./lint-exec.sh (after cd)
+if [[ "$command" == *"claude-plugins/go/scripts"* ]] || \
+   [[ "$command" == *"-exec.sh"* ]] || \
+   [[ "$command" == *"find-git-root.sh"* ]] || \
+   [[ "$command" == *"find-dev-pod.sh"* ]] || \
+   [[ "$command" == *"sync-go-mcp.sh"* ]]; then
     exit 0  # Allow plugin scripts
 fi
 
