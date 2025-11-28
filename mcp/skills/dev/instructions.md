@@ -86,3 +86,12 @@ https://api.example.com/mcp
 2. **Test after adding**: Always run `/mcp:list` to verify
 3. **Check connectivity**: Use `/mcp:test` for new servers
 4. **Prefer Claude CLI**: Use `claude mcp add` when possible
+
+## Out of Scope - Bail Out Immediately
+
+**If the request does NOT involve MCP configuration, STOP and report:**
+
+"This request is outside my scope. I handle MCP configuration only:
+- .mcp.json
+
+For other file types, use the appropriate agent."

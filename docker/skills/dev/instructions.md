@@ -172,8 +172,45 @@ RUN go mod download
 COPY . .
 ```
 
-### Security
-- Run as non-root user
+### Layer Optimization
+
+- **Combine RUN commands** with `&&` to reduce layers
+- **Order from least to most frequently changing** (dependencies before code)
+- **Use .dockerignore** to exclude unnecessary files
+
+**.dockerignore example:**
+```
+.git/
+.github/
+*.md
+LICENSE
+.gitignore
+.dockerignore
+```
+
+### Security Best Practices
+
+**Non-root user:**
+```dockerfile
+RUN addgroup -g 1000 code && \
+    adduser -D -u 1000 -G code code
+USER code
+```
+
+**Key principles:**
+- Run as non-root user (UID 1000)
 - Use read-only root filesystem when possible
+- Use `--no-cache` with package managers
 - Minimize installed packages
 - Use official/verified base images
+- Don't include secrets in layers
+
+## Out of Scope - Bail Out Immediately
+
+**If the request does NOT involve Dockerfiles or .dockerignore, STOP and report:**
+
+"This request is outside my scope. I handle Docker development only:
+- Dockerfile
+- .dockerignore
+
+For other file types, use the appropriate agent."
