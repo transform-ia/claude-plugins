@@ -22,6 +22,32 @@ if [[ "$command" == */claude-plugins/github/scripts/* ]]; then
     exit 0
 fi
 
+# Allow rm for GitHub workflow files only
+if [[ "$command" =~ ^rm[[:space:]] ]]; then
+    files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
+    for file in $files; do
+        # Must be in .github/ directory
+        if [[ "$file" == */.github/* ]] || [[ "$file" == .github/* ]]; then
+            filename=$(basename "$file")
+            case "$filename" in
+                *.yml|*.yaml|*.md)
+                    # Allowed GitHub file type
+                    ;;
+                *)
+                    echo "BLOCKED: Can only delete .yml/.yaml/.md files in .github/ in github plugin." >&2
+                    echo "Attempted to delete: $file" >&2
+                    exit 2
+                    ;;
+            esac
+        else
+            echo "BLOCKED: Can only delete files in .github/ directory in github plugin." >&2
+            echo "Attempted to delete: $file" >&2
+            exit 2
+        fi
+    done
+    exit 0
+fi
+
 # Allow ONLY safe read-only gh CLI commands (needed for builder skill)
 # BLOCKED: delete, cancel, set, remove, close, merge, create (security risk)
 if [[ "$command" =~ ^gh[[:space:]] ]]; then

@@ -26,6 +26,25 @@ if [[ "$command" == */claude-plugins/go/scripts/* ]]; then
     exit 0
 fi
 
+# Allow rm for Go files only
+if [[ "$command" =~ ^rm[[:space:]] ]]; then
+    files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
+    for file in $files; do
+        filename=$(basename "$file")
+        case "$filename" in
+            *.go|go.mod|go.sum|.golangci.yml|.golangci.yaml)
+                # Allowed Go file type
+                ;;
+            *)
+                echo "BLOCKED: Can only delete *.go, go.mod, go.sum, .golangci.* files in go plugin." >&2
+                echo "Attempted to delete: $file" >&2
+                exit 2
+                ;;
+        esac
+    done
+    exit 0
+fi
+
 # We're in Go plugin context - block Bash operations
 
 # Provide helpful redirect for go/golangci-lint

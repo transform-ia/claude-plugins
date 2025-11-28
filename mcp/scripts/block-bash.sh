@@ -22,6 +22,22 @@ if [[ "$command" =~ ^claude[[:space:]]+mcp ]]; then
     exit 0
 fi
 
+# Allow rm for .mcp.json files only
+if [[ "$command" =~ ^rm[[:space:]] ]]; then
+    files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
+    for file in $files; do
+        filename=$(basename "$file")
+        if [[ "$filename" == ".mcp.json" ]]; then
+            continue  # Allowed
+        else
+            echo "BLOCKED: Can only delete .mcp.json files in MCP plugin." >&2
+            echo "Attempted to delete: $file" >&2
+            exit 2
+        fi
+    done
+    exit 0
+fi
+
 # Allow ONLY read-only kubectl commands for connectivity testing
 # BLOCKED: create, apply, delete, patch, edit, replace, run, exec (security risk)
 if [[ "$command" =~ ^kubectl[[:space:]] ]]; then

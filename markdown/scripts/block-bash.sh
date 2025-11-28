@@ -21,6 +21,25 @@ if [[ "$command" == */claude-plugins/markdown/scripts/* ]]; then
     exit 0
 fi
 
+# Allow rm for markdown files only
+if [[ "$command" =~ ^rm[[:space:]] ]]; then
+    # Extract file arguments (skip flags like -f, -r, -rf)
+    files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
+    for file in $files; do
+        case "$file" in
+            *.md|*/.markdownlint.yaml|*/.markdownlint.json)
+                # Allowed file type
+                ;;
+            *)
+                echo "BLOCKED: Can only delete .md and .markdownlint.* files in markdown plugin." >&2
+                echo "Attempted to delete: $file" >&2
+                exit 2
+                ;;
+        esac
+    done
+    exit 0
+fi
+
 # Provide helpful redirect for markdownlint
 if [[ "$command" =~ markdownlint ]]; then
     echo "BLOCKED: Use /markdown:lint instead of direct markdownlint." >&2

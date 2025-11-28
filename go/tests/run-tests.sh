@@ -122,12 +122,12 @@ test_block_bash_allows_plugin() {
     fi
 }
 
-# Test: block-bash.sh blocks go commands
+# Test: block-bash.sh blocks go commands (in plugin context)
 test_block_bash_blocks_go() {
     local input='{"tool_input":{"command":"go build ."}}'
     local output
     local exit_code=0
-    output=$(echo "$input" | "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]]; then
         pass "block-bash.sh blocks 'go' commands"
     else
@@ -135,12 +135,12 @@ test_block_bash_blocks_go() {
     fi
 }
 
-# Test: block-bash.sh blocks other bash
+# Test: block-bash.sh blocks other bash (in plugin context)
 test_block_bash_blocks_other() {
     local input='{"tool_input":{"command":"ls -la"}}'
     local output
     local exit_code=0
-    output=$(echo "$input" | "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]]; then
         pass "block-bash.sh blocks other bash commands"
     else
@@ -161,12 +161,12 @@ test_enforce_go_allows_go() {
     fi
 }
 
-# Test: enforce-go-files.sh blocks other files
+# Test: enforce-go-files.sh blocks other files (in plugin context)
 test_enforce_go_blocks_other() {
     local input='{"tool_name":"Write","tool_input":{"file_path":"/path/to/file.txt"}}'
     local output
     local exit_code=0
-    output=$(echo "$input" | "$SCRIPTS_DIR/enforce-go-files.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-go-files.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]]; then
         pass "enforce-go-files.sh blocks non-.go files"
     else
@@ -234,6 +234,65 @@ header "Testing exec scripts require directory"
 for script in lint-exec.sh build-exec.sh test-exec.sh run-exec.sh tidy-exec.sh; do
     test_requires_dir_arg "$script"
 done
+
+header "Testing rm deletion permissions"
+
+# Test: rm deletion - allows .go files
+test_rm_allows_go() {
+    local input='{"tool_input":{"command":"rm /tmp/main.go"}}'
+    local output
+    local exit_code=0
+    output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    if [[ $exit_code -eq 0 ]]; then
+        pass "Allows rm *.go files"
+    else
+        fail "Allows rm *.go files" "exit=$exit_code output=$output"
+    fi
+}
+
+# Test: rm deletion - allows go.mod
+test_rm_allows_gomod() {
+    local input='{"tool_input":{"command":"rm /tmp/go.mod"}}'
+    local output
+    local exit_code=0
+    output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    if [[ $exit_code -eq 0 ]]; then
+        pass "Allows rm go.mod"
+    else
+        fail "Allows rm go.mod" "exit=$exit_code output=$output"
+    fi
+}
+
+# Test: rm deletion - allows go.sum
+test_rm_allows_gosum() {
+    local input='{"tool_input":{"command":"rm /tmp/go.sum"}}'
+    local output
+    local exit_code=0
+    output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    if [[ $exit_code -eq 0 ]]; then
+        pass "Allows rm go.sum"
+    else
+        fail "Allows rm go.sum" "exit=$exit_code output=$output"
+    fi
+}
+
+# Test: rm deletion - blocks non-go files
+test_rm_blocks_other() {
+    local input='{"tool_input":{"command":"rm /tmp/test.txt"}}'
+    local output
+    local exit_code=0
+    output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]]; then
+        pass "Blocks rm non-Go files"
+    else
+        fail "Blocks rm non-Go files" "exit=$exit_code output=$output"
+    fi
+}
+
+test_rm_allows_go
+test_rm_allows_gomod
+test_rm_allows_gosum
+test_rm_blocks_other
 
 # Summary
 header "Test Summary"

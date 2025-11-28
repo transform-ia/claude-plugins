@@ -55,6 +55,27 @@ echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/.dockerignore"}}' | \
     pass "Allows .dockerignore in plugin context" || \
     fail "File restriction" "Should allow .dockerignore"
 
+# Test: rm deletion - allows Dockerfile
+echo '{"tool_input":{"command":"rm /tmp/Dockerfile"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows rm Dockerfile" || \
+    fail "Deletion" "Should allow deleting Dockerfile"
+
+# Test: rm deletion - allows .dockerignore
+echo '{"tool_input":{"command":"rm /tmp/.dockerignore"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows rm .dockerignore" || \
+    fail "Deletion" "Should allow deleting .dockerignore"
+
+# Test: rm deletion - blocks non-docker files
+result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]]; then
+    pass "Blocks rm non-docker files"
+else
+    fail "Deletion security" "Should block deleting non-docker files"
+fi
+
 echo ""
 echo "Results: $passed passed, $failed failed"
 [[ $failed -eq 0 ]] && exit 0 || exit 1

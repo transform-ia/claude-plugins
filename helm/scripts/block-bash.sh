@@ -21,6 +21,39 @@ if [[ "$command" == */claude-plugins/helm/scripts/* ]]; then
     exit 0
 fi
 
+# Allow rm for helm chart files only
+if [[ "$command" =~ ^rm[[:space:]] ]]; then
+    files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
+    for file in $files; do
+        filename=$(basename "$file")
+        case "$filename" in
+            Chart.yaml|Chart.lock|values.yaml|values-*.yaml|.helmignore)
+                # Allowed file type
+                ;;
+            *)
+                # Check if in templates directory
+                if [[ "$file" == */templates/* ]]; then
+                    case "$filename" in
+                        *.yaml|*.yml|*.tpl|_helpers.tpl|NOTES.txt)
+                            # Allowed template file
+                            ;;
+                        *)
+                            echo "BLOCKED: Can only delete .yaml/.yml/.tpl files in templates/ in helm plugin." >&2
+                            echo "Attempted to delete: $file" >&2
+                            exit 2
+                            ;;
+                    esac
+                else
+                    echo "BLOCKED: Can only delete Chart.yaml, values*.yaml, .helmignore, or templates/ files in helm plugin." >&2
+                    echo "Attempted to delete: $file" >&2
+                    exit 2
+                fi
+                ;;
+        esac
+    done
+    exit 0
+fi
+
 # Provide helpful redirects
 if [[ "$command" =~ ^helm[[:space:]]lint ]]; then
     echo "BLOCKED: Use /helm:lint instead of direct helm lint." >&2

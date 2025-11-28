@@ -49,6 +49,27 @@ echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.md"}}' | \
     pass "Allows .md files in plugin context" || \
     fail "File restriction" "Should allow .md files"
 
+# Test: rm deletion - allows .md files
+echo '{"tool_input":{"command":"rm /tmp/test.md"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows rm *.md files" || \
+    fail "Deletion" "Should allow deleting .md files"
+
+# Test: rm deletion - allows .markdownlint.yaml
+echo '{"tool_input":{"command":"rm /tmp/.markdownlint.yaml"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows rm .markdownlint.yaml" || \
+    fail "Deletion" "Should allow deleting .markdownlint.yaml"
+
+# Test: rm deletion - blocks non-md files
+result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]]; then
+    pass "Blocks rm non-.md files"
+else
+    fail "Deletion security" "Should block deleting non-.md files"
+fi
+
 echo ""
 echo "Results: $passed passed, $failed failed"
 [[ $failed -eq 0 ]] && exit 0 || exit 1

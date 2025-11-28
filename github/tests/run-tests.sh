@@ -118,6 +118,36 @@ else
     fail "gh security" "Should block gh api POST"
 fi
 
+# Test: rm deletion - allows .github/workflows/*.yml
+echo '{"tool_input":{"command":"rm /tmp/.github/workflows/ci.yml"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows rm .github/workflows/*.yml" || \
+    fail "Deletion" "Should allow deleting workflow files"
+
+# Test: rm deletion - allows .github/*.yaml
+echo '{"tool_input":{"command":"rm .github/dependabot.yaml"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows rm .github/*.yaml" || \
+    fail "Deletion" "Should allow deleting .github yaml files"
+
+# Test: rm deletion - blocks files outside .github/
+result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]]; then
+    pass "Blocks rm files outside .github/"
+else
+    fail "Deletion security" "Should block deleting files outside .github/"
+fi
+
+# Test: rm deletion - blocks non-.yml files in .github/
+result=$(echo '{"tool_input":{"command":"rm .github/workflows/script.sh"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]]; then
+    pass "Blocks rm non-.yml files in .github/"
+else
+    fail "Deletion security" "Should block deleting non-.yml files in .github/"
+fi
+
 echo ""
 echo "Results: $passed passed, $failed failed"
 [[ $failed -eq 0 ]] && exit 0 || exit 1
