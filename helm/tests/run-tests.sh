@@ -61,6 +61,33 @@ echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/templates/deployment.
     pass "Allows templates/*.yaml in plugin context" || \
     fail "File restriction" "Should allow templates files"
 
+# Test: rm deletion - allows Chart.yaml
+echo '{"tool_input":{"command":"rm /tmp/Chart.yaml"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows rm Chart.yaml" || \
+    fail "Deletion" "Should allow deleting Chart.yaml"
+
+# Test: rm deletion - allows values.yaml
+echo '{"tool_input":{"command":"rm /tmp/values.yaml"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows rm values.yaml" || \
+    fail "Deletion" "Should allow deleting values.yaml"
+
+# Test: rm deletion - allows templates/*.yaml
+echo '{"tool_input":{"command":"rm /tmp/templates/deployment.yaml"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows rm templates/*.yaml" || \
+    fail "Deletion" "Should allow deleting template files"
+
+# Test: rm deletion - blocks non-helm files
+result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]]; then
+    pass "Blocks rm non-helm files"
+else
+    fail "Deletion security" "Should block deleting non-helm files"
+fi
+
 echo ""
 echo "Results: $passed passed, $failed failed"
 [[ $failed -eq 0 ]] && exit 0 || exit 1

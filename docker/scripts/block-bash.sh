@@ -21,6 +21,25 @@ if [[ "$command" == */claude-plugins/docker/scripts/* ]]; then
     exit 0
 fi
 
+# Allow rm for docker files only
+if [[ "$command" =~ ^rm[[:space:]] ]]; then
+    files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
+    for file in $files; do
+        filename=$(basename "$file")
+        case "$filename" in
+            Dockerfile|Dockerfile.*|.dockerignore)
+                # Allowed file type
+                ;;
+            *)
+                echo "BLOCKED: Can only delete Dockerfile and .dockerignore in docker plugin." >&2
+                echo "Attempted to delete: $file" >&2
+                exit 2
+                ;;
+        esac
+    done
+    exit 0
+fi
+
 # Provide helpful redirects
 if [[ "$command" =~ hadolint ]]; then
     echo "BLOCKED: Use /docker:lint instead of direct hadolint." >&2

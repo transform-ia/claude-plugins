@@ -88,6 +88,21 @@ echo '{"tool_input":{"command":"kubectl describe svc context7 -n claude"}}' | \
     pass "Allows kubectl describe (read-only)" || \
     fail "kubectl read" "Should allow kubectl describe"
 
+# Test: rm deletion - allows .mcp.json
+echo '{"tool_input":{"command":"rm /workspace/.mcp.json"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows rm .mcp.json" || \
+    fail "Deletion" "Should allow deleting .mcp.json"
+
+# Test: rm deletion - blocks non-.mcp.json files
+result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]]; then
+    pass "Blocks rm non-.mcp.json files"
+else
+    fail "Deletion security" "Should block deleting non-.mcp.json files"
+fi
+
 echo ""
 echo "Results: $passed passed, $failed failed"
 [[ $failed -eq 0 ]] && exit 0 || exit 1
