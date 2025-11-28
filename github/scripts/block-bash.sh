@@ -22,9 +22,37 @@ if [[ "$command" == */claude-plugins/github/scripts/* ]]; then
     exit 0
 fi
 
-# Allow gh CLI commands (needed for builder skill)
+# Allow ONLY safe read-only gh CLI commands (needed for builder skill)
+# BLOCKED: delete, cancel, set, remove, close, merge, create (security risk)
 if [[ "$command" =~ ^gh[[:space:]] ]]; then
-    exit 0
+    # Block dangerous gh operations
+    if [[ "$command" =~ gh[[:space:]]+(repo|release|secret|variable|label|issue|pr)[[:space:]]+(delete|remove|close|create|edit|set) ]]; then
+        echo "BLOCKED: gh write/delete operations not allowed in GitHub plugin." >&2
+        echo "Only read operations allowed: list, view, status" >&2
+        exit 2
+    fi
+    if [[ "$command" =~ gh[[:space:]]+run[[:space:]]+(cancel|delete|rerun) ]]; then
+        echo "BLOCKED: gh run cancel/delete/rerun not allowed." >&2
+        exit 2
+    fi
+    if [[ "$command" =~ gh[[:space:]]+auth ]]; then
+        echo "BLOCKED: gh auth operations not allowed." >&2
+        exit 2
+    fi
+    # Allow only read operations
+    if [[ "$command" =~ gh[[:space:]]+(run|pr|issue|release|repo|workflow)[[:space:]]+(list|view|watch|status|diff) ]]; then
+        exit 0
+    fi
+    if [[ "$command" =~ gh[[:space:]]+api[[:space:]] ]]; then
+        # Allow GET API calls, block others
+        if [[ "$command" =~ --method[[:space:]]+(POST|PUT|PATCH|DELETE) ]]; then
+            echo "BLOCKED: gh api write methods not allowed." >&2
+            exit 2
+        fi
+        exit 0
+    fi
+    echo "BLOCKED: Only read-only gh commands allowed (list, view, watch, status)." >&2
+    exit 2
 fi
 
 # Provide helpful redirects

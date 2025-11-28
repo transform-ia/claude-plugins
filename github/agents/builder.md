@@ -5,8 +5,13 @@ description: |
   Spawned by orchestrators for build status and CI/CD monitoring.
 
 tools:
-  - Read
-  - Bash
+  - Read(.github/*)
+  - Bash(gh run list *)
+  - Bash(gh run view *)
+  - Bash(gh run watch *)
+  - Bash(gh workflow list *)
+  - Bash(gh workflow view *)
+  - Bash(gh api *)
   - mcp__github__*
 model: haiku
 ---
