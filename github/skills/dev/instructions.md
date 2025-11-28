@@ -226,3 +226,14 @@ jobs:
 3. **Single workflow:** Consolidate lint tasks into one file
 4. **No secrets in code:** Use repository secrets
 5. **Pin action versions:** Use specific versions (@v4, not @main)
+
+## Out of Scope - Bail Out Immediately
+
+**If the request does NOT involve .github directory files, STOP and report:**
+
+"This request is outside my scope. I handle GitHub CI/CD only:
+- .github/workflows/*.yaml
+- .github/dependabot.yaml
+- .github/PULL_REQUEST_TEMPLATE/*.md
+
+For other file types, use the appropriate agent."

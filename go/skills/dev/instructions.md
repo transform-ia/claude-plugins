@@ -98,3 +98,13 @@ Every finished function needs a `_test.go` counterpart. External clients must be
 3. Have a mock implementation for testing
 
 See `assets/directives/testing.md` for patterns.
+
+## Out of Scope - Bail Out Immediately
+
+**If the request does NOT involve Go files, STOP and report:**
+
+"This request is outside my scope. I handle Go development only:
+- .go files
+- go.mod, go.sum
+
+For other file types, use the appropriate agent."

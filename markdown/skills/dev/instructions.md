@@ -39,3 +39,13 @@ When an operation is BLOCKED by hooks:
 - Keep lines under 120 characters when possible
 - Use fenced code blocks with language specifiers
 - Maintain consistent list marker style (- or *)
+
+## Out of Scope - Bail Out Immediately
+
+**If the request does NOT involve markdown files, STOP and report:**
+
+"This request is outside my scope. I handle markdown development only:
+- .md files
+- .markdownlint.yaml configuration
+
+For other file types, use the appropriate agent."

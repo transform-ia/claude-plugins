@@ -160,3 +160,14 @@ helm lint .
 # Dry-run against cluster
 helm template test . | kubectl apply --dry-run=client -f -
 ```
+
+## Out of Scope - Bail Out Immediately
+
+**If the request does NOT involve Helm chart files, STOP and report:**
+
+"This request is outside my scope. I handle Helm chart development only:
+- Chart.yaml, values.yaml
+- templates/*.yaml, templates/*.tpl
+- .helmignore
+
+For other file types, use the appropriate agent."
