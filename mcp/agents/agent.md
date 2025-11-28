@@ -1,14 +1,22 @@
 ---
-name: mcp
+name: mcp-dev
 description: |
   MCP server configuration and connectivity management.
   Manages /workspace/.mcp.json configuration.
   Tests and troubleshoots MCP server connectivity.
 
 tools:
-  - Bash
-  - Read
-  - Edit
+  - Read(*.mcp.json)
+  - Read(*/.mcp.json)
+  - Edit(*.mcp.json)
+  - Edit(*/.mcp.json)
+  - Bash(claude mcp *)
+  - Bash(kubectl get *)
+  - Bash(kubectl describe *)
+  - Bash(kubectl logs *)
+  - Bash(curl *)
+  - Bash(nc *)
+  - Bash(nslookup *)
 model: sonnet
 ---
 

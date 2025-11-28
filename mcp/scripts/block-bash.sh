@@ -22,9 +22,21 @@ if [[ "$command" =~ ^claude[[:space:]]+mcp ]]; then
     exit 0
 fi
 
-# Allow kubectl for connectivity testing
+# Allow ONLY read-only kubectl commands for connectivity testing
+# BLOCKED: create, apply, delete, patch, edit, replace, run, exec (security risk)
 if [[ "$command" =~ ^kubectl[[:space:]] ]]; then
-    exit 0
+    # Block dangerous kubectl operations
+    if [[ "$command" =~ kubectl[[:space:]]+(create|apply|delete|patch|edit|replace|run|exec|cp|attach|port-forward) ]]; then
+        echo "BLOCKED: kubectl write operations not allowed in MCP plugin." >&2
+        echo "Only read operations allowed: get, describe, logs" >&2
+        exit 2
+    fi
+    # Allow only read operations
+    if [[ "$command" =~ kubectl[[:space:]]+(get|describe|logs)[[:space:]] ]]; then
+        exit 0
+    fi
+    echo "BLOCKED: Only 'kubectl get', 'kubectl describe', 'kubectl logs' allowed." >&2
+    exit 2
 fi
 
 # Allow curl for endpoint testing
