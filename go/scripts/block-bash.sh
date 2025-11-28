@@ -26,17 +26,21 @@ if [[ "$command" == */claude-plugins/go/scripts/* ]]; then
     exit 0
 fi
 
-# Allow rm for Go files only
+# Allow rm for Go files only (.yml convention for golangci)
 if [[ "$command" =~ ^rm[[:space:]] ]]; then
     files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
     for file in $files; do
         filename=$(basename "$file")
         case "$filename" in
-            *.go|go.mod|go.sum|.golangci.yml|.golangci.yaml)
+            *.go|go.mod|go.sum|.golangci.yml)
                 # Allowed Go file type
                 ;;
+            .golangci.yaml)
+                echo "BLOCKED: Use .golangci.yml (not .yaml) - standard convention" >&2
+                exit 2
+                ;;
             *)
-                echo "BLOCKED: Can only delete *.go, go.mod, go.sum, .golangci.* files in go plugin." >&2
+                echo "BLOCKED: Can only delete *.go, go.mod, go.sum, .golangci.yml files in go plugin." >&2
                 echo "Attempted to delete: $file" >&2
                 exit 2
                 ;;

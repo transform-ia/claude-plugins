@@ -34,11 +34,15 @@ file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
 # Allow Go-related files only
 case "$file_path" in
-    *.go|*/go.mod|*/go.sum)
+    *.go|*/go.mod|*/go.sum|*/.golangci.yml)
         exit 0  # Allow
         ;;
+    */.golangci.yaml)
+        echo "BLOCKED: Use .golangci.yml (not .yaml) - standard convention" >&2
+        exit 2  # Block
+        ;;
     *)
-        echo "BLOCKED: Go plugin can only modify .go, go.mod, go.sum files." >&2
+        echo "BLOCKED: Go plugin can only modify .go, go.mod, go.sum, .golangci.yml files." >&2
         echo "For other files, use a different agent or ask outside the Go plugin." >&2
         exit 2  # Block
         ;;
