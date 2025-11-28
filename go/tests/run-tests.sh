@@ -161,27 +161,14 @@ test_enforce_go_allows_go() {
     fi
 }
 
-# Test: enforce-go-files.sh allows .golangci.yml
-test_enforce_go_allows_golangci() {
-    local input='{"tool_name":"Write","tool_input":{"file_path":"/path/to/.golangci.yml"}}'
-    local output
-    local exit_code=0
-    output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-go-files.sh" 2>&1) || exit_code=$?
-    if [[ $exit_code -eq 0 ]]; then
-        pass "enforce-go-files.sh allows .golangci.yml"
-    else
-        fail "enforce-go-files.sh allows .golangci.yml" "exit=$exit_code output=$output"
-    fi
-}
-
-# Test: enforce-go-files.sh blocks .golangci.yaml (enforces .yml)
-test_enforce_go_blocks_yaml() {
+# Test: enforce-go-files.sh blocks .golangci.yaml (agent cannot modify linter config)
+test_enforce_go_blocks_golangci() {
     local input='{"tool_name":"Write","tool_input":{"file_path":"/path/to/.golangci.yaml"}}'
     local output
     local exit_code=0
     output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-go-files.sh" 2>&1) || exit_code=$?
-    if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]]; then
-        pass "enforce-go-files.sh blocks .golangci.yaml (enforces .yml)"
+    if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]] && [[ "$output" == *"linter"* ]]; then
+        pass "enforce-go-files.sh blocks .golangci.yaml (protects linter config)"
     else
         fail "enforce-go-files.sh blocks .golangci.yaml" "exit=$exit_code output=$output"
     fi
@@ -250,8 +237,7 @@ test_block_bash_blocks_other
 
 header "Testing enforce-go-files.sh (PreToolUse hook)"
 test_enforce_go_allows_go
-test_enforce_go_allows_golangci
-test_enforce_go_blocks_yaml
+test_enforce_go_blocks_golangci
 test_enforce_go_blocks_other
 
 header "Testing post-bash-check.sh (PostToolUse hook)"
@@ -317,27 +303,14 @@ test_rm_blocks_other() {
     fi
 }
 
-# Test: rm deletion - allows .golangci.yml
-test_rm_allows_golangci() {
-    local input='{"tool_input":{"command":"rm /tmp/.golangci.yml"}}'
-    local output
-    local exit_code=0
-    output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
-    if [[ $exit_code -eq 0 ]]; then
-        pass "Allows rm .golangci.yml"
-    else
-        fail "Allows rm .golangci.yml" "exit=$exit_code output=$output"
-    fi
-}
-
-# Test: rm deletion - blocks .golangci.yaml (enforces .yml)
-test_rm_blocks_golangci_yaml() {
+# Test: rm deletion - blocks .golangci.yaml (agent cannot delete linter config)
+test_rm_blocks_golangci() {
     local input='{"tool_input":{"command":"rm /tmp/.golangci.yaml"}}'
     local output
     local exit_code=0
     output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
-    if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]]; then
-        pass "Blocks rm .golangci.yaml (enforces .yml)"
+    if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]] && [[ "$output" == *"linter"* ]]; then
+        pass "Blocks rm .golangci.yaml (protects linter config)"
     else
         fail "Blocks rm .golangci.yaml" "exit=$exit_code output=$output"
     fi
@@ -346,8 +319,7 @@ test_rm_blocks_golangci_yaml() {
 test_rm_allows_go
 test_rm_allows_gomod
 test_rm_allows_gosum
-test_rm_allows_golangci
-test_rm_blocks_golangci_yaml
+test_rm_blocks_golangci
 test_rm_blocks_other
 
 # Summary

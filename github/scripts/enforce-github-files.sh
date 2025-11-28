@@ -22,18 +22,18 @@ fi
 
 file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
-# Allow .github directory files (.yml only - GitHub convention)
+# Allow .github directory files (.yaml convention)
 if [[ "$file_path" == */.github/* ]]; then
     case "$file_path" in
-        *.yml|*.md)
+        *.yaml|*.md)
             exit 0
             ;;
-        *.yaml)
-            echo "BLOCKED: Use .yml extension (GitHub convention), not .yaml" >&2
+        *.yml)
+            echo "BLOCKED: Use .yaml extension (not .yml) - project convention" >&2
             exit 2
             ;;
     esac
 fi
 
-echo "BLOCKED: GitHub plugin can only modify .github/**/*.yml and .github/**/*.md files." >&2
+echo "BLOCKED: GitHub plugin can only modify .github/**/*.yaml and .github/**/*.md files." >&2
 exit 2

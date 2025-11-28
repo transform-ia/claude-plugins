@@ -26,21 +26,22 @@ if [[ "$command" == */claude-plugins/go/scripts/* ]]; then
     exit 0
 fi
 
-# Allow rm for Go files only (.yml convention for golangci)
+# Allow rm for Go files only (NO .golangci.* - agent cannot delete linter config)
 if [[ "$command" =~ ^rm[[:space:]] ]]; then
     files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
     for file in $files; do
         filename=$(basename "$file")
         case "$filename" in
-            *.go|go.mod|go.sum|.golangci.yml)
+            *.go|go.mod|go.sum)
                 # Allowed Go file type
                 ;;
-            .golangci.yaml)
-                echo "BLOCKED: Use .golangci.yml (not .yaml) - standard convention" >&2
+            .golangci.yaml|.golangci.yml)
+                echo "BLOCKED: Go plugin cannot delete linter configuration." >&2
+                echo "Discuss lint issues with the user first." >&2
                 exit 2
                 ;;
             *)
-                echo "BLOCKED: Can only delete *.go, go.mod, go.sum, .golangci.yml files in go plugin." >&2
+                echo "BLOCKED: Can only delete *.go, go.mod, go.sum files in go plugin." >&2
                 echo "Attempted to delete: $file" >&2
                 exit 2
                 ;;
