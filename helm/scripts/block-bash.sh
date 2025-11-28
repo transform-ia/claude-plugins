@@ -21,11 +21,19 @@ if [[ "$command" == */claude-plugins/helm/scripts/* ]]; then
     exit 0
 fi
 
-# Allow rm for helm chart files only
+# Allow rm for helm chart files only (NOT linter config)
 if [[ "$command" =~ ^rm[[:space:]] ]]; then
     files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
     for file in $files; do
         filename=$(basename "$file")
+        # Block linter config deletion
+        case "$filename" in
+            .yamllint.yaml|.yamllint.yml|.yamllint)
+                echo "BLOCKED: Helm plugin cannot delete linter configuration." >&2
+                echo "Discuss with the user before removing lint rules." >&2
+                exit 2
+                ;;
+        esac
         case "$filename" in
             Chart.yaml|Chart.lock|values.yaml|values-*.yaml|.helmignore)
                 # Allowed file type

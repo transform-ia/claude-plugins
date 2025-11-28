@@ -32,13 +32,23 @@ if [[ "$file_path" == */templates/* ]]; then
     esac
 fi
 
+# Block linter config - agent cannot modify (prevents disabling linters)
+case "$filename" in
+    .yamllint.yaml|.yamllint.yml|.yamllint)
+        echo "BLOCKED: Helm plugin cannot modify linter configuration." >&2
+        echo "If lint rules are too strict, discuss with the user first." >&2
+        echo "The user can modify .yamllint.yaml after agreeing on changes." >&2
+        exit 2
+        ;;
+esac
+
 # Allow specific helm chart files
 case "$filename" in
-    Chart.yaml|values.yaml|.helmignore|.yamllint.yaml|.yamllint.yml)
+    Chart.yaml|values.yaml|.helmignore)
         exit 0
         ;;
     *)
-        echo "BLOCKED: Helm plugin can only modify Chart.yaml, values.yaml, templates/*, .helmignore, .yamllint.yaml" >&2
+        echo "BLOCKED: Helm plugin can only modify Chart.yaml, values.yaml, templates/*, .helmignore" >&2
         echo "For README.md, use /markdown:lint. For other files, exit the plugin context." >&2
         exit 2
         ;;

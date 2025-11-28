@@ -88,6 +88,24 @@ else
     fail "Deletion security" "Should block deleting non-helm files"
 fi
 
+# Test: Blocks Write to .yamllint.yaml (protects linter config)
+result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/.yamllint.yaml"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-helm-files.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]] && [[ "$result" == *"linter"* ]]; then
+    pass "Blocks Write .yamllint.yaml (protects linter config)"
+else
+    fail "Linter protection" "Should block .yamllint.yaml modification"
+fi
+
+# Test: Blocks rm .yamllint.yaml (protects linter config)
+result=$(echo '{"tool_input":{"command":"rm /tmp/.yamllint.yaml"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]] && [[ "$result" == *"linter"* ]]; then
+    pass "Blocks rm .yamllint.yaml (protects linter config)"
+else
+    fail "Linter protection" "Should block .yamllint.yaml deletion"
+fi
+
 echo ""
 echo "Results: $passed passed, $failed failed"
 [[ $failed -eq 0 ]] && exit 0 || exit 1
