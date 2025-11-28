@@ -1,6 +1,6 @@
 #!/bin/bash
 # PreToolUse: Enforce Go-only file restrictions for Write/Edit operations
-# This hook runs ONLY when the Go plugin is active (plugin hooks are scoped)
+# ONLY enforces when running in Go plugin context (CLAUDE_PLUGIN_ROOT set)
 #
 # Exit codes (per Claude Code docs):
 #   0 = Allow (success)
@@ -14,6 +14,13 @@ set -euo pipefail
 # Trap any error and convert to exit 2 (blocking)
 trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in enforce-go-files.sh" >&2; exit 2' ERR
 
+# Check if we're in Go plugin context via environment variable
+# This works for both direct /go:* commands AND subagents spawned by the plugin
+GO_PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/go"
+if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$GO_PLUGIN_PATH" ]]; then
+    exit 0  # Not in Go plugin context, allow all operations
+fi
+
 input=$(cat)
 tool=$(echo "$input" | jq -r '.tool_name // empty')
 
@@ -22,6 +29,7 @@ if [[ "$tool" != "Write" && "$tool" != "Edit" ]]; then
     exit 0  # Allow - not a file write operation
 fi
 
+# We're in Go plugin context - enforce Go-only file restrictions
 file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
 # Allow Go-related files only
@@ -30,10 +38,8 @@ case "$file_path" in
         exit 0  # Allow
         ;;
     *)
-        echo "BLOCKED: Go plugin can only modify .go, go.mod, and go.sum files" >&2
-        echo "Attempted: $file_path" >&2
-        echo "" >&2
-        echo "Complete the Go task first, then use another agent for other file types." >&2
+        echo "BLOCKED: Go plugin can only modify .go, go.mod, go.sum files." >&2
+        echo "For other files, use a different agent or ask outside the Go plugin." >&2
         exit 2  # Block
         ;;
 esac

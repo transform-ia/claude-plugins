@@ -1,6 +1,7 @@
 #!/bin/bash
-# PreToolUse: Block ALL Bash commands in Go plugin
+# PreToolUse: Block Bash commands when in Go plugin context
 # Go agent should only use /go:* commands, not shell
+# ONLY enforces when running in Go plugin context (CLAUDE_PLUGIN_ROOT set)
 #
 # Exit codes (per Claude Code docs):
 #   0 = Allow (success)
@@ -10,6 +11,13 @@
 set -euo pipefail
 trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in block-bash.sh" >&2; exit 2' ERR
 
+# Check if we're in Go plugin context via environment variable
+# This works for both direct /go:* commands AND subagents spawned by the plugin
+GO_PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/go"
+if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$GO_PLUGIN_PATH" ]]; then
+    exit 0  # Not in Go plugin context, allow all Bash operations
+fi
+
 input=$(cat)
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
 
@@ -17,6 +25,8 @@ command=$(echo "$input" | jq -r '.tool_input.command // empty')
 if [[ "$command" == */claude-plugins/go/scripts/* ]]; then
     exit 0
 fi
+
+# We're in Go plugin context - block Bash operations
 
 # Provide helpful redirect for go/golangci-lint
 if [[ "$command" =~ ^go[[:space:]] ]]; then
@@ -35,7 +45,7 @@ if [[ "$command" =~ ^golangci-lint ]]; then
     exit 2
 fi
 
-# Block ALL other Bash commands
-echo "BLOCKED: Go plugin does not allow Bash commands." >&2
-echo "Use /go:* commands for Go operations." >&2
+# Block ALL other Bash commands when in Go plugin context
+echo "BLOCKED: Bash not allowed in Go plugin context." >&2
+echo "For shell commands, use a different agent or ask outside the Go plugin." >&2
 exit 2
