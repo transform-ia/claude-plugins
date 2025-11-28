@@ -1,0 +1,5 @@
+{
+  "name": "docker",
+  "version": "0.1.0",
+  "description": "Dockerfile development, linting, and image tag discovery"
+}

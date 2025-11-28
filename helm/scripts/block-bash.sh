@@ -1,0 +1,42 @@
+#!/bin/bash
+# PreToolUse: Block Bash commands when in helm plugin context
+#
+# Exit codes:
+#   0 = Allow
+#   2 = Block
+
+set -euo pipefail
+trap 'echo "HOOK ERROR: block-bash.sh failed" >&2; exit 2' ERR
+
+PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/helm"
+if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PLUGIN_PATH" ]]; then
+    exit 0
+fi
+
+input=$(cat)
+command=$(echo "$input" | jq -r '.tool_input.command // empty')
+
+# Allow plugin's own scripts
+if [[ "$command" == */claude-plugins/helm/scripts/* ]]; then
+    exit 0
+fi
+
+# Provide helpful redirects
+if [[ "$command" =~ ^helm[[:space:]]lint ]]; then
+    echo "BLOCKED: Use /helm:lint instead of direct helm lint." >&2
+    exit 2
+fi
+
+if [[ "$command" =~ ^yamllint ]]; then
+    echo "BLOCKED: Use /helm:lint instead of direct yamllint." >&2
+    exit 2
+fi
+
+if [[ "$command" =~ ^prettier ]]; then
+    echo "BLOCKED: Use /helm:format instead of direct prettier." >&2
+    exit 2
+fi
+
+echo "BLOCKED: Bash not allowed in helm plugin context." >&2
+echo "Use /helm:lint, /helm:format, /helm:template, or exit the plugin context." >&2
+exit 2
