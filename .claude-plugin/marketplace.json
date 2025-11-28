@@ -7,13 +7,53 @@
   },
   "plugins": [
     {
+      "name": "docker",
+      "source": "./docker",
+      "description": "Dockerfile development, linting, and image tag discovery",
+      "version": "0.1.0",
+      "author": { "name": "Transform IA" }
+    },
+    {
+      "name": "github",
+      "source": "./github",
+      "description": "GitHub Actions workflows, CI/CD, Dependabot, and build monitoring",
+      "version": "0.1.0",
+      "author": { "name": "Transform IA" }
+    },
+    {
       "name": "go",
       "source": "./go",
       "description": "Go development with Kubernetes dev containers",
       "version": "0.1.0",
-      "author": {
-        "name": "Transform IA"
-      }
+      "author": { "name": "Transform IA" }
+    },
+    {
+      "name": "helm",
+      "source": "./helm",
+      "description": "Helm chart development, linting, and Kubernetes operations",
+      "version": "0.1.0",
+      "author": { "name": "Transform IA" }
+    },
+    {
+      "name": "markdown",
+      "source": "./markdown",
+      "description": "Markdown documentation linting and formatting",
+      "version": "0.1.0",
+      "author": { "name": "Transform IA" }
+    },
+    {
+      "name": "mcp",
+      "source": "./mcp",
+      "description": "MCP server configuration management",
+      "version": "0.1.0",
+      "author": { "name": "Transform IA" }
+    },
+    {
+      "name": "orchestrator",
+      "source": "./orchestrator",
+      "description": "Repository detection and plugin orchestration",
+      "version": "0.1.0",
+      "author": { "name": "Transform IA" }
     }
   ]
 }
