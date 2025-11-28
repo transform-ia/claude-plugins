@@ -124,11 +124,11 @@ echo '{"tool_input":{"command":"rm /tmp/.github/workflows/ci.yml"}}' | \
     pass "Allows rm .github/workflows/*.yml" || \
     fail "Deletion" "Should allow deleting workflow files"
 
-# Test: rm deletion - allows .github/*.yaml
-echo '{"tool_input":{"command":"rm .github/dependabot.yaml"}}' | \
+# Test: rm deletion - allows .github/*.yml
+echo '{"tool_input":{"command":"rm .github/dependabot.yml"}}' | \
     CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
-    pass "Allows rm .github/*.yaml" || \
-    fail "Deletion" "Should allow deleting .github yaml files"
+    pass "Allows rm .github/*.yml" || \
+    fail "Deletion" "Should allow deleting .github yml files"
 
 # Test: rm deletion - blocks files outside .github/
 result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
@@ -146,6 +146,15 @@ if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks rm non-.yml files in .github/"
 else
     fail "Deletion security" "Should block deleting non-.yml files in .github/"
+fi
+
+# Test: .yaml extension blocked (enforce .yml convention)
+result=$(echo '{"tool_input":{"command":"rm .github/dependabot.yaml"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]]; then
+    pass "Blocks .yaml extension (enforces .yml convention)"
+else
+    fail "Convention" "Should block .yaml, enforce .yml"
 fi
 
 echo ""
