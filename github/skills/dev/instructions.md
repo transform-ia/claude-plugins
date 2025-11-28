@@ -62,7 +62,7 @@ jobs:
 - Single workflow file: `ci.yaml`
 - No path filters: Run on every push and PR
 - Claude image: Same tools as local development
-- `--user 0` required for claude-image containers
+- `--user 0` required: Claude-image runs as non-root; GitHub Actions mounts workspace as root
 
 ## Dependabot Configuration
 
@@ -113,6 +113,26 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+```
+
+### Node.js Projects
+```yaml
+---
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -226,6 +246,16 @@ jobs:
 3. **Single workflow:** Consolidate lint tasks into one file
 4. **No secrets in code:** Use repository secrets
 5. **Pin action versions:** Use specific versions (@v4, not @main)
+
+## Common yamllint Fixes
+
+| Issue | Fix |
+|-------|-----|
+| `line too long` | Break lines or use YAML multiline syntax |
+| `wrong indentation` | Use 2-space indentation |
+| `missing document start` | Add `---` at file start |
+| `trailing spaces` | Remove trailing whitespace |
+| `truthy value` | Use `true`/`false` not `yes`/`no` |
 
 ## Out of Scope - Bail Out Immediately
 

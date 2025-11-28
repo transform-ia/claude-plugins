@@ -148,6 +148,34 @@ spec:
 - `version`: Chart version - bump for template/structure changes
 - `appVersion`: Application version - used as default image tag
 
+**Bump versions instead of using `pullPolicy: Always`:**
+- ✅ Bump `appVersion` when application image changes
+- ✅ Bump `version` when templates change
+- ❌ Never use `pullPolicy: Always` as a workaround
+
+## Chart Naming (OCI Registries)
+
+GHCR doesn't distinguish Docker images from Helm charts. Use suffixes:
+
+```
+Docker image: ghcr.io/org/myapp-image
+Helm chart:   ghcr.io/org/myapp-chart
+```
+
+## Security Hardening
+
+Hardcode security settings in templates (not values.yaml):
+
+```yaml
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]
+```
+
 ## Testing
 
 ```bash

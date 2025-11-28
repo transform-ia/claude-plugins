@@ -45,3 +45,35 @@ The orchestrator:
 - **DOES NOT:** Edit files, write code, make implementation decisions
 
 For actual work, always delegate to the appropriate plugin.
+
+## Mandatory Plugins
+
+**Always dispatch these, even if files don't exist yet:**
+
+| Plugin | Reason |
+|--------|--------|
+| `github` | CI/CD required for all repos |
+
+## Phase Ordering
+
+Execute plugins in this order:
+
+```
+PHASE 1: CI/CD Setup (Sequential)
+└── github (creates .github/ if missing)
+
+PHASE 2: Domain Plugins (Parallel)
+├── go (if *.go exists)
+├── docker (if Dockerfile exists)
+├── helm (if Chart.yaml exists)
+└── markdown (if *.md files exist)
+```
+
+Each plugin runs its own linter automatically when finished.
+
+## Iterate Until Done
+
+Don't stop after one dispatch. Keep going until:
+- ✅ All requested changes are implemented
+- ✅ All plugins report success
+- ✅ No fixable errors remain

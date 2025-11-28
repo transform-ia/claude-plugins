@@ -86,3 +86,43 @@ Latest Workflow Runs:
 | `helm lint` | Chart structure |
 | `npm test` | Node.js test failures |
 | `permission denied` | GITHUB_TOKEN scope |
+
+## Repository Detection
+
+When user doesn't specify a repository, detect from git remote:
+
+```bash
+cd /workspace/sandbox/transform-ia/hooks
+git remote get-url origin
+# https://github.com/transform-ia/hooks
+# → Use transform-ia/hooks
+```
+
+## Auto-Watch After Tag Push
+
+After pushing a tag, automatically watch the triggered workflow:
+
+```bash
+# Tag and push
+git tag v1.0.0
+git push origin v1.0.0
+
+# Wait for workflow trigger
+sleep 10
+
+# Get latest run ID and watch
+RUN_ID=$(gh run list --repo OWNER/REPO --limit 1 --json databaseId --jq '.[0].databaseId')
+gh run watch $RUN_ID --repo OWNER/REPO --exit-status
+```
+
+## Out of Scope - Bail Out Immediately
+
+**If the request does NOT involve build status or workflow monitoring, STOP and report:**
+
+"This request is outside my scope. I handle GitHub Actions monitoring only:
+- Querying workflow runs
+- Checking build status
+- Viewing workflow logs
+
+For workflow file editing, use `/github:dev`.
+For other operations, use the appropriate plugin."
