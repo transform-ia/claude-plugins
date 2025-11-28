@@ -22,11 +22,6 @@ if [[ "$command" == */claude-plugins/orchestrator/scripts/* ]]; then
     exit 0
 fi
 
-# Allow task for listing
-if [[ "$command" =~ ^task[[:space:]]+(--list|-l) ]]; then
-    exit 0
-fi
-
 # Block file operations - orchestrator dispatches, doesn't implement
 if [[ "$command" =~ ^(cat|head|tail|less|more)[[:space:]] ]]; then
     echo "BLOCKED: Orchestrator dispatches to plugins, doesn't read file contents." >&2
