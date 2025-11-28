@@ -22,7 +22,7 @@ if [[ "$command" == */claude-plugins/github/scripts/* ]]; then
     exit 0
 fi
 
-# Allow rm for GitHub workflow files only (.yml - GitHub convention)
+# Allow rm for GitHub workflow files only (.yaml convention)
 if [[ "$command" =~ ^rm[[:space:]] ]]; then
     files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
     for file in $files; do
@@ -30,11 +30,15 @@ if [[ "$command" =~ ^rm[[:space:]] ]]; then
         if [[ "$file" == */.github/* ]] || [[ "$file" == .github/* ]]; then
             filename=$(basename "$file")
             case "$filename" in
-                *.yml|*.md)
+                *.yaml|*.md)
                     # Allowed GitHub file type
                     ;;
+                *.yml)
+                    echo "BLOCKED: Use .yaml extension (not .yml) - project convention" >&2
+                    exit 2
+                    ;;
                 *)
-                    echo "BLOCKED: Can only delete .yml/.md files in .github/ in github plugin." >&2
+                    echo "BLOCKED: Can only delete .yaml/.md files in .github/ in github plugin." >&2
                     echo "Attempted to delete: $file" >&2
                     exit 2
                     ;;

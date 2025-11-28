@@ -32,17 +32,18 @@ fi
 # We're in Go plugin context - enforce Go-only file restrictions
 file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
-# Allow Go-related files only
+# Allow Go-related files only (NO .golangci.yaml - agent cannot modify linter config)
 case "$file_path" in
-    *.go|*/go.mod|*/go.sum|*/.golangci.yml)
+    *.go|*/go.mod|*/go.sum)
         exit 0  # Allow
         ;;
-    */.golangci.yaml)
-        echo "BLOCKED: Use .golangci.yml (not .yaml) - standard convention" >&2
+    */.golangci.yaml|*/.golangci.yml)
+        echo "BLOCKED: Go plugin cannot modify linter configuration." >&2
+        echo "Discuss lint issues with the user before making config changes." >&2
         exit 2  # Block
         ;;
     *)
-        echo "BLOCKED: Go plugin can only modify .go, go.mod, go.sum, .golangci.yml files." >&2
+        echo "BLOCKED: Go plugin can only modify .go, go.mod, go.sum files." >&2
         echo "For other files, use a different agent or ask outside the Go plugin." >&2
         exit 2  # Block
         ;;

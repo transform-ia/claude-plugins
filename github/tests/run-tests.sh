@@ -43,17 +43,26 @@ else
     fail "File restriction" "Should block .go files"
 fi
 
-# Test: Allows .github/workflows files in plugin context
-echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/.github/workflows/ci.yml"}}' | \
+# Test: Allows .github/workflows/*.yaml in plugin context
+echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/.github/workflows/ci.yaml"}}' | \
     CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-github-files.sh" && \
-    pass "Allows .github/workflows/*.yml in plugin context" || \
+    pass "Allows .github/workflows/*.yaml in plugin context" || \
     fail "File restriction" "Should allow .github/workflows files"
 
-# Test: Allows .github/dependabot.yml in plugin context
-echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/.github/dependabot.yml"}}' | \
+# Test: Allows .github/dependabot.yaml in plugin context
+echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/.github/dependabot.yaml"}}' | \
     CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-github-files.sh" && \
-    pass "Allows .github/dependabot.yml in plugin context" || \
-    fail "File restriction" "Should allow dependabot.yml"
+    pass "Allows .github/dependabot.yaml in plugin context" || \
+    fail "File restriction" "Should allow dependabot.yaml"
+
+# Test: Blocks .yml extension in Write (enforces .yaml)
+result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/.github/workflows/ci.yml"}}' | \
+    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-github-files.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]]; then
+    pass "Blocks .yml extension in Write (enforces .yaml)"
+else
+    fail "Convention" "Should block .yml, enforce .yaml"
+fi
 
 # Test: gh CLI restrictions - should block gh repo delete
 result=$(echo '{"tool_input":{"command":"gh repo delete owner/repo --yes"}}' | \
@@ -118,17 +127,17 @@ else
     fail "gh security" "Should block gh api POST"
 fi
 
-# Test: rm deletion - allows .github/workflows/*.yml
-echo '{"tool_input":{"command":"rm /tmp/.github/workflows/ci.yml"}}' | \
+# Test: rm deletion - allows .github/workflows/*.yaml
+echo '{"tool_input":{"command":"rm /tmp/.github/workflows/ci.yaml"}}' | \
     CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
-    pass "Allows rm .github/workflows/*.yml" || \
+    pass "Allows rm .github/workflows/*.yaml" || \
     fail "Deletion" "Should allow deleting workflow files"
 
-# Test: rm deletion - allows .github/*.yml
-echo '{"tool_input":{"command":"rm .github/dependabot.yml"}}' | \
+# Test: rm deletion - allows .github/*.yaml
+echo '{"tool_input":{"command":"rm .github/dependabot.yaml"}}' | \
     CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
-    pass "Allows rm .github/*.yml" || \
-    fail "Deletion" "Should allow deleting .github yml files"
+    pass "Allows rm .github/*.yaml" || \
+    fail "Deletion" "Should allow deleting .github yaml files"
 
 # Test: rm deletion - blocks files outside .github/
 result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
@@ -139,22 +148,22 @@ else
     fail "Deletion security" "Should block deleting files outside .github/"
 fi
 
-# Test: rm deletion - blocks non-.yml files in .github/
+# Test: rm deletion - blocks non-.yaml files in .github/
 result=$(echo '{"tool_input":{"command":"rm .github/workflows/script.sh"}}' | \
     CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
-    pass "Blocks rm non-.yml files in .github/"
+    pass "Blocks rm non-.yaml files in .github/"
 else
-    fail "Deletion security" "Should block deleting non-.yml files in .github/"
+    fail "Deletion security" "Should block deleting non-.yaml files in .github/"
 fi
 
-# Test: .yaml extension blocked (enforce .yml convention)
-result=$(echo '{"tool_input":{"command":"rm .github/dependabot.yaml"}}' | \
+# Test: .yml extension blocked (enforce .yaml convention)
+result=$(echo '{"tool_input":{"command":"rm .github/dependabot.yml"}}' | \
     CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
-    pass "Blocks .yaml extension (enforces .yml convention)"
+    pass "Blocks .yml extension (enforces .yaml convention)"
 else
-    fail "Convention" "Should block .yaml, enforce .yml"
+    fail "Convention" "Should block .yml, enforce .yaml"
 fi
 
 echo ""
