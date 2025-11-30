@@ -1,13 +1,32 @@
 ---
 description: "Full release workflow: /github:release <version>"
-allowed-tools: [Bash, Read, Edit, Write]
+allowed-tools: [Bash, Read, Edit, Write, Bash(git *)]
 ---
-Execute a full release workflow with version bump, build monitoring, and deployment.
+
+# GitHub Release
+
+## Permissions
+
+This command can only modify: `.github/**/*.yaml`, `.github/**/*.md`
+
+---
+
+## Parameter Validation
+
+**REQUIRED**: If `$ARGUMENTS` is empty or does not contain a version, respond
+with: "Error: version required. Usage: /github:release <version>" and STOP. Do
+not proceed with any tool calls.
+
+---
+
+Execute a full release workflow with version bump, build monitoring, and
+deployment.
 
 **Usage**: `/github:release <version>`
 
 **Examples**:
-```
+
+```text
 /github:release 1.2.0
 /github:release patch    # Auto-bump patch version
 /github:release minor    # Auto-bump minor version
@@ -28,12 +47,14 @@ Execute a full release workflow with version bump, build monitoring, and deploym
    - **Docker**: Tag will be created from git tag
 
 3. **Commit version bump**:
+
    ```bash
    git add -A
    git commit -m "Bump version to $VERSION"
    ```
 
 4. **Create and push tag**:
+
    ```bash
    git tag "v$VERSION"
    git push origin HEAD --tags
@@ -41,7 +62,8 @@ Execute a full release workflow with version bump, build monitoring, and deploym
 
 ### Phase 2: Monitor Build
 
-5. **Wait for GitHub Actions**:
+1. **Wait for GitHub Actions**:
+
    ```bash
    # Get workflow run ID
    gh run list --limit 1 --json databaseId --jq '.[0].databaseId'
@@ -50,20 +72,22 @@ Execute a full release workflow with version bump, build monitoring, and deploym
    gh run watch <run-id>
    ```
 
-6. **Verify build success**:
+2. **Verify build success**:
+
    ```bash
    gh run view <run-id> --json conclusion --jq '.conclusion'
    ```
 
 ### Phase 3: Update Dependencies (if applicable)
 
-7. **Check for related Helm chart**:
+1. **Check for related Helm chart**:
    - Look for chart that uses this image
    - Common patterns:
      - `<project>-chart` for `<project>-image`
      - Charts in same organization
 
-8. **If Helm chart exists**:
+2. **If Helm chart exists**:
+
    ```bash
    # Update image tag in values.yaml or Chart.yaml appVersion
    # Update Chart.yaml version
@@ -73,26 +97,28 @@ Execute a full release workflow with version bump, build monitoring, and deploym
 
 ### Phase 4: Deploy (if ArgoCD Application exists)
 
-9. **Check for ArgoCD Application**:
+1. **Check for ArgoCD Application**:
+
    ```bash
    ls /workspace/applications/<project>*.yaml
    ```
 
-10. **If Application exists**:
-    ```bash
-    # Update targetRevision in Application
-    # Commit and push
-    # ArgoCD auto-syncs
-    ```
+2. **If Application exists**:
+
+   ```bash
+   # Update targetRevision in Application
+   # Commit and push
+   # ArgoCD auto-syncs
+   ```
 
 ## Version Detection
 
-| Project Type | Version Location |
-|--------------|------------------|
-| Go | `go.mod` module version, or constants file |
-| Node.js | `package.json` "version" field |
-| Helm | `Chart.yaml` "version" and "appVersion" |
-| Generic | Git tags |
+| Project Type | Version Location                           |
+| ------------ | ------------------------------------------ |
+| Go           | `go.mod` module version, or constants file |
+| Node.js      | `package.json` "version" field             |
+| Helm         | `Chart.yaml` "version" and "appVersion"    |
+| Generic      | Git tags                                   |
 
 ## Build Monitoring
 

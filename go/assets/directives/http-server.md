@@ -1,10 +1,12 @@
 # HTTP Server Directive
 
-**Triggers when:** Application needs HTTP endpoints (serve command, API, webhooks)
+**Triggers when:** Application needs HTTP endpoints (serve command, API,
+webhooks)
 
 ## Single Port, Multiple Handlers
 
-ALL handlers MUST bind to a single HTTP port (default: 80). Use Go's `http.NewServeMux()`:
+ALL handlers MUST bind to a single HTTP port (default: 80). Use Go's
+`http.NewServeMux()`:
 
 ```go
 mux := http.NewServeMux()

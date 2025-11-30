@@ -2,14 +2,18 @@
 # Enforce MCP plugin can only modify .mcp.json files
 set -euo pipefail
 
-# Check if we're in our plugin context
-MY_PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/mcp"
-if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$MY_PLUGIN_PATH" ]]; then
-    exit 0  # Not in our plugin context, allow all operations
+input=$(cat)
+
+# Detect caller from transcript - only enforce for /mcp:* commands
+transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
+tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
+DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
+caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
+
+if [[ "$caller" != /mcp:* ]]; then
+    exit 0  # Not from MCP plugin command, allow
 fi
 
-# Read hook input
-input=$(cat)
 file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
 if [[ -z "$file_path" ]]; then

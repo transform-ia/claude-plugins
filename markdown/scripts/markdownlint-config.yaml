@@ -1,0 +1,14 @@
+# Markdownlint config aligned with Prettier
+# Prettier wraps prose but cannot wrap tables/code blocks
+
+default: true
+
+# MD013: Disable for tables and code blocks only
+# Prettier handles prose wrapping
+MD013:
+  code_blocks: false
+  tables: false
+
+# MD033: Allow inline HTML for argument placeholders
+# e.g., <directory>, <image>, <version>
+MD033: false

@@ -1,7 +1,6 @@
 #!/bin/bash
 # PreToolUse: Block Bash commands when in Go plugin context
 # Go agent should only use /go:* commands, not shell
-# ONLY enforces when running in Go plugin context (CLAUDE_PLUGIN_ROOT set)
 #
 # Exit codes (per Claude Code docs):
 #   0 = Allow (success)
@@ -11,14 +10,18 @@
 set -euo pipefail
 trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in block-bash.sh" >&2; exit 2' ERR
 
-# Check if we're in Go plugin context via environment variable
-# This works for both direct /go:* commands AND subagents spawned by the plugin
-GO_PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/go"
-if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$GO_PLUGIN_PATH" ]]; then
-    exit 0  # Not in Go plugin context, allow all Bash operations
+input=$(cat)
+
+# Detect caller from transcript - only enforce for /go:* commands
+transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
+tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
+DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
+caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
+
+if [[ "$caller" != /go:* ]]; then
+    exit 0  # Not from Go plugin command, allow
 fi
 
-input=$(cat)
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
 
 # Allow plugin's own scripts (absolute path, no cd)
@@ -61,6 +64,7 @@ if [[ "$command" =~ ^go[[:space:]] ]]; then
     echo "  /go:test <dir>        - go test" >&2
     echo "  /go:lint <dir>        - golangci-lint" >&2
     echo "  /go:run <dir>         - go run ." >&2
+    echo "  /go:mcp-sync          - sync MCP servers to .mcp.json" >&2
     exit 2
 fi
 
@@ -71,5 +75,15 @@ fi
 
 # Block ALL other Bash commands when in Go plugin context
 echo "BLOCKED: Bash not allowed in Go plugin context." >&2
-echo "For shell commands, use a different agent or ask outside the Go plugin." >&2
+echo "" >&2
+echo "Available commands:" >&2
+echo "  /go:init <dir> <pkg>  - go mod init" >&2
+echo "  /go:tidy <dir>        - go mod tidy" >&2
+echo "  /go:build <dir>       - go build" >&2
+echo "  /go:test <dir>        - go test" >&2
+echo "  /go:lint <dir>        - golangci-lint" >&2
+echo "  /go:run <dir>         - go run ." >&2
+echo "  /go:mcp-sync          - sync MCP servers to .mcp.json" >&2
+echo "" >&2
+echo "For other operations, exit the plugin context first." >&2
 exit 2

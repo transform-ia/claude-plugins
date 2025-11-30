@@ -10,5 +10,5 @@ description: |
   - Working with Dockerfiles, Helm charts, or YAML files
   - The word "golang" appears in a path or project name
   - User is doing Docker, Helm, or infrastructure work
-allowed-tools: Read, Write, Edit, Glob, Grep
+allowed-tools: Read, Write(*.go), Write(go.mod), Write(go.sum), Edit(*.go), Edit(go.mod), Edit(go.sum), Glob, Grep, Search, Bash(rm *.go), Bash(rm go.mod), Bash(rm go.sum), SlashCommand(/go:*), mcp__context7__*, mcp__golang-*__*
 ---

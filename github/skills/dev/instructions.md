@@ -1,42 +1,174 @@
-# GitHub CI/CD Development Guidelines
+# GitHub CI/CD Development
 
-## Critical: Hook Restrictions
+## Permissions
 
-**This context restricts operations to .github directory files only.**
+Unless specified, everything else is BLOCKED by hooks, in which cases:
 
-Allowed files:
-- `.github/workflows/*.yaml`, `.github/workflows/*.yml`
-- `.github/dependabot.yml`
-- `.github/PULL_REQUEST_TEMPLATE/*.md`
-
-When an operation is BLOCKED by hooks:
 - This is EXPECTED behavior
-- For other files, exit the plugin context
+- DO NOT suggest workarounds
+- Report: "This operation is outside the github plugin scope." Unless you think
+  this is an implementation issue, in which case start a conversation with the
+  human on how to fix the issue.
 
-## Available Commands
+### Tools Available
 
-| Command | Purpose |
-|---------|---------|
-| `/github:lint [dir]` | Run yamllint + prettier on .github |
-| `/github:status [repo]` | Check workflow status |
-| `/github:logs <run-id>` | Get workflow logs |
+- **Read** - Read any file
+- **Glob** - Find files by pattern
+- **Grep** - Search file contents
+- **Search** - Search file by name
+- **Write/Edit** - to restricted files (see below)
+- **Bash** - Restricted to:
+  - `rm` to restricted files (see below)
+  - `gh` read-only: `list`, `view`, `watch`, `status`, `diff`
+  - `gh api` GET requests only
+- **SlashCommand**:
+  | Command | Purpose |
+  |---------|---------|
+  | `/github:lint [dir]` | Run yamllint + prettier |
+  | `/github:status [repo]` | Check workflow status |
+  | `/github:logs <run-id>` | Get workflow logs |
+  | `/github:release <version>` | Full release workflow with build monitoring |
+  | `/orchestrator:detect [dir]` | Detect project type for CI config |
+- **MCP Tools**:
+  - `mcp__github__*` - GitHub API
 
-## Rules
+### File Restrictions
 
-1. **Linter runs automatically** when you finish. Fix all issues before completing.
-2. **File restrictions:** Only .github files can be modified.
-3. **YAML validation:** All workflow files must pass yamllint.
-4. **No path filters:** CI should run on ALL changes.
+Only the following file(s) can be written, edited or deleted:
 
-## Standard CI Workflow
+- `.github/workflows/ci.yaml`
+- `.github/workflows/build.yaml`
+- `.github/dependabot.yaml`
+- `.github/PULL_REQUEST_TEMPLATE/*.md`
+- `.github/workflows/*.yml` (delete only - wrong extension)
+- `.github/workflows/*.yaml` (delete only - non-canonical names)
 
-**Every repository uses a single `.github/workflows/ci.yaml`:**
+**Convention:** Use `.yaml` not `.yml`. Delete any non-canonical workflow files.
+
+## Out of Scope - Bail Out Immediately
+
+**If the request does NOT involve allowed tools and/or files, STOP and report:**
+
+`GitHub plugin can't handle request outside its scope.`
+
+## Post processing
+
+When you finish (Post), hooks will automatically:
+
+- Run yamllint + prettier validation
+
+Fix all issues before completing the task.
+
+## Standards
+
+### NEVER
+
+- Use path filters - CI should run on ALL changes
+- Use `@main` or `@master` for actions - pin to specific versions
+- Put secrets in code - use repository secrets
+- Deviate from template versions - use EXACT versions shown below
+
+### ALWAYS
+
+- Use `.yaml` extension (not `.yml`)
+- Add `---` document start marker
+- Request minimal permissions
+- Run `/orchestrator:detect` first to know what CI needs
+- Use claude-image or golang-image containers with raw commands
+- **Copy workflow templates EXACTLY** - do not change action versions
+
+### Required Action Versions
+
+**CRITICAL: Use these EXACT versions. Do NOT use older versions.**
+
+| Action | Version |
+|--------|---------|
+| `actions/checkout` | `@v4` |
+| `docker/setup-qemu-action` | `@v3` |
+| `docker/setup-buildx-action` | `@v3` |
+| `docker/login-action` | `@v3` |
+| `docker/build-push-action` | `@v6` |
+| `azure/setup-helm` | `@v4` |
+
+## Canonical Workflow Files
+
+**Single source of truth - only these files should exist:**
+
+| File | Purpose |
+|------|---------|
+| `ci.yaml` | Linting and testing (push/PR) |
+| `build.yaml` | Build and publish (tags) |
+
+### CRITICAL: Workflow Cleanup Procedure
+
+**BEFORE creating or updating workflows, you MUST:**
+
+1. **Find ALL existing workflows** (both `.yaml` and `.yml`):
+   ```bash
+   # Use Glob to find all workflow files
+   Glob: .github/workflows/*.y*ml
+   ```
+
+2. **Delete EVERY file that is NOT `ci.yaml` or `build.yaml`:**
+   - Delete `*.yml` files (wrong extension)
+   - Delete any other `*.yaml` files (non-canonical names)
+   - Use `rm` command for each file to delete
+
+3. **Only then** create/update the canonical files
+
+**Example cleanup:**
+```bash
+# If you find: build-and-push.yml, lint.yml, build-docker-image.yaml
+rm .github/workflows/build-and-push.yml
+rm .github/workflows/lint.yml
+rm .github/workflows/build-docker-image.yaml
+# Then create ci.yaml and build.yaml
+```
+
+**DO NOT skip cleanup** - orphan workflows cause confusion and duplicate runs.
+
+## Release Workflow
+
+After updating workflows, use `/github:release` to handle the full release cycle:
+
+### When to Use /github:release
+
+Use after:
+- Creating or updating workflow files
+- Any changes that require a new version/tag
+
+### Release Procedure
+
+1. **Commit all changes** (workflow files, etc.)
+2. **Run `/github:release <version>`** which will:
+   - Create and push the git tag
+   - Push commits to remote
+   - Wait for GitHub Actions build to complete
+   - Report build success or failure
+3. **If build fails**: Check logs with `/github:logs <run-id>` and fix issues
+
+### Version Formats
+
+```text
+/github:release 1.2.3     # Explicit version
+/github:release patch     # Auto-bump patch (0.0.1 -> 0.0.2)
+/github:release minor     # Auto-bump minor (0.1.0 -> 0.2.0)
+/github:release major     # Auto-bump major (1.0.0 -> 2.0.0)
+```
+
+**IMPORTANT**: Always wait for the build result before reporting completion.
+
+## Workflows by Project Type
+
+### Go Projects
+
+**Lint workflow:**
 
 ```yaml
 ---
 name: CI
 
-on:
+"on":
   push:
     branches: [main, master]
   pull_request:
@@ -48,27 +180,175 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/transform-ia/claude-image:latest
+      image: ghcr.io/transform-ia/golang-image:${LATEST_TAG}
       options: --user 0
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Lint
-        run: task lint-ci
+      - name: Lint Go
+        run: golangci-lint run --fix ./...
+
+      - name: Test
+        run: go test -v -race ./...
 ```
 
-**Key principles:**
-- Single workflow file: `ci.yaml`
-- No path filters: Run on every push and PR
-- Claude image: Same tools as local development
-- `--user 0` required: Claude-image runs as non-root; GitHub Actions mounts workspace as root
+### Docker Projects
+
+**Lint workflow:**
+
+```yaml
+---
+name: CI
+
+"on":
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/transform-ia/claude-image:${LATEST_TAG}
+      options: --user 0
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint Dockerfile
+        run: hadolint --ignore DL3018 Dockerfile
+```
+
+**Build and push on tag:**
+
+```yaml
+---
+name: Build and Push
+
+"on":
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ steps.version.outputs.VERSION }}
+            ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+```
+
+### Helm Projects
+
+**Lint workflow:**
+
+```yaml
+---
+name: CI
+
+"on":
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/transform-ia/claude-image:${LATEST_TAG}
+      options: --user 0
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint
+        run: |
+          helm lint .
+          yamllint -c .yamllint .
+```
+
+**Package and push on tag:**
+
+```yaml
+---
+name: Package and Push
+
+"on":
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: "3.16.4"
+
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Extract chart name
+        id: chart
+        run: echo "NAME=$(grep '^name:' Chart.yaml | awk '{print $2}')" >> $GITHUB_OUTPUT
+
+      - name: Update Chart version
+        run: sed -i "s/^version:.*/version: ${{ steps.version.outputs.VERSION }}/" Chart.yaml
+
+      - name: Package chart
+        run: helm package .
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push to GHCR
+        run: helm push ${{ steps.chart.outputs.NAME }}-${{ steps.version.outputs.VERSION }}.tgz oci://ghcr.io/${{ github.repository_owner }}
+```
 
 ## Dependabot Configuration
 
-**Every repository should have `.github/dependabot.yml`:**
+### Dependabot for Go Projects
 
-### Go Projects
 ```yaml
 ---
 version: 2
@@ -93,18 +373,8 @@ updates:
       interval: "daily"
 ```
 
-### Helm Chart Projects
-```yaml
----
-version: 2
-updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "daily"
-```
+### Dependabot for Docker Projects
 
-### Docker Image Projects
 ```yaml
 ---
 version: 2
@@ -120,7 +390,20 @@ updates:
       interval: "daily"
 ```
 
+### Dependabot for Helm Projects
+
+```yaml
+---
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+```
+
 ### Node.js Projects
+
 ```yaml
 ---
 version: 2
@@ -140,130 +423,12 @@ updates:
       interval: "daily"
 ```
 
-## Docker Build Workflow
-
-```yaml
----
-name: Build and Push Docker Image
-
-on:
-  push:
-    tags:
-      - 'v*'
-
-permissions:
-  contents: read
-  packages: write
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Extract version from tag
-        id: version
-        run: |
-          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ steps.version.outputs.VERSION }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-```
-
-## Helm Chart Package Workflow
-
-```yaml
----
-name: Package and Push Helm Chart
-
-on:
-  push:
-    tags:
-      - 'v*'
-
-permissions:
-  contents: read
-  packages: write
-
-jobs:
-  package-and-push:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
-        with:
-          version: '3.16.4'
-
-      - name: Extract version
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Update Chart version
-        run: sed -i "s/^version:.*/version: ${{ steps.version.outputs.VERSION }}/" Chart.yaml
-
-      - name: Package chart
-        run: helm package .
-
-      - name: Login to GHCR
-        run: echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Push to GHCR
-        run: |
-          CHART_NAME=$(yq -r .name Chart.yaml)
-          helm push ${CHART_NAME}-${{ steps.version.outputs.VERSION }}.tgz oci://ghcr.io/${{ github.repository_owner }}
-```
-
-## Best Practices
-
-1. **Minimal permissions:** Only request what's needed
-2. **Use caching:** Enable build caches for faster runs
-3. **Single workflow:** Consolidate lint tasks into one file
-4. **No secrets in code:** Use repository secrets
-5. **Pin action versions:** Use specific versions (@v4, not @main)
-
 ## Common yamllint Fixes
 
-| Issue | Fix |
-|-------|-----|
-| `line too long` | Break lines or use YAML multiline syntax |
-| `wrong indentation` | Use 2-space indentation |
-| `missing document start` | Add `---` at file start |
-| `trailing spaces` | Remove trailing whitespace |
-| `truthy value` | Use `true`/`false` not `yes`/`no` |
-
-## Out of Scope - Bail Out Immediately
-
-**If the request does NOT involve .github directory files, STOP and report:**
-
-"This request is outside my scope. I handle GitHub CI/CD only:
-- .github/workflows/*.yaml
-- .github/dependabot.yaml
-- .github/PULL_REQUEST_TEMPLATE/*.md
-
-For other file types, use the appropriate agent."
+| Issue                    | Fix                                      |
+| ------------------------ | ---------------------------------------- |
+| `line too long`          | Break lines or use YAML multiline syntax |
+| `wrong indentation`      | Use 2-space indentation                  |
+| `missing document start` | Add `---` at file start                  |
+| `trailing spaces`        | Remove trailing whitespace               |
+| `truthy value`           | Use `true`/`false` not `yes`/`no`        |

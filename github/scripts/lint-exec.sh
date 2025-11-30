@@ -1,8 +1,18 @@
 #!/bin/bash
 # Execute yamllint + prettier on .github directory
+# Usage: lint-exec.sh <directory>
 set -euo pipefail
 
-TARGET="${1:-.}"
+if [[ -z "${1:-}" ]]; then
+    echo "Usage: /github:lint <directory>" >&2
+    echo "" >&2
+    echo "Examples:" >&2
+    echo "  /github:lint /path/to/repo" >&2
+    echo "  /github:lint ." >&2
+    exit 1
+fi
+
+TARGET="$1"
 
 if [[ ! -d "$TARGET/.github" ]]; then
     echo "Error: $TARGET/.github directory not found" >&2

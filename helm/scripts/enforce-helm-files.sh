@@ -8,12 +8,18 @@
 set -euo pipefail
 trap 'echo "HOOK ERROR: enforce-helm-files.sh failed" >&2; exit 2' ERR
 
-PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/helm"
-if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PLUGIN_PATH" ]]; then
-    exit 0
+input=$(cat)
+
+# Detect caller from transcript - only enforce for /helm:* commands
+transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
+tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
+DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
+caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
+
+if [[ "$caller" != /helm:* ]]; then
+    exit 0  # Not from helm plugin command, allow
 fi
 
-input=$(cat)
 tool=$(echo "$input" | jq -r '.tool_name // empty')
 
 if [[ "$tool" != "Write" && "$tool" != "Edit" ]]; then
@@ -49,7 +55,7 @@ case "$filename" in
         ;;
     *)
         echo "BLOCKED: Helm plugin can only modify Chart.yaml, values.yaml, templates/*, .helmignore" >&2
-        echo "For README.md, use /markdown:lint. For other files, exit the plugin context." >&2
+        echo "For other files, exit the plugin context first." >&2
         exit 2
         ;;
 esac

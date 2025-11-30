@@ -21,6 +21,13 @@ fi
 echo "Linting modified markdown files..."
 cd "$GIT_ROOT"
 
+# Format with prettier first
+for file in $MODIFIED_FILES; do
+    if [[ -f "$file" ]]; then
+        prettier --write "$file" --prose-wrap always 2>&1 || true
+    fi
+done
+
 # Run markdownlint on modified files
 for file in $MODIFIED_FILES; do
     if [[ -f "$file" ]]; then

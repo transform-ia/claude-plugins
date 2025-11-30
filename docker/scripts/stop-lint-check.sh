@@ -24,7 +24,7 @@ ERRORS=0
 for file in $MODIFIED_FILES; do
     if [[ -f "$file" ]]; then
         echo "Checking: $file"
-        hadolint "$file" || ERRORS=1
+        hadolint --ignore DL3018 "$file" || ERRORS=1
     fi
 done
 

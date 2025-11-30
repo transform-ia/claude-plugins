@@ -2,6 +2,15 @@
 description: "List MCP servers: /mcp:list"
 allowed-tools: [Bash]
 ---
+
+# MCP List
+
+## Permissions
+
+This command can only modify: `.mcp.json`
+
+---
+
 List all configured MCP servers and their connection status.
 
 **Usage**: `/mcp:list`
@@ -9,11 +18,13 @@ List all configured MCP servers and their connection status.
 ## Steps
 
 1. List MCP servers with connection status:
+
    ```bash
    claude mcp list
    ```
 
 2. Show raw configuration:
+
    ```bash
    cat /workspace/.mcp.json
    ```
@@ -21,6 +32,7 @@ List all configured MCP servers and their connection status.
 ## Output
 
 The `claude mcp list` command shows:
+
 - Server name
 - Connection status (connected/failed)
 - Server URL
@@ -29,6 +41,7 @@ The `claude mcp list` command shows:
 ## Troubleshooting
 
 If a server shows as failed:
+
 1. Use `/mcp:test <server-name>` for detailed diagnostics
 2. Check if the service exists (for in-cluster)
 3. Verify network policies allow traffic

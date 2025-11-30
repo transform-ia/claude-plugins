@@ -10,5 +10,5 @@ description: |
   - Checking build status (use github:builder)
   - General GitHub repository operations
   - User mentions "github" in general conversation
-allowed-tools: Read, Write, Edit, Glob, Grep, mcp__github__*
+allowed-tools: Read, Write(.github/*), Edit(.github/*), Glob, Grep, Search, Bash(rm .github/*), Bash(gh *), SlashCommand(/github:*), SlashCommand(/orchestrator:detect *), mcp__github__*
 ---

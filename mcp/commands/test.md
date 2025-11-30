@@ -2,12 +2,30 @@
 description: "Test MCP connectivity: /mcp:test <name-or-url>"
 allowed-tools: [Bash, Read]
 ---
+
+# MCP Test
+
+## Permissions
+
+This command can only modify: `.mcp.json`
+
+---
+
+## Parameter Validation
+
+**REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: name or url
+required. Usage: /mcp:test <name-or-url>" and STOP. Do not proceed with any tool
+calls.
+
+---
+
 Test connectivity to an MCP server with detailed diagnostics.
 
 **Usage**: `/mcp:test <server-name>` or `/mcp:test <url>`
 
 **Examples**:
-```
+
+```text
 /mcp:test context7
 /mcp:test http://context7-mcp.claude.svc.cluster.local:3000/mcp
 ```
@@ -21,7 +39,7 @@ Test connectivity to an MCP server with detailed diagnostics.
 cat /workspace/.mcp.json | jq -r '."<server-name>".url'
 ```
 
-### 2. For In-Cluster Services (*.svc.cluster.local)
+### 2. For In-Cluster Services (\*.svc.cluster.local)
 
 ```bash
 # Parse URL components
@@ -46,7 +64,7 @@ kubectl get networkpolicies -n "$NAMESPACE"
 kubectl get networkpolicies -n claude
 ```
 
-### 3. For External Services (https://*)
+### 3. For External Services (https://\*)
 
 ```bash
 # Test DNS resolution
@@ -65,9 +83,9 @@ claude mcp list | grep "<server-name>"
 
 ## Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| DNS failure | Service doesn't exist | Check service name/namespace |
-| Connection refused | Pod not running | Check pod status |
-| Timeout | Network policy blocking | Check ingress/egress policies |
-| MCP handshake failed | Server not MCP-compatible | Verify server implementation |
+| Issue                | Cause                     | Solution                      |
+| -------------------- | ------------------------- | ----------------------------- |
+| DNS failure          | Service doesn't exist     | Check service name/namespace  |
+| Connection refused   | Pod not running           | Check pod status              |
+| Timeout              | Network policy blocking   | Check ingress/egress policies |
+| MCP handshake failed | Server not MCP-compatible | Verify server implementation  |

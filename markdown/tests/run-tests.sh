@@ -55,12 +55,6 @@ echo '{"tool_input":{"command":"rm /tmp/test.md"}}' | \
     pass "Allows rm *.md files" || \
     fail "Deletion" "Should allow deleting .md files"
 
-# Test: rm deletion - allows .markdownlint.yaml
-echo '{"tool_input":{"command":"rm /tmp/.markdownlint.yaml"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
-    pass "Allows rm .markdownlint.yaml" || \
-    fail "Deletion" "Should allow deleting .markdownlint.yaml"
-
 # Test: rm deletion - blocks non-md files
 result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
     CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)

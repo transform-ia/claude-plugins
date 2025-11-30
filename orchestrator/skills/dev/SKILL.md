@@ -8,5 +8,5 @@ description: |
   DO NOT activate when:
   - Working on specific file types (use appropriate plugin)
   - User is clearly working in one domain (go, docker, helm, etc.)
-allowed-tools: Read, Glob, Bash
+allowed-tools: Task, SlashCommand(/orchestrator:*)
 ---

@@ -9,12 +9,18 @@
 set -euo pipefail
 trap 'echo "HOOK ERROR: block-bash.sh failed" >&2; exit 2' ERR
 
-PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/github"
-if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PLUGIN_PATH" ]]; then
-    exit 0
+input=$(cat)
+
+# Detect caller from transcript - only enforce for /github:* commands
+transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
+tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
+DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
+caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
+
+if [[ "$caller" != /github:* ]]; then
+    exit 0  # Not from github plugin command, allow
 fi
 
-input=$(cat)
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
 
 # Allow plugin's own scripts
@@ -50,6 +56,15 @@ if [[ "$command" =~ ^rm[[:space:]] ]]; then
         fi
     done
     exit 0
+fi
+
+# Allow git commands for /github:release workflow
+if [[ "$command" =~ ^git[[:space:]] ]]; then
+    if [[ "$caller" == "/github:release" ]]; then
+        exit 0  # Allow all git commands for release workflow
+    fi
+    echo "BLOCKED: git commands only allowed in /github:release context." >&2
+    exit 2
 fi
 
 # Allow ONLY safe read-only gh CLI commands (needed for builder skill)
@@ -97,5 +112,12 @@ if [[ "$command" =~ ^prettier ]]; then
 fi
 
 echo "BLOCKED: Bash not allowed in github plugin context (except gh CLI)." >&2
-echo "Use /github:lint, /github:status, or exit the plugin context." >&2
+echo "" >&2
+echo "Available commands:" >&2
+echo "  /github:lint     - Lint .github workflow files" >&2
+echo "  /github:status   - Check workflow status" >&2
+echo "  /github:logs     - Get workflow logs" >&2
+echo "  /github:release  - Full release workflow" >&2
+echo "" >&2
+echo "For other operations, exit the plugin context first." >&2
 exit 2
