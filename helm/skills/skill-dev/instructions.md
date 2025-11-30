@@ -2,13 +2,12 @@
 
 ## Permissions
 
-Unless specified, everything else is BLOCKED by hooks, in which cases:
+All operations not explicitly listed in "Tools Available" and "File Restrictions"
+are BLOCKED by hooks. When blocked:
 
 - This is EXPECTED behavior
 - DO NOT suggest workarounds
-- Report: "This operation is outside the helm plugin scope." Unless you think
-  this is an implementation issue, in which case start a conversation with the
-  human on how to fix the issue.
+- Report: "This operation is outside the helm plugin scope."
 
 ### Tools Available
 
