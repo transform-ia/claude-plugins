@@ -1,5 +1,5 @@
 ---
-description: "Format helm chart yaml: /helm:format [directory]"
+description: "Format helm chart yaml: /helm:cmd-format [directory]"
 allowed-tools: [Bash]
 ---
 
@@ -7,8 +7,8 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command can only modify: `Chart.yaml`, `values.yaml`, `templates/**`,
-`.helmignore`
+This command modifies Chart.yaml and values.yaml only. Templates are not
+modified (contain Go template syntax).
 
 ---
 

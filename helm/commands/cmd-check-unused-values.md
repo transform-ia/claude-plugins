@@ -1,5 +1,5 @@
 ---
-description: "Find unused values: /helm:check-unused-values [directory]"
+description: "Find unused values: /helm:cmd-check-unused-values [directory]"
 allowed-tools: [Bash]
 ---
 
@@ -7,8 +7,9 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command can only modify: `Chart.yaml`, `values.yaml`, `templates/**`,
-`.helmignore`
+This command is READ-ONLY. It analyzes values.yaml usage without modifying
+files. After analysis, the agent may offer to remove unused values using
+Write/Edit tools.
 
 ---
 

@@ -16,13 +16,12 @@ tools:
   - Edit(.helmignore)
   - Glob
   - Grep
-  - Search
   - Bash(rm Chart.yaml)
   - Bash(rm values.yaml)
   - Bash(rm templates/*)
   - Bash(rm .helmignore)
   - SlashCommand(/helm:*)
-  - SlashCommand(/docker:image-tag *)
+  - SlashCommand(/docker:cmd-image-tag *)
   - mcp__dockerhub__*
 model: sonnet
 ---
@@ -32,4 +31,4 @@ model: sonnet
 **You ARE the Helm agent. Do NOT delegate to any other agent. Execute the work
 directly.**
 
-**Read and follow all instructions in `skills/dev/instructions.md`**
+**Read and follow all instructions in `skills/skill-dev/instructions.md`**
