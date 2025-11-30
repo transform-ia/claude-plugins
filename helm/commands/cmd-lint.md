@@ -1,5 +1,5 @@
 ---
-description: "Lint helm chart: /helm:lint [directory]"
+description: "Lint helm chart: /helm:cmd-lint [directory]"
 allowed-tools: [Bash, Read, Grep, Glob]
 ---
 
@@ -7,8 +7,8 @@ allowed-tools: [Bash, Read, Grep, Glob]
 
 ## Permissions
 
-This command can only modify: `Chart.yaml`, `values.yaml`, `templates/**`,
-`.helmignore`
+This command modifies Chart.yaml and values.yaml (prettier formatting).
+Templates are not modified.
 
 ---
 
@@ -22,5 +22,5 @@ Bash("${CLAUDE_PLUGIN_ROOT}/scripts/lint-exec.sh $ARGUMENTS")
 
 ## Step 2: Check for unused values
 
-After linting passes, run `/helm:check-unused-values` on the same directory to
+After linting passes, run `/helm:cmd-check-unused-values` on the same directory to
 find orphaned values in values.yaml that are no longer referenced in templates.

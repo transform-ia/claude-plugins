@@ -15,14 +15,13 @@ Unless specified, everything else is BLOCKED by hooks, in which cases:
 - **Read** - Read any file
 - **Glob** - Find files by pattern
 - **Grep** - Search file contents
-- **Search** - Search file by name
 - **Write/Edit** - to restricted files (see below)
 - **Bash** - Restricted to:
   - `rm` to restricted files (see below)
 - **SlashCommand**: | Command | Purpose | |---------|---------| |
-  `/helm:lint [dir]` | Run helm lint + yamllint | | `/helm:format [dir]` |
-  Format with prettier | | `/helm:template [dir] [name]` | Preview rendered
-  manifests | | `/docker:image-tag <image>` | Query available image tags |
+  `/helm:cmd-lint [dir]` | Run helm lint + yamllint | | `/helm:cmd-format [dir]` |
+  Format with prettier | | `/helm:cmd-template [dir] [name]` | Preview rendered
+  manifests | | `/docker:cmd-image-tag <image>` | Query available image tags |
 - **MCP Tools**:
   - `mcp__dockerhub__*` - Docker Hub API
 
@@ -45,11 +44,14 @@ Only the following file(s) can be written, edited or deleted:
 
 ## Post processing
 
-When you finish (Post), hooks will automatically:
+When you finish (Post), hooks will automatically run:
 
-- Run helm lint + yamllint validation
+- helm lint
+- yamllint validation
+- prettier formatting
 
-Fix all issues before completing the task.
+If validation fails, you MUST fix all issues before the task can be completed.
+The hooks block completion until all checks pass.
 
 ## Standards
 

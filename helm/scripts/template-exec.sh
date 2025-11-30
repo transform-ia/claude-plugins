@@ -4,11 +4,11 @@
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then
-    echo "Usage: /helm:template <directory> [release-name]" >&2
+    echo "Usage: /helm:cmd-template <directory> [release-name]" >&2
     echo "" >&2
     echo "Examples:" >&2
-    echo "  /helm:template /path/to/chart" >&2
-    echo "  /helm:template . my-release" >&2
+    echo "  /helm:cmd-template /path/to/chart" >&2
+    echo "  /helm:cmd-template . my-release" >&2
     exit 1
 fi
 
@@ -25,4 +25,23 @@ if [[ ! -f "$TARGET/Chart.yaml" ]]; then
     exit 1
 fi
 
-helm template "$RELEASE" "$TARGET" --debug
+# Check helm availability
+if ! command -v helm >/dev/null 2>&1; then
+    echo "" >&2
+    echo "═══════════════════════════════════════════════════════════════" >&2
+    echo "ERROR: helm not found" >&2
+    echo "═══════════════════════════════════════════════════════════════" >&2
+    echo "" >&2
+    echo "The Helm CLI is required for template rendering." >&2
+    echo "" >&2
+    exit 2
+fi
+
+# Render template with error handling
+if ! helm template "$RELEASE" "$TARGET" --debug 2>&1; then
+    echo "" >&2
+    echo "ERROR: helm template failed" >&2
+    echo "Review template syntax errors above." >&2
+    echo "" >&2
+    exit 1
+fi

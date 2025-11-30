@@ -1,6 +1,6 @@
 ---
 description:
-  "Preview rendered templates: /helm:template [directory] [release-name]"
+  "Preview rendered templates: /helm:cmd-template [directory] [release-name]"
 allowed-tools: [Bash]
 ---
 
@@ -8,8 +8,8 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command can only modify: `Chart.yaml`, `values.yaml`, `templates/**`,
-`.helmignore`
+This command is READ-ONLY. It renders templates for preview without modifying
+files.
 
 ---
 

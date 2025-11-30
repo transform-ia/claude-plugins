@@ -36,7 +36,7 @@ This agent manages Kubernetes deployments via ArgoCD Applications.
 
 - Edit Go code (use go plugin)
 - Edit Dockerfiles (use docker plugin)
-- Develop Helm charts (use helm:dev skill)
+- Develop Helm charts (use helm:skill-dev skill)
 - Create GitHub workflows (use github plugin)
 
 ## ArgoCD Application Location
