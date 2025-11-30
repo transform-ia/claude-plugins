@@ -8,19 +8,19 @@ allowed-tools: [Bash]
 ## Permissions
 
 This command is READ-ONLY. It analyzes values.yaml usage without modifying
-files. After analysis, the agent may offer to remove unused values using
-Write/Edit tools.
+files.
 
 ---
 
 Check for values in values\*.yaml that are not referenced in templates.
 
-## Task
+## Workflow
 
-Run the analysis script:
+**Step 1**: Run the analysis script:
 
 ```text
 Bash("/workspace/sandbox/transform-ia/claude-plugins/helm/scripts/check-unused-values-exec.sh $ARGUMENTS")
 ```
 
-If cleanup is needed, offer to remove the unused values from values.yaml.
+**Step 2**: If the script reports unused values, offer to remove them using
+Write/Edit tools. Do NOT remove values without user confirmation.

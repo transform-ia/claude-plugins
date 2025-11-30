@@ -122,7 +122,7 @@ minutes per iteration
 - **Production deployments** (always use ArgoCD Applications)
 - **Persistent workloads** (use Deployments via helm charts)
 - **Multi-pod testing** (use full helm chart for complex scenarios)
-- **Network policy testing** (policies may not apply to ad-hoc pods)
+- **Network policy testing** (policies do not apply to ad-hoc pods)
 - **Final validation** (always validate via full ArgoCD deployment)
 
 ## Workflow Pattern
@@ -250,10 +250,10 @@ kubectl delete pod test-dockerhub-mcp -n claude
 
 ### Limitations
 
-- Test pods may not have identical network policies as production
+- Test pods do NOT have identical network policies as production deployments
 - Test pods are ephemeral (no persistence beyond pod lifetime)
-- Some Kubernetes controllers may not apply to standalone pods
-- Service mesh sidecars may not inject automatically
+- Kubernetes controllers (Deployments, StatefulSets, etc.) do NOT manage standalone pods
+- Service mesh sidecars do NOT inject into standalone pods created outside helm charts
 
 ## Tips and Tricks
 

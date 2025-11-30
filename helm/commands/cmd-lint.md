@@ -14,13 +14,22 @@ Templates are not modified.
 
 Run helm lint + yamllint on the chart directory, then check for unused values.
 
-## Step 1: Run linters
+## Workflow
+
+**Step 1**: Run linters:
 
 ```text
 Bash("${CLAUDE_PLUGIN_ROOT}/scripts/lint-exec.sh $ARGUMENTS")
 ```
 
-## Step 2: Check for unused values
+The script will exit with code 1 if linting fails. Fix all issues before
+proceeding.
 
-After linting passes, run `/helm:cmd-check-unused-values` on the same directory to
-find orphaned values in values.yaml that are no longer referenced in templates.
+**Step 2**: Run unused values check:
+
+```text
+/helm:cmd-check-unused-values $ARGUMENTS
+```
+
+This identifies orphaned values in values.yaml that are not referenced in
+templates.
