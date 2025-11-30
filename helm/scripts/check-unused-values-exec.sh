@@ -5,11 +5,11 @@
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then
-    echo "Usage: /helm:check-unused-values <directory>" >&2
+    echo "Usage: /helm:cmd-check-unused-values <directory>" >&2
     echo "" >&2
     echo "Examples:" >&2
-    echo "  /helm:check-unused-values /path/to/chart" >&2
-    echo "  /helm:check-unused-values ." >&2
+    echo "  /helm:cmd-check-unused-values /path/to/chart" >&2
+    echo "  /helm:cmd-check-unused-values ." >&2
     exit 1
 fi
 
@@ -37,7 +37,16 @@ echo ""
 
 # Get all .Values references from templates
 echo "--- Template References ---"
-template_refs=$(grep -rho '\.Values\.[a-zA-Z0-9_.-]*' templates/ 2>/dev/null | sed 's/\.Values\.//' | sort -u || true)
+# Match both dot notation (.Values.foo) and bracket notation (.Values["foo"] or .Values['foo'])
+if ! template_refs=$(grep -rho '\\.Values\\.[a-zA-Z0-9_-]*\\|\\.Values\\[["'"'"'][^]]*["'"'"']\\]' "templates/" 2>&1 | \
+    sed 's/\\.Values\\.//g; s/\\["//g; s/"\\]//g; s/'"'"'\\]//g' | sort -u); then
+    # grep returns 1 if no matches (OK), but >1 means actual error
+    if [[ $? -gt 1 ]]; then
+        echo "ERROR: Failed to scan templates/ directory" >&2
+        exit 2
+    fi
+    template_refs=""
+fi
 
 if [[ -z "$template_refs" ]]; then
     echo "No .Values references found in templates/"
@@ -49,7 +58,8 @@ echo ""
 
 # Extract top-level keys from values.yaml
 echo "--- Values.yaml Top-Level Keys ---"
-values_keys=$(grep -E '^[a-zA-Z_][a-zA-Z0-9_]*:' values.yaml | sed 's/:.*$//' | sort -u)
+# Allow dashes in key names (common in Helm: image-pull-secrets, service-account)
+values_keys=$(grep -E '^[a-zA-Z_][a-zA-Z0-9_-]*:' "values.yaml" 2>/dev/null | sed 's/:.*$//' | sort -u || echo "")
 echo "$values_keys"
 echo ""
 
@@ -59,9 +69,10 @@ unused_count=0
 
 for key in $values_keys; do
     # Check if this key or any sub-key is referenced in templates
-    if ! echo "$template_refs" | grep -q "^${key}\|^${key}\."; then
+    # Use -F for fixed string matching of key, then check for key.subkey pattern
+    if ! echo "$template_refs" | grep -qF "${key}" && ! echo "$template_refs" | grep -q "^${key}\."; then
         echo "POTENTIALLY UNUSED: $key"
-        ((unused_count++)) || true
+        unused_count=$((unused_count + 1))
     fi
 done
 

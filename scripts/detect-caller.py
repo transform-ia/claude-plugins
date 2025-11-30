@@ -5,7 +5,7 @@ Detect which plugin command initiated a tool call by walking the transcript pare
 Usage: detect-caller.py <transcript_path> <tool_use_id>
 
 Returns (to stdout):
-  - Plugin command (e.g., "/helm:lint", "/go:build") if found
+  - Plugin command (e.g., "/helm:cmd-lint", "/go:cmd-build") if found
   - Empty string if not from a plugin command
 
 Exit codes:
@@ -36,9 +36,11 @@ def find_caller(transcript_path: str, tool_use_id: str) -> str:
                 except json.JSONDecodeError:
                     continue
     except FileNotFoundError:
-        return ""
-    except Exception:
-        return ""
+        print("ERROR: Transcript file not found", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        sys.exit(1)
 
     # Find the assistant message containing this tool_use_id
     current_uuid = None
@@ -57,7 +59,7 @@ def find_caller(transcript_path: str, tool_use_id: str) -> str:
         return ""
 
     # Walk parent chain looking for plugin commands or skills
-    # Pattern 1: Slash commands like <command-name>/helm:lint</command-name>
+    # Pattern 1: Slash commands like <command-name>/helm:cmd-lint</command-name>
     command_pattern = re.compile(r'<command-name>(/[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+)</command-name>')
     # Pattern 2: Skills - look for "Base directory for this skill:" followed by <command-name>skillname</command-name>
     skill_base_pattern = re.compile(r'Base directory for this skill:\s*/[^\s]*/claude-plugins/([a-zA-Z0-9_-]+)/skills/([a-zA-Z0-9_-]+)')
@@ -78,7 +80,7 @@ def find_caller(transcript_path: str, tool_use_id: str) -> str:
                 for item in content
             )
 
-        # Look for slash command pattern first (e.g., /helm:lint)
+        # Look for slash command pattern first (e.g., /helm:cmd-lint)
         match = command_pattern.search(content)
         if match:
             return match.group(1)
