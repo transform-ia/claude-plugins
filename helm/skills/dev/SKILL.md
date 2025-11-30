@@ -10,5 +10,5 @@ description: |
   - Working with ArgoCD Application manifests (use helm:ops)
   - User mentions "helm" in general conversation
   - Deploying or managing applications (use helm:ops)
-allowed-tools: Read, Write, Edit, Glob, Grep, mcp__dockerhub__*
+allowed-tools: Read, Write(Chart.yaml), Write(values.yaml), Write(templates/*), Write(.helmignore), Edit(Chart.yaml), Edit(values.yaml), Edit(templates/*), Edit(.helmignore), Glob, Grep, Search, Bash(rm Chart.yaml), Bash(rm values.yaml), Bash(rm templates/*), Bash(rm .helmignore), SlashCommand(/helm:*), SlashCommand(/docker:image-tag *), mcp__dockerhub__*
 ---

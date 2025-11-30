@@ -1,170 +1,105 @@
-# Helm Chart Development Guidelines
+# Helm Development
 
-## Critical: Hook Restrictions
+## Permissions
 
-**This context restricts operations to Helm chart files only.**
+Unless specified, everything else is BLOCKED by hooks, in which cases:
 
-Allowed files:
-- `Chart.yaml`, `values.yaml`
-- `templates/*.yaml`, `templates/*.yml`, `templates/*.tpl`, `templates/NOTES.txt`
-- `.helmignore`, `.yamllint.yaml`
-
-When an operation is BLOCKED by hooks:
 - This is EXPECTED behavior
-- For README.md, use `/markdown:lint`
-- For other files, exit the plugin context
+- DO NOT suggest workarounds
+- Report: "This operation is outside the helm plugin scope." Unless you think
+  this is an implementation issue, in which case start a conversation with the
+  human on how to fix the issue.
 
-## Available Commands
+### Tools Available
 
-| Command | Purpose |
-|---------|---------|
-| `/helm:lint [dir]` | Run helm lint + yamllint |
-| `/helm:format [dir]` | Format with prettier |
-| `/helm:template [dir] [name]` | Preview rendered manifests |
+- **Read** - Read any file
+- **Glob** - Find files by pattern
+- **Grep** - Search file contents
+- **Search** - Search file by name
+- **Write/Edit** - to restricted files (see below)
+- **Bash** - Restricted to:
+  - `rm` to restricted files (see below)
+- **SlashCommand**: | Command | Purpose | |---------|---------| |
+  `/helm:lint [dir]` | Run helm lint + yamllint | | `/helm:format [dir]` |
+  Format with prettier | | `/helm:template [dir] [name]` | Preview rendered
+  manifests | | `/docker:image-tag <image>` | Query available image tags |
+- **MCP Tools**:
+  - `mcp__dockerhub__*` - Docker Hub API
 
-For image tag discovery, use `/docker:image-tag`.
+### File Restrictions
 
-## Rules
+Only the following file(s) can be written, edited or deleted:
 
-1. **Linter runs automatically** when you finish. Fix all issues before completing.
-2. **File restrictions:** Only helm chart files can be modified.
-3. **templates/ directory:** MUST be ignored in .yamllint.yaml (Go templates, not valid YAML).
-4. **NEVER use `latest` tag** - always pin to specific versions.
-5. **NEVER use `pullPolicy: Always`** - use `IfNotPresent`.
+- `Chart.yaml`
+- `values.yaml`
+- `templates/**/*.yaml`
+- `templates/**/*.tpl`
+- `templates/NOTES.txt`
+- `.helmignore`
+
+## Out of Scope - Bail Out Immediately
+
+**If the request does NOT involve allowed tools and/or files, STOP and report:**
+
+`Helm plugin can't handle request outside its scope.`
+
+## Post processing
+
+When you finish (Post), hooks will automatically:
+
+- Run helm lint + yamllint validation
+
+Fix all issues before completing the task.
+
+## Standards
+
+### NEVER
+
+- Use `latest` tag - always pin to specific versions
+- Use `pullPolicy: Always` - use `IfNotPresent`
+- Put security settings in values.yaml - hardcode in templates
+
+### ALWAYS
+
+- Keep values.yaml minimal - only user-overridable values
+- Hardcode security context in templates
+- Use `.Chart.AppVersion` as default image tag
 
 ## Chart Structure
 
-```
+```text
 chart/
-├── Chart.yaml          # Chart metadata
-├── values.yaml         # Default values
-├── .yamllint.yaml      # YAML lint config (MUST ignore templates/)
-├── .helmignore         # Files to exclude from package
+├── Chart.yaml
+├── values.yaml
+├── .helmignore
 └── templates/
-    ├── _helpers.tpl    # Template helpers
-    ├── NOTES.txt       # Post-install notes
-    └── *.yaml          # Resource templates
+    ├── _helpers.tpl
+    ├── NOTES.txt
+    └── *.yaml
 ```
 
-## values.yaml Best Practices
+## Patterns
 
-**Keep values.yaml MINIMAL** - only include values users will override:
+### values.yaml (MINIMAL)
 
 ```yaml
-# GOOD: Minimal values
 image:
   repository: ghcr.io/org/app
-  tag: ""  # Defaults to .Chart.AppVersion
+  tag: "" # Defaults to .Chart.AppVersion
   pullPolicy: IfNotPresent
 
 replicas: 1
-
-# BAD: Security settings in values.yaml (hardcode in templates instead)
-# securityContext:
-#   runAsNonRoot: true
 ```
 
-## Required Values (No Defaults)
-
-Environment-specific and security-critical values MUST require explicit input:
+### Image Tag in Template
 
 ```yaml
-# values.yaml
-config:
-  apiUrl: ""  # REQUIRED: API endpoint URL
-
-# templates/deployment.yaml
-{{- if not .Values.config.apiUrl }}
-{{- fail "config.apiUrl is required" }}
-{{- end }}
-```
-
-## yamllint Configuration
-
-Every chart MUST have `.yamllint.yaml`:
-
-```yaml
-extends: default
-ignore: |
-  templates/    # REQUIRED: Go templates are not valid YAML
-  charts/
-
-rules:
-  line-length:
-    max: 120
-    level: warning
-  document-start: disable
-```
-
-## Image Tag Pattern
-
-```yaml
-# values.yaml
 image:
-  repository: ghcr.io/org/app
-  tag: ""  # Defaults to .Chart.AppVersion
-  pullPolicy: IfNotPresent
-
-# template
-image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+  "{{ .Values.image.repository }}:{{ .Values.image.tag | default
+  .Chart.AppVersion }}"
 ```
 
-## Private Registry Authentication
-
-For private GHCR images, use release-specific secret names:
-
-```yaml
-# values.yaml
-registry:
-  existingSecret: ""  # Use existing secret (recommended)
-  username: ""        # Or create from credentials
-  password: ""
-
-# templates/_helpers.tpl
-{{- define "myapp.imagePullSecrets" -}}
-{{- if .Values.registry.existingSecret }}
-- name: {{ .Values.registry.existingSecret }}
-{{- else if and .Values.registry.username .Values.registry.password }}
-- name: {{ include "myapp.fullname" . }}-ghcr
-{{- end }}
-{{- end }}
-```
-
-## Checksum Annotations
-
-Add checksums for ConfigMaps/Secrets to trigger pod restarts on config changes:
-
-```yaml
-spec:
-  template:
-    metadata:
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
-```
-
-## Version Management
-
-- `version`: Chart version - bump for template/structure changes
-- `appVersion`: Application version - used as default image tag
-
-**Bump versions instead of using `pullPolicy: Always`:**
-- ✅ Bump `appVersion` when application image changes
-- ✅ Bump `version` when templates change
-- ❌ Never use `pullPolicy: Always` as a workaround
-
-## Chart Naming (OCI Registries)
-
-GHCR doesn't distinguish Docker images from Helm charts. Use suffixes:
-
-```
-Docker image: ghcr.io/org/myapp-image
-Helm chart:   ghcr.io/org/myapp-chart
-```
-
-## Security Hardening
-
-Hardcode security settings in templates (not values.yaml):
+### Security Context (HARDCODED in templates)
 
 ```yaml
 securityContext:
@@ -176,26 +111,60 @@ securityContext:
     drop: [ALL]
 ```
 
-## Testing
+### Private Registry Authentication
 
-```bash
-# Render templates
-helm template test . --debug
+```yaml
+# values.yaml
+registry:
+  username: ""
+  password: ""
 
-# Validate structure
-helm lint .
-
-# Dry-run against cluster
-helm template test . | kubectl apply --dry-run=client -f -
+# templates/_helpers.tpl
+{{- define "myapp.imagePullSecrets" -}}
+{{- if and .Values.registry.username .Values.registry.password }}
+- name: {{ include "myapp.fullname" . }}-ghcr
+{{- end }}
+{{- end }}
 ```
 
-## Out of Scope - Bail Out Immediately
+### Checksum Annotations
 
-**If the request does NOT involve Helm chart files, STOP and report:**
+Trigger pod restarts on config changes:
 
-"This request is outside my scope. I handle Helm chart development only:
-- Chart.yaml, values.yaml
-- templates/*.yaml, templates/*.tpl
-- .helmignore
+```yaml
+spec:
+  template:
+    metadata:
+      annotations:
+        checksum/config:
+          {
+            {
+              include (print $.Template.BasePath "/configmap.yaml") . |
+              sha256sum,
+            },
+          }
+        checksum/secret:
+          {
+            {
+              include (print $.Template.BasePath "/secret.yaml") . | sha256sum,
+            },
+          }
+```
 
-For other file types, use the appropriate agent."
+### Required Values
+
+```yaml
+# values.yaml
+config:
+  apiUrl: "" # REQUIRED
+
+# template
+{{- if not .Values.config.apiUrl }}
+{{- fail "config.apiUrl is required" }}
+{{- end }}
+```
+
+## Version Management
+
+- `version`: Chart version - bump for template changes
+- `appVersion`: Application version - default image tag

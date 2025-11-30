@@ -13,11 +13,15 @@ model: sonnet
 
 # Rapid Container Testing Workflow
 
+**You ARE the Rapid Testing agent. Do NOT delegate to any other agent. Execute
+the work directly.**
+
 ## Overview
 
-When developing containers or debugging deployment issues, the full CI/CD pipeline can be slow:
+When developing containers or debugging deployment issues, the full CI/CD
+pipeline can be slow:
 
-```
+```text
 Edit code → Commit → Push → GitHub Actions build → Package to OCI → Update ArgoCD Application → Wait for sync
 ```
 
@@ -25,7 +29,8 @@ This workflow can take **2-5 minutes per iteration**.
 
 ## Fast Testing Method
 
-Claude has `create` permission for pods in the `claude` namespace, enabling **direct pod creation** for rapid testing:
+Claude has `create` permission for pods in the `claude` namespace, enabling
+**direct pod creation** for rapid testing:
 
 ```bash
 # Create test pod manifest
@@ -40,7 +45,7 @@ metadata:
 spec:
   containers:
   - name: myapp
-    image: ghcr.io/transform-ia/myapp:latest
+    image: ghcr.io/transform-ia/myapp:${LATEST_TAG}
     imagePullPolicy: Always
     args:
     - "--arg1=value1"
@@ -94,14 +99,15 @@ kubectl delete pod test-myapp -n claude
 
 ## Iteration Time
 
-**Direct pod testing**: ~5-10 seconds per iteration
-**Full CI/CD pipeline**: 2-5 minutes per iteration
+**Direct pod testing**: ~5-10 seconds per iteration **Full CI/CD pipeline**: 2-5
+minutes per iteration
 
 **Speedup**: **12-60x faster** 🚀
 
 ## When to Use This Method
 
-### ✅ Use for rapid testing:
+### ✅ Use for rapid testing
+
 - **Debugging container startup issues** (crashes, arg parsing, env vars)
 - **Testing argument formats** (--key=value vs separate args)
 - **Verifying environment variables** and secrets
@@ -111,7 +117,8 @@ kubectl delete pod test-myapp -n claude
 - **Resource limit testing** (memory, CPU)
 - **Quick image tag validation** before helm chart update
 
-### ❌ Don't use for:
+### ❌ Don't use for
+
 - **Production deployments** (always use ArgoCD Applications)
 - **Persistent workloads** (use Deployments via helm charts)
 - **Multi-pod testing** (use full helm chart for complex scenarios)
@@ -121,6 +128,7 @@ kubectl delete pod test-myapp -n claude
 ## Workflow Pattern
 
 1. **Rapid iteration phase** - Use direct pod creation
+
    ```bash
    # Test container with different args/env
    kubectl apply -f /tmp/test-pod.yaml
@@ -132,6 +140,7 @@ kubectl delete pod test-myapp -n claude
    ```
 
 2. **Update helm chart** - Once container works
+
    ```bash
    # Update deployment template with validated config
    vim /workspace/sandbox/claude-chart/templates/myapp/deployment.yaml
@@ -141,6 +150,7 @@ kubectl delete pod test-myapp -n claude
    ```
 
 3. **Production deployment** - Deploy via ArgoCD
+
    ```bash
    # Update Application manifest
    vim /workspace/applications/myapp.yaml
@@ -156,6 +166,7 @@ kubectl delete pod test-myapp -n claude
 **Problem**: Container crashes with Exit Code 0, no logs visible
 
 **Fast testing approach**:
+
 ```bash
 # 1. Create test pod with correct args format
 cat > /tmp/test-dockerhub-mcp.yaml <<'EOF'
@@ -167,7 +178,7 @@ metadata:
 spec:
   containers:
   - name: dockerhub-mcp
-    image: ghcr.io/transform-ia/dockerhub-mcp:sha-aac1815
+    image: ghcr.io/transform-ia/dockerhub-mcp:${LATEST_TAG}
     imagePullPolicy: Always
     args:
     - "--transport=http"    # Fixed: key=value format
@@ -217,16 +228,20 @@ kubectl delete pod test-dockerhub-mcp -n claude
 # (Now confident the args format works)
 ```
 
-**Result**: Found and fixed issue in **~30 seconds** instead of multiple 5-minute CI/CD cycles.
+**Result**: Found and fixed issue in **~30 seconds** instead of multiple
+5-minute CI/CD cycles.
 
 ## Security Considerations
 
 ### Permissions
-- Claude has `create` and `delete` permissions for pods in `claude` namespace only
+
+- Claude has `create` and `delete` permissions for pods in `claude` namespace
+  only
 - Test pods inherit namespace security policies
 - No special RBAC privileges granted
 
 ### Best Practices
+
 - **Always use `restartPolicy: Never`** for test pods
 - **Always specify security context** (runAsNonRoot, drop capabilities)
 - **Clean up test pods** immediately after testing
@@ -234,6 +249,7 @@ kubectl delete pod test-dockerhub-mcp -n claude
 - **Don't store secrets** in test pod manifests (use existing secrets)
 
 ### Limitations
+
 - Test pods may not have identical network policies as production
 - Test pods are ephemeral (no persistence beyond pod lifetime)
 - Some Kubernetes controllers may not apply to standalone pods
@@ -242,6 +258,7 @@ kubectl delete pod test-dockerhub-mcp -n claude
 ## Tips and Tricks
 
 ### Quick pod creation
+
 ```bash
 # Template function for quick pod creation
 create_test_pod() {
@@ -279,16 +296,18 @@ EOF
 }
 
 # Usage
-create_test_pod "myapp" "ghcr.io/org/myapp:latest" 8080
+create_test_pod "myapp" "ghcr.io/org/myapp:${LATEST_TAG}" 8080
 ```
 
 ### Quick log tailing
+
 ```bash
 # Tail logs while pod starts
 kubectl apply -f /tmp/test-pod.yaml && kubectl wait --for=condition=Ready pod/test-pod -n claude --timeout=30s && kubectl logs test-pod -n claude -f
 ```
 
 ### Port-forward background
+
 ```bash
 # Port-forward in background, test, then kill
 kubectl port-forward test-pod 8080:3000 -n claude &
@@ -299,6 +318,7 @@ kill $PF_PID
 ```
 
 ### Copy files from test pod
+
 ```bash
 # Extract files from test pod
 kubectl cp claude/test-pod:/app/output.log /tmp/output.log
@@ -307,7 +327,8 @@ kubectl cp claude/test-pod:/app/output.log /tmp/output.log
 ## Integration with Development Workflow
 
 ### Docker Developer Flow
-```
+
+```text
 1. Edit Dockerfile
 2. Push to GitHub (triggers multi-arch build)
 3. Wait for build (~1-2 minutes)
@@ -320,7 +341,8 @@ kubectl cp claude/test-pod:/app/output.log /tmp/output.log
 ```
 
 ### Helm Chart Developer Flow
-```
+
+```text
 1. Edit chart templates
 2. Test locally with `helm template`
 3. Bump version, commit, tag, push
@@ -331,7 +353,8 @@ kubectl cp claude/test-pod:/app/output.log /tmp/output.log
 ```
 
 ### K8s Manager Flow
-```
+
+```text
 1. Create ArgoCD Application manifest
 2. Commit and push
 3. ArgoCD syncs
@@ -342,12 +365,14 @@ kubectl cp claude/test-pod:/app/output.log /tmp/output.log
 ## Summary
 
 **Rapid container testing** is a powerful technique for:
+
 - 🔍 **Debugging startup issues**
 - ⚡ **Quick iteration** on configuration
 - 🧪 **Validating args, env, volumes** before helm chart changes
 - 🚀 **12-60x faster** than full CI/CD pipeline
 
 **Always remember**:
+
 - Use for **testing only**, not production
 - **Clean up** test pods after use
 - **Validate** final deployment via ArgoCD

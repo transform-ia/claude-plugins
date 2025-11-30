@@ -1,8 +1,18 @@
 #!/bin/bash
 # Execute prettier on helm chart yaml files
+# Usage: format-exec.sh <directory>
 set -euo pipefail
 
-TARGET="${1:-.}"
+if [[ -z "${1:-}" ]]; then
+    echo "Usage: /helm:format <directory>" >&2
+    echo "" >&2
+    echo "Examples:" >&2
+    echo "  /helm:format /path/to/chart" >&2
+    echo "  /helm:format ." >&2
+    exit 1
+fi
+
+TARGET="$1"
 
 if [[ ! -d "$TARGET" ]]; then
     echo "Error: $TARGET is not a directory" >&2

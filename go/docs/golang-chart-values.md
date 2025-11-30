@@ -4,7 +4,8 @@ Complete reference for `golang-chart` values configuration (v0.0.17+).
 
 ## Overview
 
-The `golang-chart` deploys a Go development environment with gopls MCP language server. It creates a single pod with:
+The `golang-chart` deploys a Go development environment with gopls MCP language
+server. It creates a single pod with:
 
 - gopls language server exposed via HTTP MCP endpoint (port 81)
 - Shared `/workspace` volume for persistent code storage
@@ -191,7 +192,7 @@ spec:
 
         image:
           repository: ghcr.io/transform-ia/golang-image
-          tag: "0.0.13"
+          tag: "${LATEST_TAG}"
           pullPolicy: IfNotPresent
 
         storage:
@@ -384,13 +385,13 @@ storage:
 
 After deployment, the MCP server is available at:
 
-```
+```text
 http://<release-name>-golang-chart.<namespace>.svc.cluster.local:81/mcp
 ```
 
 **Example:**
 
-```
+```text
 http://myproject-dev-golang-chart.claude.svc.cluster.local:81/mcp
 ```
 

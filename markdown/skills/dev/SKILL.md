@@ -9,5 +9,5 @@ description: |
   - Reading markdown files without intent to edit
   - Working on code that happens to have comments
   - User is doing non-documentation work
-allowed-tools: Read, Write, Edit, Glob, Grep
+allowed-tools: Read, Write(*.md), Edit(*.md), Glob, Grep, Search, Bash(rm *.md), SlashCommand(/markdown:*)
 ---

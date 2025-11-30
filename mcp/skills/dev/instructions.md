@@ -1,17 +1,44 @@
-# MCP Plugin Guidelines
+# MCP Configuration
 
-## Purpose
+## Permissions
 
-The MCP plugin manages MCP (Model Context Protocol) server configurations in `/workspace/.mcp.json`.
+Unless specified, everything else is BLOCKED by hooks, in which cases:
 
-## Available Commands
+- This is EXPECTED behavior
+- DO NOT suggest workarounds
+- Report: "This operation is outside the mcp plugin scope." Unless you think
+  this is an implementation issue, in which case start a conversation with the
+  human on how to fix the issue.
 
-| Command | Purpose |
-|---------|---------|
-| `/mcp:add <name> <url>` | Add MCP server |
-| `/mcp:remove <name>` | Remove MCP server |
-| `/mcp:list` | List servers with status |
-| `/mcp:test <name-or-url>` | Test connectivity |
+### Tools Available
+
+- **Read** - Read any file
+- **Glob** - Find files by pattern
+- **Grep** - Search file contents
+- **Search** - Search file by name
+- **Edit** - to restricted files (see below)
+- **Bash** - Restricted to:
+  - `rm` to restricted files (see below)
+  - `claude mcp *` - Claude MCP commands
+  - `kubectl get/describe/logs` - Read-only cluster info
+  - `curl`, `nc`, `nslookup` - Connectivity testing
+- **SlashCommand**: | Command | Purpose | |---------|---------| |
+  `/mcp:add <name> <url>` | Add MCP server | | `/mcp:remove <name>` | Remove MCP
+  server | | `/mcp:list` | List servers with status | |
+  `/mcp:test <name-or-url>` | Test connectivity |
+
+### File Restrictions
+
+Only the following file(s) can be written, edited or deleted:
+
+- `.mcp.json`
+- `*/.mcp.json`
+
+## Out of Scope - Bail Out Immediately
+
+**If the request does NOT involve allowed tools and/or files, STOP and report:**
+
+`MCP plugin can't handle request outside its scope.`
 
 ## Configuration Format
 
@@ -26,23 +53,25 @@ The MCP plugin manages MCP (Model Context Protocol) server configurations in `/w
 
 ## Server Types
 
-- **http**: Standard HTTP MCP server (most common)
-- **sse**: Server-Sent Events MCP server
-- **stdio**: Standard input/output (command-line tools)
+| Type  | Description                      |
+| ----- | -------------------------------- |
+| http  | Standard HTTP MCP server         |
+| sse   | Server-Sent Events MCP server    |
+| stdio | Standard I/O (command-line tool) |
 
 ## URL Patterns
 
-### In-Cluster Services
+### In-Cluster
 
-```
+```text
 http://<service>.<namespace>.svc.cluster.local:<port>/mcp
 ```
 
-**Example**: `http://context7-mcp.claude.svc.cluster.local:3000/mcp`
+Example: `http://context7-mcp.claude.svc.cluster.local:3000/mcp`
 
-### External Services
+### External
 
-```
+```text
 https://api.example.com/mcp
 ```
 
@@ -50,48 +79,43 @@ https://api.example.com/mcp
 
 ### In-Cluster Services
 
-1. **Service must exist** in the target namespace
-2. **Network policies** must allow:
-   - Egress from Claude pod
-   - Ingress to target service
-3. **DNS resolution** must work (kube-dns)
+1. Service must exist in target namespace
+2. Network policies must allow egress/ingress
+3. DNS resolution must work (kube-dns)
 
 ### External Services
 
-1. **Egress network policy** must allow HTTPS (port 443)
-2. **DNS resolution** must work for external domains
-3. **Valid SSL certificates** (for HTTPS)
+1. Egress network policy for HTTPS (port 443)
+2. DNS resolution for external domains
+3. Valid SSL certificates
 
 ## Troubleshooting
 
-### Connection Failed
+| Issue              | Check                   |
+| ------------------ | ----------------------- |
+| Service not found  | `kubectl get svc`       |
+| Connection refused | Pod not running         |
+| Timeout            | Network policy blocking |
+| DNS failure        | Service name/namespace  |
 
-1. Run `/mcp:test <server-name>` for diagnostics
-2. Check service exists: `kubectl get svc <name> -n <namespace>`
-3. Check pods running: `kubectl get pods -n <namespace>`
-4. Check network policies
+### Diagnostics
 
-### Common Issues
+```bash
+# Test DNS
+nslookup service.namespace.svc.cluster.local
 
-| Issue | Check |
-|-------|-------|
-| Service not found | `kubectl get svc` |
-| Connection refused | Pod not running |
-| Timeout | Network policy blocking |
-| DNS failure | Service name/namespace |
+# Test connectivity
+nc -zv service.namespace.svc.cluster.local port
+
+# Check service
+kubectl get svc -n namespace
+
+# Check pods
+kubectl get pods -n namespace
+```
 
 ## Best Practices
 
-1. **Use descriptive names**: `context7-docs`, `n8n-workflow`
-2. **Test after adding**: Always run `/mcp:list` to verify
-3. **Check connectivity**: Use `/mcp:test` for new servers
-4. **Prefer Claude CLI**: Use `claude mcp add` when possible
-
-## Out of Scope - Bail Out Immediately
-
-**If the request does NOT involve MCP configuration, STOP and report:**
-
-"This request is outside my scope. I handle MCP configuration only:
-- .mcp.json
-
-For other file types, use the appropriate agent."
+- Use descriptive names: `context7-docs`, `n8n-workflow`
+- Test after adding: Always run `/mcp:list` to verify
+- Check connectivity: Use `/mcp:test` for new servers

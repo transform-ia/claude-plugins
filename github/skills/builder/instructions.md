@@ -1,15 +1,27 @@
-# GitHub Build Monitoring Guidelines
+# GitHub Build Monitoring
+
+## Available
+
+- **Read** - `.github/**/*` files
+- **Glob/Grep** - File search
+- **Bash** - `gh run/workflow` (list, view, watch), `gh api` (GET only)
+- **mcp**github**\*** - GitHub MCP tools
+
+## Not Available
+
+Write/Edit, `gh api` mutations (POST/PUT/DELETE)
 
 ## Purpose
 
-Monitor GitHub Actions workflow runs, check build status, and debug CI/CD failures.
+Monitor GitHub Actions workflow runs, check build status, and debug CI/CD
+failures.
 
 ## Available Commands
 
-| Command | Purpose |
-|---------|---------|
+| Command                 | Purpose                   |
+| ----------------------- | ------------------------- |
 | `/github:status [repo]` | List recent workflow runs |
-| `/github:logs <run-id>` | Get logs for a run |
+| `/github:logs <run-id>` | Get logs for a run        |
 
 ## gh CLI Commands
 
@@ -40,19 +52,20 @@ gh run watch RUN_ID --repo OWNER/REPO
 
 Use MCP tools when available:
 
-```
+```text
 mcp__github__list_pull_requests
 mcp__github__pull_request_read
 mcp__github__search_issues
 ```
 
-Note: MCP GitHub doesn't currently support Actions API, so use gh CLI for workflow queries.
+Note: MCP GitHub doesn't currently support Actions API, so use gh CLI for
+workflow queries.
 
 ## Output Format
 
 Present workflow status clearly:
 
-```
+```text
 Repository: transform-ia/hooks
 Latest Workflow Runs:
 
@@ -78,14 +91,14 @@ Latest Workflow Runs:
 
 ## Error Patterns
 
-| Error Pattern | Likely Cause |
-|---------------|--------------|
-| `golangci-lint` | Go code issues |
-| `hadolint` | Dockerfile issues |
-| `yamllint` | YAML formatting |
-| `helm lint` | Chart structure |
-| `npm test` | Node.js test failures |
-| `permission denied` | GITHUB_TOKEN scope |
+| Error Pattern       | Likely Cause          |
+| ------------------- | --------------------- |
+| `golangci-lint`     | Go code issues        |
+| `hadolint`          | Dockerfile issues     |
+| `yamllint`          | YAML formatting       |
+| `helm lint`         | Chart structure       |
+| `npm test`          | Node.js test failures |
+| `permission denied` | GITHUB_TOKEN scope    |
 
 ## Repository Detection
 
@@ -117,12 +130,14 @@ gh run watch $RUN_ID --repo OWNER/REPO --exit-status
 
 ## Out of Scope - Bail Out Immediately
 
-**If the request does NOT involve build status or workflow monitoring, STOP and report:**
+**If the request does NOT involve build status or workflow monitoring, STOP and
+report:**
 
 "This request is outside my scope. I handle GitHub Actions monitoring only:
+
 - Querying workflow runs
 - Checking build status
 - Viewing workflow logs
 
-For workflow file editing, use `/github:dev`.
-For other operations, use the appropriate plugin."
+For workflow file editing, use `/github:dev`. For other operations, use the
+appropriate plugin."

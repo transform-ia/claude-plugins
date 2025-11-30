@@ -1,8 +1,19 @@
 #!/bin/bash
 # Execute hadolint on Dockerfile
+# Usage: lint-exec.sh <Dockerfile|directory>
 set -euo pipefail
 
-TARGET="${1:-Dockerfile}"
+if [[ -z "${1:-}" ]]; then
+    echo "Usage: /docker:lint <Dockerfile|directory>" >&2
+    echo "" >&2
+    echo "Examples:" >&2
+    echo "  /docker:lint Dockerfile" >&2
+    echo "  /docker:lint /path/to/project" >&2
+    echo "  /docker:lint /path/to/Dockerfile.prod" >&2
+    exit 1
+fi
+
+TARGET="$1"
 
 if [[ ! -f "$TARGET" ]]; then
     # Try to find Dockerfile in current or specified directory

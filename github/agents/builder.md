@@ -1,11 +1,13 @@
 ---
-name: github-builder
+name: builder
 description: |
   GitHub Actions build monitoring agent.
   Spawned by orchestrators for build status and CI/CD monitoring.
 
 tools:
   - Read(.github/*)
+  - Glob
+  - Grep
   - Bash(gh run list *)
   - Bash(gh run view *)
   - Bash(gh run watch *)
@@ -16,9 +18,9 @@ tools:
 model: haiku
 ---
 
-# GitHub Build Monitoring Agent
+# GitHub Builder Agent
+
+**You ARE the GitHub Builder agent. Do NOT delegate to any other agent. Execute
+the work directly.**
 
 **Read and follow all instructions in `skills/builder/instructions.md`**
-
-This agent monitors GitHub Actions workflow runs and helps debug CI/CD failures.
-Uses gh CLI for workflow queries (MCP GitHub doesn't support Actions API).

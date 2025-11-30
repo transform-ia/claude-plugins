@@ -1,9 +1,19 @@
 #!/bin/bash
 # Detect frameworks/technologies in a repository
-# Returns JSON with detected plugins to activate
+# Returns: "Detected plugins: go, helm, docker, ..." or "Detected plugins: none"
+# Usage: detect-exec.sh <directory>
 set -euo pipefail
 
-TARGET="${1:-.}"
+if [[ -z "${1:-}" ]]; then
+    echo "Usage: /orchestrator:detect <directory>" >&2
+    echo "" >&2
+    echo "Examples:" >&2
+    echo "  /orchestrator:detect /path/to/repo" >&2
+    echo "  /orchestrator:detect ." >&2
+    exit 1
+fi
+
+TARGET="$1"
 
 if [[ ! -d "$TARGET" ]]; then
     echo "Error: $TARGET is not a directory" >&2
@@ -35,60 +45,25 @@ if [[ -d ".github/workflows" ]] || [[ -f ".github/dependabot.yml" ]]; then
     DETECTED+=("github")
 fi
 
+# Node.js detection
+if [[ -f "package.json" ]]; then
+    DETECTED+=("nodejs")
+fi
+
 # Markdown detection (significant .md files, not just README)
 MD_COUNT=$(find . -maxdepth 2 -name "*.md" -type f 2>/dev/null | wc -l)
 if [[ $MD_COUNT -gt 1 ]]; then
     DETECTED+=("markdown")
 fi
 
-# Output results
-echo "Repository: $TARGET"
-echo "Detected frameworks:"
-echo "---"
-
+# Output results - single line for Claude consumption
 if [[ ${#DETECTED[@]} -eq 0 ]]; then
-    echo "  (none detected)"
+    echo "Detected plugins: none"
 else
-    for framework in "${DETECTED[@]}"; do
-        case "$framework" in
-            go)
-                echo "  - go (go.mod found)"
-                echo "    Plugins: /go:dev, /go:lint, /go:test, /go:build"
-                ;;
-            helm)
-                echo "  - helm (Chart.yaml found)"
-                echo "    Plugins: /helm:dev, /helm:lint, /helm:ops"
-                ;;
-            docker)
-                echo "  - docker (Dockerfile found)"
-                echo "    Plugins: /docker:dev, /docker:lint, /docker:image-tag"
-                ;;
-            github)
-                echo "  - github (.github/ found)"
-                echo "    Plugins: /github:dev, /github:lint, /github:status"
-                ;;
-            markdown)
-                echo "  - markdown (multiple .md files found)"
-                echo "    Plugins: /markdown:dev, /markdown:lint"
-                ;;
-        esac
+    # Join array with comma-space
+    printf "Detected plugins: %s" "${DETECTED[0]}"
+    for plugin in "${DETECTED[@]:1}"; do
+        printf ", %s" "$plugin"
     done
-fi
-
-echo ""
-echo "Recommended workflow:"
-if [[ " ${DETECTED[*]} " =~ " go " ]]; then
-    echo "  1. /go:lint - Lint Go code"
-fi
-if [[ " ${DETECTED[*]} " =~ " docker " ]]; then
-    echo "  2. /docker:lint - Lint Dockerfile"
-fi
-if [[ " ${DETECTED[*]} " =~ " helm " ]]; then
-    echo "  3. /helm:lint - Lint Helm chart"
-fi
-if [[ " ${DETECTED[*]} " =~ " github " ]]; then
-    echo "  4. /github:lint - Lint CI/CD workflows"
-fi
-if [[ " ${DETECTED[*]} " =~ " markdown " ]]; then
-    echo "  5. /markdown:lint - Lint documentation"
+    echo
 fi

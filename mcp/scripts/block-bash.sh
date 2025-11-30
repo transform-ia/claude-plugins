@@ -3,14 +3,18 @@
 # Allow only: claude mcp, kubectl (for testing), curl, nc (for connectivity)
 set -euo pipefail
 
-# Check if we're in our plugin context
-MY_PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/mcp"
-if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$MY_PLUGIN_PATH" ]]; then
-    exit 0  # Not in our plugin context, allow all
+input=$(cat)
+
+# Detect caller from transcript - only enforce for /mcp:* commands
+transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
+tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
+DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
+caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
+
+if [[ "$caller" != /mcp:* ]]; then
+    exit 0  # Not from MCP plugin command, allow
 fi
 
-# Read hook input
-input=$(cat)
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
 
 if [[ -z "$command" ]]; then
@@ -78,11 +82,18 @@ fi
 # Block everything else
 echo "BLOCKED: MCP plugin restricts bash commands." >&2
 echo "" >&2
-echo "Allowed commands:" >&2
-echo "  - claude mcp add/list/remove" >&2
-echo "  - kubectl (for connectivity testing)" >&2
-echo "  - curl (for endpoint testing)" >&2
-echo "  - nc, nslookup (for network testing)" >&2
+echo "Available slash commands:" >&2
+echo "  /mcp:add     - Add MCP server to .mcp.json" >&2
+echo "  /mcp:list    - List configured MCP servers" >&2
+echo "  /mcp:remove  - Remove MCP server from config" >&2
+echo "  /mcp:test    - Test MCP server connectivity" >&2
 echo "" >&2
-echo "Use /mcp:add, /mcp:list, /mcp:test instead." >&2
+echo "Allowed bash for testing:" >&2
+echo "  - cat .mcp.json (read config)" >&2
+echo "  - rm .mcp.json (remove config)" >&2
+echo "  - curl (endpoint testing)" >&2
+echo "  - kubectl get/describe/logs (connectivity testing)" >&2
+echo "  - nc, nslookup (network testing)" >&2
+echo "" >&2
+echo "For other operations, exit the plugin context first." >&2
 exit 2

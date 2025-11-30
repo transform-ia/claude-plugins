@@ -8,12 +8,18 @@
 set -euo pipefail
 trap 'echo "HOOK ERROR: block-bash.sh failed" >&2; exit 2' ERR
 
-PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/docker"
-if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PLUGIN_PATH" ]]; then
-    exit 0
+input=$(cat)
+
+# Detect caller from transcript - only enforce for /docker:* commands
+transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
+tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
+DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
+caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
+
+if [[ "$caller" != /docker:* ]]; then
+    exit 0  # Not from docker plugin command, allow
 fi
 
-input=$(cat)
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
 
 # Allow plugin's own scripts
@@ -52,5 +58,10 @@ if [[ "$command" =~ ^docker ]]; then
 fi
 
 echo "BLOCKED: Bash not allowed in docker plugin context." >&2
-echo "Use /docker:lint, /docker:image-tag, or exit the plugin context." >&2
+echo "" >&2
+echo "Available commands:" >&2
+echo "  /docker:lint        - Run hadolint on Dockerfile" >&2
+echo "  /docker:image-tag   - Query image tags from registry" >&2
+echo "" >&2
+echo "For other operations, exit the plugin context first." >&2
 exit 2

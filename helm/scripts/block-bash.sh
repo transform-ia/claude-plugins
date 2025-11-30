@@ -8,12 +8,18 @@
 set -euo pipefail
 trap 'echo "HOOK ERROR: block-bash.sh failed" >&2; exit 2' ERR
 
-PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/helm"
-if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PLUGIN_PATH" ]]; then
-    exit 0
+input=$(cat)
+
+# Detect caller from transcript - only enforce for /helm:* commands
+transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
+tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
+DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
+caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
+
+if [[ "$caller" != /helm:* ]]; then
+    exit 0  # Not from helm plugin command, allow
 fi
 
-input=$(cat)
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
 
 # Allow plugin's own scripts
@@ -79,5 +85,12 @@ if [[ "$command" =~ ^prettier ]]; then
 fi
 
 echo "BLOCKED: Bash not allowed in helm plugin context." >&2
-echo "Use /helm:lint, /helm:format, /helm:template, or exit the plugin context." >&2
+echo "" >&2
+echo "Available commands:" >&2
+echo "  /helm:lint                  - Lint chart with helm lint + yamllint" >&2
+echo "  /helm:format                - Format YAML files with prettier" >&2
+echo "  /helm:template              - Preview rendered templates" >&2
+echo "  /helm:check-unused-values   - Find unused values in values.yaml" >&2
+echo "" >&2
+echo "For other operations, exit the plugin context first." >&2
 exit 2
