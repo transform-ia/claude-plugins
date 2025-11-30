@@ -4,11 +4,11 @@
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then
-    echo "Usage: /github:status <owner/repo> [limit]" >&2
+    echo "Usage: /github:cmd-status <owner/repo> [limit]" >&2
     echo "" >&2
     echo "Examples:" >&2
-    echo "  /github:status transform-ia/hooks" >&2
-    echo "  /github:status transform-ia/hooks 10" >&2
+    echo "  /github:cmd-status transform-ia/hooks" >&2
+    echo "  /github:cmd-status transform-ia/hooks 10" >&2
     exit 1
 fi
 

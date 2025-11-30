@@ -4,11 +4,11 @@
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then
-    echo "Usage: /github:lint <directory>" >&2
+    echo "Usage: /github:cmd-lint <directory>" >&2
     echo "" >&2
     echo "Examples:" >&2
-    echo "  /github:lint /path/to/repo" >&2
-    echo "  /github:lint ." >&2
+    echo "  /github:cmd-lint /path/to/repo" >&2
+    echo "  /github:cmd-lint ." >&2
     exit 1
 fi
 
@@ -25,7 +25,7 @@ ERRORS=0
 
 # Format yaml files
 echo "=== prettier ==="
-prettier --write '.github/**/*.yaml' '.github/**/*.yml' 2>&1 || true
+prettier --write '.github/**/*.yaml' 2>&1 || true
 
 # Lint yaml files
 echo ""

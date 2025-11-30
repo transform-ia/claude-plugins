@@ -1,5 +1,5 @@
 ---
-description: "Get workflow logs: /github:logs <run-id> [owner/repo]"
+description: "Get workflow logs: /github:cmd-logs <run-id> [owner/repo]"
 allowed-tools: [Bash]
 ---
 
@@ -7,14 +7,15 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command can only modify: `.github/**/*.yaml`, `.github/**/*.md`
+This command is READ-ONLY. It retrieves GitHub Actions workflow logs using the gh CLI.
+No file modifications are made.
 
 ---
 
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty or does not contain a run-id, respond
-with: "Error: run-id required. Usage: /github:logs <run-id> [owner/repo]" and
+with: "Error: run-id required. Usage: /github:cmd-logs <run-id> [owner/repo]" and
 STOP. Do not proceed with any tool calls.
 
 ---

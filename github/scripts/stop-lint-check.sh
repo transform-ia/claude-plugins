@@ -30,7 +30,7 @@ ERRORS=0
 
 # Format first
 echo "=== prettier ==="
-prettier --write '.github/**/*.yaml' '.github/**/*.yml' 2>&1 || true
+prettier --write '.github/**/*.yaml' 2>&1 || true
 
 # Lint
 echo ""

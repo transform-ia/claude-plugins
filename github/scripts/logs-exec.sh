@@ -6,7 +6,7 @@ RUN_ID="${1:-}"
 REPO="${2:-}"
 
 if [[ -z "$RUN_ID" ]]; then
-    echo "Usage: /github:logs <run-id> [owner/repo]" >&2
+    echo "Usage: /github:cmd-logs <run-id> [owner/repo]" >&2
     exit 1
 fi
 
