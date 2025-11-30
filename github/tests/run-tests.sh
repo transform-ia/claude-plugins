@@ -36,7 +36,7 @@ echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"}}' | \
 
 # Test: Hook scoping - should block .go files in plugin context
 result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-github-files.sh" 2>&1 || true)
+    TEST_CALLER="/github:cmd-test" CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-github-files.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks .go files in plugin context"
 else
@@ -57,7 +57,7 @@ echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/.github/dependabot.ya
 
 # Test: Blocks .yml extension in Write (enforces .yaml)
 result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/.github/workflows/ci.yml"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-github-files.sh" 2>&1 || true)
+    TEST_CALLER="/github:cmd-test" CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-github-files.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks .yml extension in Write (enforces .yaml)"
 else
@@ -66,7 +66,7 @@ fi
 
 # Test: gh CLI restrictions - should block gh repo delete
 result=$(echo '{"tool_input":{"command":"gh repo delete owner/repo --yes"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+    TEST_CALLER="/github:cmd-test" CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks gh repo delete (security)"
 else
@@ -75,7 +75,7 @@ fi
 
 # Test: gh CLI restrictions - should block gh release delete
 result=$(echo '{"tool_input":{"command":"gh release delete v1.0.0"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+    TEST_CALLER="/github:cmd-test" CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks gh release delete (security)"
 else
@@ -84,7 +84,7 @@ fi
 
 # Test: gh CLI restrictions - should block gh secret set
 result=$(echo '{"tool_input":{"command":"gh secret set MY_SECRET"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+    TEST_CALLER="/github:cmd-test" CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks gh secret set (security)"
 else
@@ -93,7 +93,7 @@ fi
 
 # Test: gh CLI restrictions - should block gh run cancel
 result=$(echo '{"tool_input":{"command":"gh run cancel 12345"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+    TEST_CALLER="/github:cmd-test" CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks gh run cancel (security)"
 else
@@ -120,7 +120,7 @@ echo '{"tool_input":{"command":"gh api repos/owner/repo/actions/runs"}}' | \
 
 # Test: gh CLI restrictions - should block gh api POST
 result=$(echo '{"tool_input":{"command":"gh api --method POST repos/owner/repo/issues"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+    TEST_CALLER="/github:cmd-test" CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks gh api POST (security)"
 else
@@ -141,7 +141,7 @@ echo '{"tool_input":{"command":"rm .github/dependabot.yaml"}}' | \
 
 # Test: rm deletion - blocks files outside .github/
 result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+    TEST_CALLER="/github:cmd-test" CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks rm files outside .github/"
 else
@@ -150,21 +150,18 @@ fi
 
 # Test: rm deletion - blocks non-.yaml files in .github/
 result=$(echo '{"tool_input":{"command":"rm .github/workflows/script.sh"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+    TEST_CALLER="/github:cmd-test" CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks rm non-.yaml files in .github/"
 else
     fail "Deletion security" "Should block deleting non-.yaml files in .github/"
 fi
 
-# Test: .yml extension blocked (enforce .yaml convention)
-result=$(echo '{"tool_input":{"command":"rm .github/dependabot.yml"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
-if [[ "$result" == *"BLOCKED"* ]]; then
-    pass "Blocks .yml extension (enforces .yaml convention)"
-else
-    fail "Convention" "Should block .yml, enforce .yaml"
-fi
+# Test: .yml deletion allowed (cleanup of non-standard files)
+echo '{"tool_input":{"command":"rm .github/dependabot.yml"}}' | \
+    TEST_CALLER="/github:cmd-test" CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows .yml deletion (cleanup of non-standard files)" || \
+    fail "Convention" "Should allow .yml deletion for cleanup"
 
 echo ""
 echo "Results: $passed passed, $failed failed"

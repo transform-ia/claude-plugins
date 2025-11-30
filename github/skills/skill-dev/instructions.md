@@ -2,20 +2,18 @@
 
 ## Permissions
 
-Unless specified, everything else is BLOCKED by hooks, in which cases:
+All operations not explicitly listed in "Tools Available" and "File Restrictions"
+below are BLOCKED by hooks. When blocked:
 
-- This is EXPECTED behavior
-- DO NOT suggest workarounds
-- Report: "This operation is outside the github plugin scope." Unless you think
-  this is an implementation issue, in which case start a conversation with the
-  human on how to fix the issue.
+- This is EXPECTED behavior for operations outside the plugin's purpose
+- DO NOT suggest workarounds for intentional restrictions
+- Report: "This operation is outside the github plugin scope."
 
 ### Tools Available
 
 - **Read** - Read any file
 - **Glob** - Find files by pattern
 - **Grep** - Search file contents
-- **Search** - Search file by name
 - **Write/Edit** - to restricted files (see below)
 - **Bash** - Restricted to:
   - `rm` to restricted files (see below)
@@ -24,11 +22,11 @@ Unless specified, everything else is BLOCKED by hooks, in which cases:
 - **SlashCommand**:
   | Command | Purpose |
   |---------|---------|
-  | `/github:lint [dir]` | Run yamllint + prettier |
-  | `/github:status [repo]` | Check workflow status |
-  | `/github:logs <run-id>` | Get workflow logs |
-  | `/github:release <version>` | Full release workflow with build monitoring |
-  | `/orchestrator:detect [dir]` | Detect project type for CI config |
+  | `/github:cmd-lint [dir]` | Run yamllint + prettier |
+  | `/github:cmd-status [repo]` | Check workflow status |
+  | `/github:cmd-logs <run-id>` | Get workflow logs |
+  | `/github:cmd-release <version>` | Full release workflow with build monitoring |
+  | `/orchestrator:cmd-detect [dir]` | Detect project type for CI config |
 - **MCP Tools**:
   - `mcp__github__*` - GitHub API
 
@@ -73,22 +71,53 @@ Fix all issues before completing the task.
 - Use `.yaml` extension (not `.yml`)
 - Add `---` document start marker
 - Request minimal permissions
-- Run `/orchestrator:detect` first to know what CI needs
+- Run `/orchestrator:cmd-detect` first to know what CI needs
 - Use claude-image or golang-image containers with raw commands
-- **Copy workflow templates EXACTLY** - do not change action versions
+
+### Container Images
+
+**Use specific version tags for all container images:**
+
+Query latest tag before creating workflows:
+```bash
+/docker:cmd-image-tag ghcr.io/transform-ia/golang-image
+/docker:cmd-image-tag ghcr.io/transform-ia/claude-image
+```
+
+Then use the returned tag in workflow files:
+```yaml
+container:
+  image: ghcr.io/transform-ia/golang-image:v1.23.5  # Use specific version from query
+```
+
+**NEVER:**
+- Use `latest` tag
+- Use `${LATEST_TAG}` placeholder (templates only)
+- Copy outdated versions from examples
 
 ### Required Action Versions
 
-**CRITICAL: Use these EXACT versions. Do NOT use older versions.**
+**CRITICAL: Use these specific rolling version tags. Do NOT use different major versions.**
 
-| Action | Version |
-|--------|---------|
+These are rolling major version tags (e.g., @v4 = latest v4.x release) maintained by
+action authors. They automatically receive patch and minor updates while maintaining
+backward compatibility within the major version. This balances security updates with
+stability.
+
+| Action | Rolling Version Tag |
+|--------|---------------------|
 | `actions/checkout` | `@v4` |
 | `docker/setup-qemu-action` | `@v3` |
 | `docker/setup-buildx-action` | `@v3` |
 | `docker/login-action` | `@v3` |
 | `docker/build-push-action` | `@v6` |
 | `azure/setup-helm` | `@v4` |
+
+**When copying workflow templates:**
+- Use these exact version tags
+- Do NOT downgrade to older major versions (e.g., @v3 when @v4 is specified)
+- Do NOT upgrade to newer major versions unless tested and approved
+- Do NOT pin to specific SHA commits unless security requires it
 
 ## Canonical Workflow Files
 
@@ -101,37 +130,63 @@ Fix all issues before completing the task.
 
 ### CRITICAL: Workflow Cleanup Procedure
 
-**BEFORE creating or updating workflows, you MUST:**
+**Perform cleanup BEFORE creating or updating workflows IF non-canonical files exist.**
 
-1. **Find ALL existing workflows** (both `.yaml` and `.yml`):
-   ```bash
-   # Use Glob to find all workflow files
-   Glob: .github/workflows/*.y*ml
-   ```
+#### Step 1: Discovery
 
-2. **Delete EVERY file that is NOT `ci.yaml` or `build.yaml`:**
-   - Delete `*.yml` files (wrong extension)
-   - Delete any other `*.yaml` files (non-canonical names)
-   - Use `rm` command for each file to delete
-
-3. **Only then** create/update the canonical files
-
-**Example cleanup:**
+Find ALL existing workflow files:
 ```bash
-# If you find: build-and-push.yml, lint.yml, build-docker-image.yaml
-rm .github/workflows/build-and-push.yml
-rm .github/workflows/lint.yml
-rm .github/workflows/build-docker-image.yaml
-# Then create ci.yaml and build.yaml
+Glob: .github/workflows/*.y*ml
 ```
 
-**DO NOT skip cleanup** - orphan workflows cause confusion and duplicate runs.
+#### Step 2: Classify Files
+
+Categorize each file found:
+
+**KEEP (canonical files):**
+- `ci.yaml` - Linting and testing
+- `build.yaml` - Build and publish
+
+**DELETE (non-canonical files):**
+- Any file with `.yml` extension (wrong extension, must be `.yaml`)
+- Any `.yaml` file NOT named `ci.yaml` or `build.yaml` (non-canonical names)
+
+Examples to DELETE:
+- `build-and-push.yml` ❌ (wrong extension)
+- `lint.yaml` ❌ (non-canonical name)
+- `docker-build.yaml` ❌ (non-canonical name)
+- `test.yml` ❌ (wrong extension)
+
+#### Step 3: Delete Non-Canonical Files
+
+**If non-canonical files exist, delete them immediately:**
+
+Show the user which files will be deleted:
+```
+Deleting non-canonical workflows:
+- lint.yml (wrong extension)
+- build-and-push.yaml (non-canonical name)
+```
+
+Delete files:
+```bash
+rm .github/workflows/lint.yml
+rm .github/workflows/build-and-push.yaml
+```
+
+NO CONFIRMATION NEEDED - these are policy violations that must be cleaned up.
+
+#### Step 4: Create/Update Canonical Files
+
+Only after cleanup is complete, proceed to create or update `ci.yaml` and `build.yaml`.
+
+**If ONLY canonical files exist** (`ci.yaml`, `build.yaml`), skip Steps 2-3 and proceed directly to Step 4.
 
 ## Release Workflow
 
-After updating workflows, use `/github:release` to handle the full release cycle:
+After updating workflows, use `/github:cmd-release` to handle the full release cycle:
 
-### When to Use /github:release
+### When to Use /github:cmd-release
 
 Use after:
 - Creating or updating workflow files
@@ -140,20 +195,20 @@ Use after:
 ### Release Procedure
 
 1. **Commit all changes** (workflow files, etc.)
-2. **Run `/github:release <version>`** which will:
+2. **Run `/github:cmd-release <version>`** which will:
    - Create and push the git tag
    - Push commits to remote
    - Wait for GitHub Actions build to complete
    - Report build success or failure
-3. **If build fails**: Check logs with `/github:logs <run-id>` and fix issues
+3. **If build fails**: Check logs with `/github:cmd-logs <run-id>` and fix issues
 
 ### Version Formats
 
 ```text
-/github:release 1.2.3     # Explicit version
-/github:release patch     # Auto-bump patch (0.0.1 -> 0.0.2)
-/github:release minor     # Auto-bump minor (0.1.0 -> 0.2.0)
-/github:release major     # Auto-bump major (1.0.0 -> 2.0.0)
+/github:cmd-release 1.2.3     # Explicit version
+/github:cmd-release patch     # Auto-bump patch (0.0.1 -> 0.0.2)
+/github:cmd-release minor     # Auto-bump minor (0.1.0 -> 0.2.0)
+/github:cmd-release major     # Auto-bump major (1.0.0 -> 2.0.0)
 ```
 
 **IMPORTANT**: Always wait for the build result before reporting completion.

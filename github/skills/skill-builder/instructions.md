@@ -5,7 +5,7 @@
 - **Read** - `.github/**/*` files
 - **Glob/Grep** - File search
 - **Bash** - `gh run/workflow` (list, view, watch), `gh api` (GET only)
-- **mcp**github**\*** - GitHub MCP tools
+- **mcp__github__\*** - GitHub MCP tools
 
 ## Not Available
 
@@ -20,8 +20,8 @@ failures.
 
 | Command                 | Purpose                   |
 | ----------------------- | ------------------------- |
-| `/github:status [repo]` | List recent workflow runs |
-| `/github:logs <run-id>` | Get logs for a run        |
+| `/github:cmd-status [repo]` | List recent workflow runs |
+| `/github:cmd-logs <run-id>` | Get logs for a run        |
 
 ## gh CLI Commands
 
@@ -139,5 +139,5 @@ report:**
 - Checking build status
 - Viewing workflow logs
 
-For workflow file editing, use `/github:dev`. For other operations, use the
+For workflow file editing, use `/github:skill-dev`. For other operations, use the
 appropriate plugin."

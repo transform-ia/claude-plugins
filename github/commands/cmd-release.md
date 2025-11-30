@@ -1,20 +1,30 @@
 ---
-description: "Full release workflow: /github:release <version>"
-allowed-tools: [Bash, Read, Edit, Write, Bash(git *)]
+description: "Full release workflow: /github:cmd-release <version>"
+allowed-tools: [Read, Edit, Write, Bash]
 ---
 
 # GitHub Release
 
 ## Permissions
 
-This command can only modify: `.github/**/*.yaml`, `.github/**/*.md`
+This command can modify:
+- `.github/workflows/ci.yaml`
+- `.github/workflows/build.yaml`
+- `.github/dependabot.yaml`
+- `.github/PULL_REQUEST_TEMPLATE/*.md`
+- Git repository state (commits and tags via git commands)
+
+Note: Version files (package.json, Chart.yaml, go.mod) are NOT modified by this command.
+The git tag itself serves as the version source.
+
+This is the ONLY command that can execute git operations in the GitHub plugin.
 
 ---
 
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty or does not contain a version, respond
-with: "Error: version required. Usage: /github:release <version>" and STOP. Do
+with: "Error: version required. Usage: /github:cmd-release <version>" and STOP. Do
 not proceed with any tool calls.
 
 ---
@@ -22,14 +32,14 @@ not proceed with any tool calls.
 Execute a full release workflow with version bump, build monitoring, and
 deployment.
 
-**Usage**: `/github:release <version>`
+**Usage**: `/github:cmd-release <version>`
 
 **Examples**:
 
 ```text
-/github:release 1.2.0
-/github:release patch    # Auto-bump patch version
-/github:release minor    # Auto-bump minor version
+/github:cmd-release 1.2.0
+/github:cmd-release patch    # Auto-bump patch version
+/github:cmd-release minor    # Auto-bump minor version
 ```
 
 ## Full Release Workflow
@@ -40,8 +50,8 @@ deployment.
    - If `patch`/`minor`/`major`: Calculate from current version
    - If explicit version: Use provided value
 
-2. **Update version files** (detect project type):
-   - **Go**: Update `version` in relevant files
+2. **Update version files** (if applicable to current project):
+   - **Go**: Update version constants/files
    - **Node.js**: Update `package.json` version
    - **Helm**: Update `Chart.yaml` version
    - **Docker**: Tag will be created from git tag
@@ -62,56 +72,34 @@ deployment.
 
 ### Phase 2: Monitor Build
 
-1. **Wait for GitHub Actions**:
+1. **Wait for GitHub Actions trigger** (10 second delay)
+
+2. **Watch build progress**:
 
    ```bash
-   # Get workflow run ID
+   # Get latest workflow run ID
    gh run list --limit 1 --json databaseId --jq '.[0].databaseId'
 
    # Watch build progress
-   gh run watch <run-id>
+   gh run watch <run-id> --exit-status
    ```
 
-2. **Verify build success**:
+3. **Report result**:
+   - ✅ Build succeeded: Report tag and image/artifact location
+   - ❌ Build failed: Show failure logs and exit
 
-   ```bash
-   gh run view <run-id> --json conclusion --jq '.conclusion'
-   ```
+### Post-Release Actions
 
-### Phase 3: Update Dependencies (if applicable)
+**The GitHub plugin stops here.** For downstream releases:
+- **Helm chart updates**: Use `/helm:cmd-release` in chart repository
+- **ArgoCD deployment**: Use orchestrator plugin or manual Application update
+- **Multi-repo orchestration**: Use orchestrator plugin workflows
 
-1. **Check for related Helm chart**:
-   - Look for chart that uses this image
-   - Common patterns:
-     - `<project>-chart` for `<project>-image`
-     - Charts in same organization
-
-2. **If Helm chart exists**:
-
-   ```bash
-   # Update image tag in values.yaml or Chart.yaml appVersion
-   # Update Chart.yaml version
-   # Commit, tag, push
-   # Wait for chart build
-   ```
-
-### Phase 4: Deploy (if ArgoCD Application exists)
-
-1. **Check for ArgoCD Application**:
-
-   ```bash
-   ls /workspace/applications/<project>*.yaml
-   ```
-
-2. **If Application exists**:
-
-   ```bash
-   # Update targetRevision in Application
-   # Commit and push
-   # ArgoCD auto-syncs
-   ```
+This keeps each plugin focused on its domain and prevents coupling.
 
 ## Version Detection
+
+**For the current project only:**
 
 | Project Type | Version Location                           |
 | ------------ | ------------------------------------------ |
@@ -140,9 +128,10 @@ gh run view <run-id> --log-failed
 
 ## Error Handling
 
-- **Build fails**: Show failed job logs, do not proceed
-- **No workflow found**: Warn but continue (might not use Actions)
+- **Build fails**: Show failed job logs and exit with error
+- **No workflow found**: Warn but continue (project might not use Actions)
 - **Network timeout**: Retry with backoff
+- **Tag already exists**: Fail with clear error message
 
 ## Notes
 

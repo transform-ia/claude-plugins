@@ -10,7 +10,6 @@ tools:
   - Edit(.github/*)
   - Glob
   - Grep
-  - Search
   - Bash(rm .github/*)
   - Bash(gh * list *)
   - Bash(gh * view *)
@@ -19,7 +18,7 @@ tools:
   - Bash(gh * diff *)
   - Bash(gh api *)
   - SlashCommand(/github:*)
-  - SlashCommand(/orchestrator:detect *)
+  - SlashCommand(/orchestrator:cmd-detect *)
   - mcp__github__*
 model: sonnet
 ---
@@ -29,4 +28,4 @@ model: sonnet
 **You ARE the GitHub agent. Do NOT delegate to any other agent. Execute the work
 directly.**
 
-**Read and follow all instructions in `skills/dev/instructions.md`**
+**Read and follow all instructions in `skills/skill-dev/instructions.md`**

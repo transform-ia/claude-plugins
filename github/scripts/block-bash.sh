@@ -1,6 +1,6 @@
 #!/bin/bash
 # PreToolUse: Block most Bash commands when in github plugin context
-# Exception: github:builder skill needs gh CLI access
+# Exception: github:skill-builder skill needs gh CLI access
 #
 # Exit codes:
 #   0 = Allow
@@ -10,15 +10,46 @@ set -euo pipefail
 trap 'echo "HOOK ERROR: block-bash.sh failed" >&2; exit 2' ERR
 
 input=$(cat)
-
-# Detect caller from transcript - only enforce for /github:* commands
 transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
 tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
 DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
-caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
 
-if [[ "$caller" != /github:* ]]; then
-    exit 0  # Not from github plugin command, allow
+# Detect caller from transcript - only enforce for /github:* commands
+# Test mode: use TEST_CALLER env var
+if [[ -n "${TEST_CALLER:-}" ]]; then
+    caller="$TEST_CALLER"
+# Production mode: require transcript and use detect-caller.py
+elif [[ -z "$transcript_path" ]]; then
+    # No transcript = not in plugin context (allow)
+    exit 0
+else
+    # Verify detect-caller.py exists and is executable
+    if [[ ! -x "$DETECT_CALLER" ]]; then
+        echo "" >&2
+        echo "HOOK ERROR: detect-caller.py not found or not executable" >&2
+        echo "Path: $DETECT_CALLER" >&2
+        echo "" >&2
+        exit 2
+    fi
+
+    # Call detect-caller.py - fail-closed on script failure
+    if ! caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>&1); then
+        echo "" >&2
+        echo "HOOK ERROR: Caller detection failed" >&2
+        echo "Script output: $caller" >&2
+        echo "" >&2
+        exit 2
+    fi
+fi
+
+# Empty caller = not from plugin command (allow)
+if [[ -z "$caller" ]]; then
+    exit 0
+fi
+
+# Check if caller is from github plugin
+if [[ "$caller" != /github:cmd-* && "$caller" != /github:skill-* ]]; then
+    exit 0  # Not from github plugin, allow
 fi
 
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
@@ -36,15 +67,12 @@ if [[ "$command" =~ ^rm[[:space:]] ]]; then
         if [[ "$file" == */.github/* ]] || [[ "$file" == .github/* ]]; then
             filename=$(basename "$file")
             case "$filename" in
-                *.yaml|*.md)
-                    # Allowed GitHub file type
-                    ;;
-                *.yml)
-                    echo "BLOCKED: Use .yaml extension (not .yml) - project convention" >&2
-                    exit 2
+                *.yaml|*.yml|*.md)
+                    # Allowed GitHub file types for deletion
+                    # Note: .yml deletion enabled for cleanup of non-standard files
                     ;;
                 *)
-                    echo "BLOCKED: Can only delete .yaml/.md files in .github/ in github plugin." >&2
+                    echo "BLOCKED: Can only delete .yaml/.yml/.md files in .github/ in github plugin." >&2
                     echo "Attempted to delete: $file" >&2
                     exit 2
                     ;;
@@ -58,12 +86,13 @@ if [[ "$command" =~ ^rm[[:space:]] ]]; then
     exit 0
 fi
 
-# Allow git commands for /github:release workflow
+# Allow git commands for /github:cmd-release workflow ONLY
 if [[ "$command" =~ ^git[[:space:]] ]]; then
-    if [[ "$caller" == "/github:release" ]]; then
-        exit 0  # Allow all git commands for release workflow
+    if [[ "$caller" == "/github:cmd-release" ]]; then
+        exit 0  # Allow git commands (add, commit, tag, push)
     fi
-    echo "BLOCKED: git commands only allowed in /github:release context." >&2
+    echo "BLOCKED: git commands are only allowed in /github:cmd-release context." >&2
+    echo "Use /github:cmd-release to create tags and push commits." >&2
     exit 2
 fi
 
@@ -102,22 +131,28 @@ fi
 
 # Provide helpful redirects
 if [[ "$command" =~ ^yamllint ]]; then
-    echo "BLOCKED: Use /github:lint instead of direct yamllint." >&2
+    echo "BLOCKED: Use /github:cmd-lint instead of direct yamllint." >&2
     exit 2
 fi
 
 if [[ "$command" =~ ^prettier ]]; then
-    echo "BLOCKED: Use /github:lint instead of direct prettier." >&2
+    echo "BLOCKED: Use /github:cmd-lint instead of direct prettier." >&2
     exit 2
 fi
 
-echo "BLOCKED: Bash not allowed in github plugin context (except gh CLI)." >&2
+echo "" >&2
+echo "═══════════════════════════════════════════════════════════════" >&2
+echo "BLOCKED: Bash command not allowed in GitHub plugin context" >&2
+echo "═══════════════════════════════════════════════════════════════" >&2
+echo "" >&2
+echo "Attempted command: $command" >&2
 echo "" >&2
 echo "Available commands:" >&2
-echo "  /github:lint     - Lint .github workflow files" >&2
-echo "  /github:status   - Check workflow status" >&2
-echo "  /github:logs     - Get workflow logs" >&2
-echo "  /github:release  - Full release workflow" >&2
+echo "  /github:cmd-lint [dir]      - Lint .github workflow files" >&2
+echo "  /github:cmd-status [repo]   - Check workflow status" >&2
+echo "  /github:cmd-logs <run-id>   - Get workflow logs" >&2
+echo "  /github:cmd-release <ver>   - Full release workflow" >&2
 echo "" >&2
-echo "For other operations, exit the plugin context first." >&2
+echo "For other operations, the GitHub plugin cannot help." >&2
+echo "═══════════════════════════════════════════════════════════════" >&2
 exit 2

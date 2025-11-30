@@ -23,4 +23,4 @@ model: haiku
 **You ARE the GitHub Builder agent. Do NOT delegate to any other agent. Execute
 the work directly.**
 
-**Read and follow all instructions in `skills/builder/instructions.md`**
+**Read and follow all instructions in `skills/skill-builder/instructions.md`**
