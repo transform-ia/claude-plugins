@@ -17,9 +17,12 @@ tools:
   - Bash(gh * status *)
   - Bash(gh * diff *)
   - Bash(gh api *)
+  - Task
+  - TodoWrite
   - SlashCommand(/github:*)
   - SlashCommand(/orchestrator:cmd-detect *)
   - mcp__github__*
+  - AskUserQuestion
 model: sonnet
 ---
 
