@@ -20,6 +20,23 @@ fail() { echo -e "${RED}✗${NC} $1: $2"; ((++failed)); }
 # Setup: Export CLAUDE_PLUGIN_ROOT for the hooks
 export CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR"
 
+# Helper: Backup original detect-caller.py before tests
+backup_original_caller() {
+    if [ -f "$PARENT_SCRIPTS_DIR/detect-caller.py" ]; then
+        cp "$PARENT_SCRIPTS_DIR/detect-caller.py" "$PARENT_SCRIPTS_DIR/detect-caller.py.backup"
+    fi
+}
+
+# Helper: Restore original detect-caller.py after tests
+restore_original_caller() {
+    if [ -f "$PARENT_SCRIPTS_DIR/detect-caller.py.backup" ]; then
+        mv "$PARENT_SCRIPTS_DIR/detect-caller.py.backup" "$PARENT_SCRIPTS_DIR/detect-caller.py"
+    fi
+}
+
+# Ensure original file is restored even if tests fail
+trap restore_original_caller EXIT
+
 # Helper: Create mock detect-caller.py that returns specific caller
 setup_mock_caller() {
     local caller="$1"
@@ -41,6 +58,9 @@ cleanup_mock_caller() {
 
 echo "Testing Markdown Plugin"
 echo "========================"
+
+# Backup original detect-caller.py before running tests
+backup_original_caller
 
 # Test: Scripts exist and are executable
 for script in enforce-md-files.sh block-bash.sh lint-exec.sh stop-lint-check.sh; do
@@ -162,6 +182,9 @@ echo "{\"tool_input\":{\"command\":\"${CLAUDE_PLUGIN_ROOT}/scripts/lint-exec.sh 
     pass "Allows plugin's own scripts" || \
     fail "Plugin scripts" "Should allow ${CLAUDE_PLUGIN_ROOT}/scripts/*"
 cleanup_mock_caller
+
+# Restore original detect-caller.py
+restore_original_caller
 
 echo ""
 echo "Results: $passed passed, $failed failed"
