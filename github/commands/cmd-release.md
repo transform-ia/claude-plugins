@@ -1,6 +1,6 @@
 ---
 description: "Full release workflow: /github:cmd-release <version>"
-allowed-tools: [Read, Edit, Write, Bash]
+allowed-tools: [Read, Edit, Write, Bash, Bash(git *), Bash(tree *)]
 ---
 
 # GitHub Release

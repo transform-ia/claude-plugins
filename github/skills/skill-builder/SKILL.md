@@ -9,5 +9,5 @@ description: |
   - Creating or editing workflow files (use github:skill-dev)
   - General GitHub operations
   - Repository management
-allowed-tools: Read(.github/*), Glob, Grep, Bash(gh run list *), Bash(gh run view *), Bash(gh run watch *), Bash(gh workflow list *), Bash(gh workflow view *), Bash(gh api *), mcp__github__*
+allowed-tools: Read(.github/*), Glob, Grep, Bash(gh run list *), Bash(gh run view *), Bash(gh run watch *), Bash(gh workflow list *), Bash(gh workflow view *), Bash(gh api *), Bash(git *), Bash(tree *), mcp__github__*
 ---

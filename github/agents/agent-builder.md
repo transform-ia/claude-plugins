@@ -14,6 +14,8 @@ tools:
   - Bash(gh workflow list *)
   - Bash(gh workflow view *)
   - Bash(gh api *)
+  - Bash(git *)
+  - Bash(tree *)
   - mcp__github__*
 model: haiku
 ---

@@ -1,6 +1,6 @@
 ---
 description: "Lint .github files: /github:cmd-lint [directory]"
-allowed-tools: [Bash]
+allowed-tools: [Bash, Bash(git *), Bash(tree *)]
 ---
 
 # GitHub Lint

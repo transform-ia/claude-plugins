@@ -1,6 +1,6 @@
 ---
 description: "Get workflow logs: /github:cmd-logs <run-id> [owner/repo]"
-allowed-tools: [Bash]
+allowed-tools: [Bash, Bash(git *), Bash(tree *)]
 ---
 
 # GitHub Logs
