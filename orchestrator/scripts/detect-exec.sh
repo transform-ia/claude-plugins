@@ -41,7 +41,7 @@ if [[ -f "Dockerfile" ]] || ls Dockerfile.* 1>/dev/null 2>&1; then
 fi
 
 # GitHub Actions detection
-if [[ -d ".github/workflows" ]] || [[ -f ".github/dependabot.yml" ]]; then
+if [[ -d ".github/workflows" ]] || [[ -f ".github/dependabot.yaml" ]]; then
     DETECTED+=("github")
 fi
 
