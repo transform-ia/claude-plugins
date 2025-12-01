@@ -17,6 +17,8 @@ tools:
   - Bash(gh * status *)
   - Bash(gh * diff *)
   - Bash(gh api *)
+  - Bash(git *)
+  - Bash(tree *)
   - Task
   - TodoWrite
   - SlashCommand(/github:*)
