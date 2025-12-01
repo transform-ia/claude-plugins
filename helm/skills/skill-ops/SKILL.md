@@ -3,7 +3,10 @@ name: ops
 description: |
   Kubernetes operations for ArgoCD Application management.
 
-  ONLY activate when user explicitly requests /helm:skill-ops OR is managing ArgoCD Applications.
+  ONLY activate when:
+  - User explicitly requests /helm:skill-ops
+  - User requests to create, edit, or deploy ArgoCD Application manifests in /workspace/applications/
+  - User asks about ArgoCD sync status, health, or deployment troubleshooting
 
   DO NOT activate when:
   - Developing Helm charts (use helm:skill-dev)

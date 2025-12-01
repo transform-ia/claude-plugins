@@ -1,7 +1,10 @@
 #!/bin/bash
 # Find git repository root from given directory
 # Usage: find-git-root.sh <directory>
-# Exit 2 if not in a git repo (blocking error)
+#
+# Exit codes (per Claude Code docs):
+#   0 = Success - prints git root to stdout
+#   2 = BLOCKING error - not in a git repository
 
 set -euo pipefail
 

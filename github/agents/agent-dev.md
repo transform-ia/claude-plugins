@@ -10,7 +10,7 @@ tools:
   - Edit(.github/*)
   - Glob
   - Grep
-  - Bash(rm .github/*)
+  - Bash(rm .github/**/*.yaml, rm .github/**/*.yml, rm .github/**/*.md)
   - Bash(gh * list *)
   - Bash(gh * view *)
   - Bash(gh * watch *)

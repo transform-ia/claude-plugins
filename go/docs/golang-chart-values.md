@@ -192,6 +192,11 @@ spec:
 
         image:
           repository: ghcr.io/transform-ia/golang-image
+          # ${LATEST_TAG} is a placeholder - resolve using:
+          # /docker:cmd-image-tag <image-reference>
+          # Examples:
+          #   - With registry: /docker:cmd-image-tag ghcr.io/transform-ia/golang-image
+          #   - Docker Hub: /docker:cmd-image-tag alpine
           tag: "${LATEST_TAG}"
           pullPolicy: IfNotPresent
 

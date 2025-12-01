@@ -4,12 +4,12 @@
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then
-    echo "Usage: /docker:lint <Dockerfile|directory>" >&2
+    echo "Usage: /docker:cmd-lint <Dockerfile|directory>" >&2
     echo "" >&2
     echo "Examples:" >&2
-    echo "  /docker:lint Dockerfile" >&2
-    echo "  /docker:lint /path/to/project" >&2
-    echo "  /docker:lint /path/to/Dockerfile.prod" >&2
+    echo "  /docker:cmd-lint Dockerfile" >&2
+    echo "  /docker:cmd-lint /path/to/project" >&2
+    echo "  /docker:cmd-lint /path/to/Dockerfile.prod" >&2
     exit 1
 fi
 

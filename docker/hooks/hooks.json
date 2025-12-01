@@ -1,5 +1,5 @@
 {
-  "description": "Docker plugin hooks",
+  "description": "Docker plugin hooks - enforce file restrictions (Dockerfile, Dockerfile.*, .dockerignore) and block unauthorized Bash commands when docker:agent-dev is active",
   "hooks": {
     "PreToolUse": [
       {

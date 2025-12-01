@@ -7,12 +7,12 @@ IMAGE="${1:-}"
 COUNT="${2:-10}"
 
 if [[ -z "$IMAGE" ]]; then
-    echo "Usage: /docker:image-tag <image> [count]" >&2
+    echo "Usage: /docker:cmd-image-tag <image> [count]" >&2
     echo "" >&2
     echo "Examples:" >&2
-    echo "  /docker:image-tag python              # Docker Hub official" >&2
-    echo "  /docker:image-tag alpine/kubectl      # Docker Hub user/org" >&2
-    echo "  /docker:image-tag ghcr.io/org/pkg     # GitHub Container Registry" >&2
+    echo "  /docker:cmd-image-tag python              # Docker Hub official" >&2
+    echo "  /docker:cmd-image-tag alpine/kubectl      # Docker Hub user/org" >&2
+    echo "  /docker:cmd-image-tag ghcr.io/org/pkg     # GitHub Container Registry" >&2
     exit 1
 fi
 
@@ -44,24 +44,13 @@ if [[ "$IMAGE" == ghcr.io/* ]]; then
 
     echo "$RESULT"
 else
-    # Docker Hub image
-    REGISTRY="dockerhub"
-
-    # Check if it's an official image (no /) or user/org image
-    if [[ "$IMAGE" == */* ]]; then
-        NAMESPACE=$(echo "$IMAGE" | cut -d'/' -f1)
-        REPOSITORY=$(echo "$IMAGE" | cut -d'/' -f2)
-    else
-        NAMESPACE="library"
-        REPOSITORY="$IMAGE"
-    fi
-
-    echo "Querying Docker Hub: $NAMESPACE/$REPOSITORY"
-    echo "---"
-    echo "Use MCP tool: mcp__dockerhub__listRepositoryTags"
-    echo "  namespace: $NAMESPACE"
-    echo "  repository: $REPOSITORY"
-    echo "  page_size: $COUNT"
-    echo ""
-    echo "Or use the built-in Docker Hub MCP integration."
+    # Docker Hub - bash can't call MCP tools, return error
+    echo "Error: Docker Hub queries must use MCP tools directly." >&2
+    echo "" >&2
+    echo "This script only handles GHCR images (ghcr.io/*)." >&2
+    echo "For Docker Hub, use mcp__dockerhub__listRepositoryTags tool:" >&2
+    echo "  namespace: library (or org/user)" >&2
+    echo "  repository: <image-name>" >&2
+    echo "  page_size: 10" >&2
+    exit 1
 fi
