@@ -1,34 +1,43 @@
 #!/bin/bash
-# PreToolUse: Block Write/Edit when in orchestrator plugin context
+# PreToolUse: Block Write/Edit when in Orchestrator plugin context
 # Orchestrator should only detect and dispatch - not modify files
 #
-# Exit codes:
-#   0 = Allow
-#   2 = Block
+# Exit codes (per Claude Code docs):
+#   0 = Allow (success)
+#   2 = BLOCKING error - stops Claude, shows error
+#   other = Non-blocking - Claude continues (BAD for enforcement!)
+#
+# CRITICAL: Any script failure MUST exit 2 to block Claude
 
 set -euo pipefail
-trap 'echo "HOOK ERROR: enforce-no-files.sh failed" >&2; exit 2' ERR
 
-input=$(cat)
+# Trap any error and convert to exit 2 (blocking)
+trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in enforce-no-files.sh" >&2; exit 2' ERR
 
-# Detect caller from transcript - only enforce for /orchestrator:* commands
-transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
-tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
-DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
-caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
+# Source shared hook library
+source "/workspace/sandbox/transform-ia/claude-plugins/scripts/lib/hook-common.sh"
 
-if [[ "$caller" != /orchestrator:* ]]; then
-    exit 0  # Not from orchestrator plugin command, allow
+# Parse hook input
+parse_hook_input
+
+# Check if in Orchestrator plugin scope
+if ! in_plugin_scope "$TRANSCRIPT_PATH" "$TOOL_USE_ID" "orchestrator"; then
+    exit 0  # Not in scope - allow
 fi
-
-tool=$(echo "$input" | jq -r '.tool_name // empty')
 
 # Block all Write and Edit operations
-if [[ "$tool" == "Write" || "$tool" == "Edit" ]]; then
+if [[ "$TOOL_NAME" == "Write" || "$TOOL_NAME" == "Edit" ]]; then
     echo "BLOCKED: Orchestrator plugin cannot modify files." >&2
-    echo "Orchestrator detects frameworks and dispatches to specialized plugins." >&2
-    echo "Use /orchestrator:detect, then launch the appropriate plugin agent." >&2
-    exit 2
+    echo "" >&2
+    echo "The Orchestrator plugin only detects frameworks and dispatches to specialized plugins." >&2
+    echo "" >&2
+    echo "Use /orchestrator:cmd-detect, then launch the appropriate plugin agent:" >&2
+    echo "  - Go files (*.go) → use go:skill-dev" >&2
+    echo "  - Dockerfile → use docker:skill-dev" >&2
+    echo "  - Helm charts (*.yaml) → use helm:skill-dev" >&2
+    echo "  - GitHub workflows → use github:skill-dev" >&2
+    echo "  - Markdown (*.md) → use markdown:skill-dev" >&2
+    exit 2  # Block
 fi
 
-exit 0
+exit 0  # Allow other operations

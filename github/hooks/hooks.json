@@ -1,5 +1,5 @@
 {
-  "description": "GitHub plugin hooks",
+  "description": "GitHub plugin hooks - enforce file restrictions (.github/workflows/*.yaml, .github/dependabot.yaml) and run yamllint + prettier on Stop when github:agent-dev is active",
   "hooks": {
     "PreToolUse": [
       {

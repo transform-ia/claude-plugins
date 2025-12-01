@@ -1,63 +1,43 @@
 #!/bin/bash
-# PreToolUse: Enforce helm-only file restrictions for Write/Edit
+# PreToolUse: Enforce Helm-only file restrictions for Write/Edit operations
 #
-# Exit codes:
-#   0 = Allow
-#   2 = Block
+# Exit codes (per Claude Code docs):
+#   0 = Allow (success)
+#   2 = BLOCKING error - stops Claude, shows error
+#   other = Non-blocking - Claude continues (BAD for enforcement!)
+#
+# CRITICAL: Any script failure MUST exit 2 to block Claude
 
 set -euo pipefail
-trap 'echo "HOOK ERROR: enforce-helm-files.sh failed" >&2; exit 2' ERR
 
-input=$(cat)
+# Trap any error and convert to exit 2 (blocking)
+trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in enforce-helm-files.sh" >&2; exit 2' ERR
 
-# Detect caller from transcript - only enforce for /helm:* commands
-transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
-tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
-DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
+# Source shared hook library
+source "/workspace/sandbox/transform-ia/claude-plugins/scripts/lib/hook-common.sh"
 
-# If no transcript_path (test scenario), fall back to CLAUDE_PLUGIN_ROOT check
-if [[ -z "$transcript_path" ]]; then
-    # Test/legacy mode: use CLAUDE_PLUGIN_ROOT environment variable
-    if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PWD"* ]] && [[ "${CLAUDE_PLUGIN_ROOT:-}" != "/workspace/sandbox/transform-ia/claude-plugins/helm" ]]; then
-        exit 0  # Not in helm plugin context
-    fi
-else
-    # Production mode: use detect-caller.py with fail-closed behavior
-    if [[ ! -x "$DETECT_CALLER" ]]; then
-        echo "HOOK ERROR: detect-caller.py not found or not executable" >&2
-        echo "Path: $DETECT_CALLER" >&2
-        exit 2
-    fi
+# Parse hook input
+parse_hook_input
 
-    # Call detect-caller.py - fail loudly on script failure
-    if ! caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>&1); then
-        echo "HOOK ERROR: Caller detection failed" >&2
-        echo "Output: $caller" >&2
-        exit 2
-    fi
-
-    # Check if caller is from helm plugin
-    if [[ "$caller" != /helm:* ]]; then
-        exit 0  # Not from helm plugin command, allow
-    fi
+# Check if in Helm plugin scope
+if ! in_plugin_scope "$TRANSCRIPT_PATH" "$TOOL_USE_ID" "helm"; then
+    exit 0  # Not in scope - allow
 fi
 
-tool=$(echo "$input" | jq -r '.tool_name // empty')
-
-if [[ "$tool" != "Write" && "$tool" != "Edit" ]]; then
-    exit 0
+# Only check Write/Edit operations
+if [[ "$TOOL_NAME" != "Write" && "$TOOL_NAME" != "Edit" ]]; then
+    exit 0  # Allow - not a file write operation
 fi
 
-file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
-filename=$(basename "$file_path")
-# Normalize path to catch ../templates tricks and resolve symlinks
-normalized_path=$(readlink -m "$file_path" 2>/dev/null || echo "$file_path")
+# Normalize path to prevent traversal attacks
+normalized_path=$(normalize_path "$FILE_PATH")
+filename=$(basename "$normalized_path")
 
 # Check if path contains templates/ directory
 if [[ "$normalized_path" == */templates/* ]]; then
     case "$filename" in
         *.yaml|*.yml|*.tpl|_helpers.tpl|NOTES.txt)
-            exit 0
+            exit 0  # Allow
             ;;
     esac
 fi
@@ -66,20 +46,29 @@ fi
 case "$filename" in
     .yamllint.yaml|.yamllint.yml|.yamllint)
         echo "BLOCKED: Helm plugin cannot modify linter configuration." >&2
-        echo "If lint rules are too strict, discuss with the user first." >&2
-        echo "The user can modify .yamllint.yaml after agreeing on changes." >&2
-        exit 2
+        echo "" >&2
+        echo "Attempted to modify: $FILE_PATH" >&2
+        echo "" >&2
+        echo "Linter config is read-only. Discuss lint issues with the user first." >&2
+        exit 2  # Block
         ;;
 esac
 
-# Allow specific helm chart files
+# Allow specific Helm chart files
 case "$filename" in
     Chart.yaml|values.yaml|.helmignore)
-        exit 0
+        exit 0  # Allow
         ;;
     *)
         echo "BLOCKED: Helm plugin can only modify Chart.yaml, values.yaml, templates/*, .helmignore" >&2
-        echo "For other files, exit the plugin context first." >&2
-        exit 2
+        echo "" >&2
+        echo "Attempted to modify: $FILE_PATH" >&2
+        echo "" >&2
+        echo "For other file types:" >&2
+        echo "  - Go files (*.go) → use go:skill-dev" >&2
+        echo "  - Dockerfile → use docker:skill-dev" >&2
+        echo "  - GitHub workflows → use github:skill-dev" >&2
+        echo "  - Other files → exit Helm plugin scope first" >&2
+        exit 2  # Block
         ;;
 esac

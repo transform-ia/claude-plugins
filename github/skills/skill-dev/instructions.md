@@ -17,8 +17,8 @@ below are BLOCKED by hooks. When blocked:
 - **Write/Edit** - to restricted files (see below)
 - **Bash** - Restricted to:
   - `rm` to restricted files (see below)
-  - `gh` read-only: `list`, `view`, `watch`, `status`, `diff`
-  - `gh api` GET requests only
+  - `gh` commands: ONLY read-only operations (`list`, `view`, `watch`, `status`, `diff`) - hooks block write operations (`create`, `delete`, `edit`, `merge`, etc.)
+  - `gh api`: ONLY GET requests - hooks block POST/PUT/PATCH/DELETE methods
 - **SlashCommand**:
   | Command | Purpose |
   |---------|---------|
@@ -43,11 +43,26 @@ Only the following file(s) can be written, edited or deleted:
 
 **Convention:** Use `.yaml` not `.yml`. Delete any non-canonical workflow files.
 
-## Out of Scope - Bail Out Immediately
+## Out of Scope - Exit Immediately
 
-**If the request does NOT involve allowed tools and/or files, STOP and report:**
+**If the request does NOT involve allowed tools and/or files:**
 
-`GitHub plugin can't handle request outside its scope.`
+1. **Immediately respond** with:
+   ```
+   GitHub plugin cannot handle this request - it is outside the allowed scope.
+
+   Allowed: .github/workflows/*.yaml, .github/dependabot.yaml and /github:* commands
+   Requested: [describe what was requested]
+
+   Use the appropriate plugin instead:
+   - Go code → go:agent-dev
+   - Dockerfile → docker:agent-dev
+   - Helm charts → helm:agent-dev
+   ```
+
+2. **Stop execution** - do not attempt workarounds or continue
+3. **Do not make any tool calls** for the out-of-scope operation
+4. **Wait for user** to rephrase or switch plugins
 
 ## Post processing
 
@@ -61,7 +76,7 @@ Fix all issues before completing the task.
 
 ### NEVER
 
-- Use path filters - CI should run on ALL changes
+- Use path filters - CI MUST run on ALL changes
 - Use `@main` or `@master` for actions - pin to specific versions
 - Put secrets in code - use repository secrets
 - Deviate from template versions - use EXACT versions shown below
@@ -92,7 +107,6 @@ container:
 
 **NEVER:**
 - Use `latest` tag
-- Use `${LATEST_TAG}` placeholder (templates only)
 - Copy outdated versions from examples
 
 ### Required Action Versions
@@ -121,7 +135,7 @@ stability.
 
 ## Canonical Workflow Files
 
-**Single source of truth - only these files should exist:**
+**Single source of truth - only these files MUST exist:**
 
 | File | Purpose |
 |------|---------|
@@ -235,7 +249,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/transform-ia/golang-image:${LATEST_TAG}
+      image: ghcr.io/transform-ia/golang-image:<<QUERY_LATEST_TAG>>
       options: --user 0
     steps:
       - uses: actions/checkout@v4
@@ -267,7 +281,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/transform-ia/claude-image:${LATEST_TAG}
+      image: ghcr.io/transform-ia/claude-image:<<QUERY_LATEST_TAG>>
       options: --user 0
     steps:
       - uses: actions/checkout@v4
@@ -344,7 +358,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/transform-ia/claude-image:${LATEST_TAG}
+      image: ghcr.io/transform-ia/claude-image:<<QUERY_LATEST_TAG>>
       options: --user 0
     steps:
       - uses: actions/checkout@v4

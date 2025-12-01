@@ -28,15 +28,15 @@ for script in enforce-docker-files.sh block-bash.sh lint-exec.sh image-tag-exec.
     fi
 done
 
-# Test: Hook scoping - should allow when not in plugin context
+# Test: Hook scoping - should allow when not in plugin context (no transcript_path)
 echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="" "$SCRIPTS_DIR/enforce-docker-files.sh" && \
+    "$SCRIPTS_DIR/enforce-docker-files.sh" && \
     pass "Allows writes when not in plugin context" || \
-    fail "Hook scoping" "Should allow when CLAUDE_PLUGIN_ROOT is empty"
+    fail "Hook scoping" "Should allow when transcript_path is missing"
 
 # Test: Hook scoping - should block .go files in plugin context
-result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-docker-files.sh" 2>&1 || true)
+result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/docker:skill-dev" "$SCRIPTS_DIR/enforce-docker-files.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks .go files in plugin context"
 else
@@ -44,32 +44,32 @@ else
 fi
 
 # Test: Allows Dockerfile in plugin context
-echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/Dockerfile"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-docker-files.sh" && \
+echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/Dockerfile"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/docker:skill-dev" "$SCRIPTS_DIR/enforce-docker-files.sh" && \
     pass "Allows Dockerfile in plugin context" || \
     fail "File restriction" "Should allow Dockerfile"
 
 # Test: Allows .dockerignore in plugin context
-echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/.dockerignore"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-docker-files.sh" && \
+echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/.dockerignore"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/docker:skill-dev" "$SCRIPTS_DIR/enforce-docker-files.sh" && \
     pass "Allows .dockerignore in plugin context" || \
     fail "File restriction" "Should allow .dockerignore"
 
 # Test: rm deletion - allows Dockerfile
-echo '{"tool_input":{"command":"rm /tmp/Dockerfile"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+echo '{"tool_input":{"command":"rm /tmp/Dockerfile"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/docker:skill-dev" "$SCRIPTS_DIR/block-bash.sh" && \
     pass "Allows rm Dockerfile" || \
     fail "Deletion" "Should allow deleting Dockerfile"
 
 # Test: rm deletion - allows .dockerignore
-echo '{"tool_input":{"command":"rm /tmp/.dockerignore"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+echo '{"tool_input":{"command":"rm /tmp/.dockerignore"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/docker:skill-dev" "$SCRIPTS_DIR/block-bash.sh" && \
     pass "Allows rm .dockerignore" || \
     fail "Deletion" "Should allow deleting .dockerignore"
 
 # Test: rm deletion - blocks non-docker files
-result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/docker:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks rm non-docker files"
 else

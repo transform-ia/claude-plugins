@@ -1,28 +1,49 @@
 #!/bin/bash
-# Stop hook: Auto-lint Go files before completion
+# Stop hook: Auto-lint Go files after completion
 # Uses kubectl to run golangci-lint in the dev pod
-set -euo pipefail
+#
+# Exit codes (per Claude Code docs):
+#   0 = Success - linting passed or not applicable
+#   2 = BLOCKING error - lint failures that must be fixed
 
-PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/go"
-if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PLUGIN_PATH" ]]; then
-    exit 0
-fi
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Read hook input from stdin
 input=$(cat)
-
-# Detect caller from transcript - only run for /go:* commands
 transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
 tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
 cwd=$(echo "$input" | jq -r '.cwd // empty')
-
 DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
-caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
 
-if [[ "$caller" != /go:* ]]; then
-    exit 0  # Not from Go plugin command, skip
+# Detect caller from transcript - only run for /go:* commands
+# Test mode: use TEST_CALLER env var
+if [[ -n "${TEST_CALLER:-}" ]]; then
+    caller="$TEST_CALLER"
+# Production mode: require transcript and use detect-caller.py
+elif [[ -z "$transcript_path" ]]; then
+    # No transcript = not in plugin context (skip)
+    exit 0
+else
+    # Verify detect-caller.py exists and is executable
+    if [[ ! -x "$DETECT_CALLER" ]]; then
+        echo "HOOK ERROR: detect-caller.py not found or not executable" >&2
+        echo "Path: $DETECT_CALLER" >&2
+        exit 2
+    fi
+
+    # Call detect-caller.py - fail-closed on script failure
+    if ! caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>&1); then
+        echo "HOOK ERROR: Caller detection failed" >&2
+        echo "Output: $caller" >&2
+        exit 2
+    fi
+fi
+
+# Empty caller = not from plugin command (skip)
+if [[ -z "$caller" ]] || [[ "$caller" != /go:* ]]; then
+    exit 0
 fi
 
 # Find git root from cwd
@@ -74,6 +95,7 @@ if [[ $ERRORS -ne 0 ]]; then
     echo "═══════════════════════════════════════════════════════════════"
     echo "LINT ERRORS: Please fix the issues above before completing."
     echo "═══════════════════════════════════════════════════════════════"
+    exit 2  # Exit 2 = BLOCKING error (stops Claude)
 fi
 
-exit $ERRORS
+exit 0

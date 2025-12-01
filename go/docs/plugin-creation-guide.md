@@ -36,30 +36,30 @@ agents, and skills. Avoid repeating the prefix in filenames.
 
 | Plugin Folder | File                | Invocation     |
 | ------------- | ------------------- | -------------- |
-| `go/`         | `commands/build.md` | `/go:build`    |
-| `go/`         | `agents/dev.md`     | `go:dev`       |
-| `go/`         | `skills/dev/`       | skill `go:dev` |
+| `go/`         | `commands/cmd-build.md` | `/go:cmd-build`    |
+| `go/`         | `agents/agent-dev.md`     | `go:agent-dev`       |
+| `go/`         | `skills/skill-dev/`       | skill `go:skill-dev` |
 
 ### Avoid Stutter
 
 ```text
 ❌ BAD: go/agents/go-dev.md     → go:go-dev (stutters!)
-✅ GOOD: go/agents/dev.md       → go:dev
+✅ GOOD: go/agents/agent-dev.md       → go:agent-dev
 
 ❌ BAD: go/skills/go-quality/   → skill go:go-quality
-✅ GOOD: go/skills/quality/     → skill go:quality
+✅ GOOD: go/skills/skill-quality/     → skill go:skill-quality
 
 ❌ BAD: go/commands/go-build.md → /go:go-build
-✅ GOOD: go/commands/build.md   → /go:build
+✅ GOOD: go/commands/cmd-build.md   → /go:cmd-build
 ```
 
 ### Rule
 
 If your plugin folder is named `foo/`, then:
 
-- Commands: `foo/commands/bar.md` → `/foo:bar`
-- Agents: `foo/agents/bar.md` → `foo:bar`
-- Skills: `foo/skills/bar/` → skill `foo:bar`
+- Commands: `foo/commands/cmd-bar.md` → `/foo:cmd-bar`
+- Agents: `foo/agents/agent-bar.md` → `foo:agent-bar`
+- Skills: `foo/skills/skill-bar/` → skill `foo:skill-bar`
 
 Never include the plugin name in the filename—it's already the prefix.
 
@@ -81,8 +81,8 @@ operations.
 | Code  | Meaning            | Effect                               |
 | ----- | ------------------ | ------------------------------------ |
 | `0`   | Success            | Allow operation to proceed           |
+| `1`   | Warning            | Log warning, allow operation         |
 | `2`   | Blocking error     | Stop operation, show error to Claude |
-| Other | Non-blocking error | Log warning, allow operation         |
 
 ### hooks.json Format
 
@@ -142,7 +142,7 @@ if we're in plugin context.
 
 ### How It Works
 
-When a plugin command (e.g., `/go:build`) runs, Claude Code sets
+When a plugin command (e.g., `/go:cmd-build`) runs, Claude Code sets
 `CLAUDE_PLUGIN_ROOT` to the plugin's directory path. This environment variable
 is available to all hooks and persists through subagent invocations.
 
@@ -189,7 +189,7 @@ user_content=$(echo "$user_line" | jq -r '.message.content // empty')
 ```
 
 **Limitation**: Transcript parsing only finds the immediate parent. Subagents
-have their own message chains, so `/go:build` won't be found as the parent when
+have their own message chains, so `/go:cmd-build` won't be found as the parent when
 a subagent runs Bash. Use `CLAUDE_PLUGIN_ROOT` for reliable scoping.
 
 ## Command Files
@@ -199,7 +199,7 @@ Commands are markdown files that expand to prompts when invoked.
 ### Naming Convention
 
 - File: `commands/build.md`
-- Invocation: `/go:build` (plugin prefix + filename without .md)
+- Invocation: `/go:cmd-build` (plugin prefix + filename without .md)
 
 ### Command Structure
 
@@ -239,7 +239,7 @@ Detailed instructions loaded when skill activates.
    operations outside plugin context
 2. **Avoid naming stutter** - Don't repeat plugin name in agent/skill/command
    filenames
-3. **Fail open** - When in doubt, allow the operation
+3. **Fail closed** - When validation fails or context is uncertain, block the operation (security-first approach)
 4. **Clear error messages** - Tell users why something was blocked and what to
    do instead
 5. **Timeout safety** - Set reasonable timeouts (5s for quick checks, 120s for
@@ -253,7 +253,7 @@ Detailed instructions loaded when skill activates.
 
 The Go plugin demonstrates these patterns:
 
-- **Commands**: `/go:build`, `/go:test`, `/go:lint`, etc.
+- **Commands**: `/go:cmd-build`, `/go:cmd-test`, `/go:cmd-lint`, etc.
 - **Hook scoping**: Only enforces Go-only file restrictions when initiated by
   `/go:*` commands
 - **Bash blocking**: Prevents shell commands in favor of plugin commands (within

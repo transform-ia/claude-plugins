@@ -8,54 +8,31 @@
 set -euo pipefail
 trap 'echo "HOOK ERROR: block-bash.sh failed" >&2; exit 2' ERR
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/validators.sh"
+
 input=$(cat)
 
-# Detect caller from transcript - only enforce for /markdown:* commands
+# Parse hook input
 transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
 tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
-DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
-caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
-
-if [[ "$caller" != /markdown:* ]]; then
-    exit 0  # Not from markdown plugin command, allow
-fi
-
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
 
-# Allow plugin's own scripts
-if [[ "$command" == */claude-plugins/markdown/scripts/* ]]; then
-    exit 0
+# Check if in plugin scope (handles fail-closed internally)
+if ! in_plugin_scope "$transcript_path" "$tool_use_id"; then
+    exit 0  # Not in scope - allow
 fi
 
-# Allow rm for markdown files only
-if [[ "$command" =~ ^rm[[:space:]] ]]; then
-    # Extract file arguments (skip flags like -f, -r, -rf)
-    files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
-    for file in $files; do
-        case "$file" in
-            *.md)
-                # Allowed file type
-                ;;
-            *)
-                echo "BLOCKED: Can only delete .md files in markdown plugin." >&2
-                echo "Attempted to delete: $file" >&2
-                exit 2
-                ;;
-        esac
-    done
-    exit 0
-fi
-
-# Provide helpful redirect for markdownlint
-if [[ "$command" =~ markdownlint ]]; then
-    echo "BLOCKED: Use /markdown:lint instead of direct markdownlint." >&2
+# Validate bash command against allowlist
+if validate_bash_command "$command"; then
+    exit 0  # Allowed
+else
+    echo "$MSG_BLOCKED_BASH" >&2
+    echo "" >&2
+    echo "Allowed commands:" >&2
+    printf '  - %s\n' "${ALLOWED_BASH_COMMANDS[@]}" >&2
+    echo "  - ${CLAUDE_PLUGIN_ROOT}/scripts/*" >&2
+    echo "" >&2
+    echo "Attempted: $command" >&2
     exit 2
 fi
-
-echo "BLOCKED: Bash not allowed in markdown plugin context." >&2
-echo "" >&2
-echo "Available commands:" >&2
-echo "  /markdown:lint  - Run markdownlint on .md files" >&2
-echo "" >&2
-echo "For other operations, exit the plugin context first." >&2
-exit 2

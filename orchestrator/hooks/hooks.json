@@ -1,0 +1,38 @@
+{
+  "description": "Orchestrator plugin hooks - dispatches to specialized plugins",
+  "_comment": "Hook scoping: All Pre hooks use detect-caller.py to parse transcript and only enforce restrictions when called from /orchestrator:* slash commands. Orchestrator cannot modify files - it only detects frameworks and dispatches.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/block-bash.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/enforce-no-files.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/enforce-no-files.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

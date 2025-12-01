@@ -2,12 +2,16 @@
 # Execute 'go test' in dev pod
 # Usage: test-exec.sh <directory> [package]
 # Package defaults to ./... if not specified
+#
+# Exit codes:
+#   0 = Success - all tests passed
+#   2 = BLOCKING error - tests failed or pod not found
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-dir="${1:?ERROR: Directory argument required. Usage: /go:test <directory> [package]}"
+dir="${1:?ERROR: Directory argument required. Usage: /go:cmd-test <directory> [package]}"
 shift
 pkg="${1:-./...}"
 

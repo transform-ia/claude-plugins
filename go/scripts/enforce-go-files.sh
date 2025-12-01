@@ -13,30 +13,31 @@ set -euo pipefail
 # Trap any error and convert to exit 2 (blocking)
 trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in enforce-go-files.sh" >&2; exit 2' ERR
 
-input=$(cat)
+# Source shared hook library
+source "/workspace/sandbox/transform-ia/claude-plugins/scripts/lib/hook-common.sh"
 
-# Detect caller from transcript - only enforce for /go:* commands
-transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
-tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
-DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
-caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
+# Parse hook input
+parse_hook_input
 
-if [[ "$caller" != /go:* ]]; then
-    exit 0  # Not from Go plugin command, allow
+# Check if in Go plugin scope
+if ! in_plugin_scope "$TRANSCRIPT_PATH" "$TOOL_USE_ID" "go"; then
+    exit 0  # Not in scope - allow
 fi
 
-tool=$(echo "$input" | jq -r '.tool_name // empty')
-
 # Only check Write/Edit operations
-if [[ "$tool" != "Write" && "$tool" != "Edit" ]]; then
+if [[ "$TOOL_NAME" != "Write" && "$TOOL_NAME" != "Edit" ]]; then
     exit 0  # Allow - not a file write operation
 fi
 
-# We're in Go plugin context - enforce Go-only file restrictions
-file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
+# Normalize path to prevent traversal attacks
+normalized_path=$(normalize_path "$FILE_PATH")
 
 # Allow Go-related files only (NO .golangci.yaml - agent cannot modify linter config)
-case "$file_path" in
+# Pattern matches:
+#   *.go       - Any .go file at any depth
+#   */go.mod   - go.mod at any depth (including ./go.mod via */go.mod or direct match)
+#   */go.sum   - go.sum at any depth
+case "$normalized_path" in
     *.go|*/go.mod|*/go.sum)
         exit 0  # Allow
         ;;
@@ -47,7 +48,14 @@ case "$file_path" in
         ;;
     *)
         echo "BLOCKED: Go plugin can only modify .go, go.mod, go.sum files." >&2
-        echo "For other files, use a different agent or ask outside the Go plugin." >&2
+        echo "" >&2
+        echo "Attempted to modify: $FILE_PATH" >&2
+        echo "" >&2
+        echo "For other file types:" >&2
+        echo "  - Dockerfile → use docker:skill-dev" >&2
+        echo "  - Helm charts (*.yaml) → use helm:skill-dev" >&2
+        echo "  - Markdown (*.md) → use markdown:skill-dev" >&2
+        echo "  - Other files → exit Go plugin scope first" >&2
         exit 2  # Block
         ;;
 esac

@@ -1,42 +1,40 @@
 #!/bin/bash
-# PreToolUse: Enforce .github-only file restrictions for Write/Edit
+# PreToolUse: Enforce .github-only file restrictions for Write/Edit operations
 #
-# Exit codes:
-#   0 = Allow
-#   2 = Block
+# Exit codes (per Claude Code docs):
+#   0 = Allow (success)
+#   2 = BLOCKING error - stops Claude, shows error
+#   other = Non-blocking - Claude continues (BAD for enforcement!)
+#
+# CRITICAL: Any script failure MUST exit 2 to block Claude
 
 set -euo pipefail
-trap 'echo "HOOK ERROR: enforce-github-files.sh failed" >&2; exit 2' ERR
 
-input=$(cat)
-transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
-tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
-DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
+# Trap any error and convert to exit 2 (blocking)
+trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in enforce-github-files.sh" >&2; exit 2' ERR
 
-# Detect caller from transcript - only enforce for /github:* commands
-# Test mode: use TEST_CALLER env var
+# Source shared hook library
+source "/workspace/sandbox/transform-ia/claude-plugins/scripts/lib/hook-common.sh"
+
+# Parse hook input
+parse_hook_input
+
+# GitHub plugin uses both cmd-* and skill-* patterns
+# Custom scope check (more permissive than standard in_plugin_scope)
+caller=""
 if [[ -n "${TEST_CALLER:-}" ]]; then
     caller="$TEST_CALLER"
-# Production mode: require transcript and use detect-caller.py
-elif [[ -z "$transcript_path" ]]; then
-    # No transcript = not in plugin context (allow)
-    exit 0
+elif [[ -z "$TRANSCRIPT_PATH" ]]; then
+    exit 0  # No transcript = not in plugin context
 else
-    # Verify detect-caller.py exists and is executable
     if [[ ! -x "$DETECT_CALLER" ]]; then
-        echo "" >&2
-        echo "HOOK ERROR: detect-caller.py not found or not executable" >&2
+        echo "HOOK SCRIPT ERROR: detect-caller.py not found or not executable" >&2
         echo "Path: $DETECT_CALLER" >&2
-        echo "" >&2
         exit 2
     fi
-
-    # Call detect-caller.py - fail-closed on script failure
-    if ! caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>&1); then
-        echo "" >&2
-        echo "HOOK ERROR: Caller detection failed" >&2
-        echo "Script output: $caller" >&2
-        echo "" >&2
+    if ! caller=$("$DETECT_CALLER" "$TRANSCRIPT_PATH" "$TOOL_USE_ID" 2>&1); then
+        echo "HOOK SCRIPT ERROR: Caller detection failed" >&2
+        echo "Output: $caller" >&2
         exit 2
     fi
 fi
@@ -46,18 +44,18 @@ if [[ -z "$caller" ]]; then
     exit 0
 fi
 
-# Check if caller is from github plugin
+# Check if caller is from github plugin (cmd-* or skill-*)
 if [[ "$caller" != /github:cmd-* && "$caller" != /github:skill-* ]]; then
     exit 0  # Not from github plugin, allow
 fi
 
-tool=$(echo "$input" | jq -r '.tool_name // empty')
-
-if [[ "$tool" != "Write" && "$tool" != "Edit" ]]; then
-    exit 0
+# Only check Write/Edit operations
+if [[ "$TOOL_NAME" != "Write" && "$TOOL_NAME" != "Edit" ]]; then
+    exit 0  # Allow - not a file write operation
 fi
 
-file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
+# Normalize path to prevent traversal attacks
+normalized_path=$(normalize_path "$FILE_PATH")
 
 # Only allow specific files (exact match or pattern)
 allowed_files=(
@@ -70,22 +68,32 @@ allowed_pattern=".github/PULL_REQUEST_TEMPLATE/*.md"
 
 # Extract relative path (last components matching .github/...)
 relative_path=""
-if [[ "$file_path" == */.github/* ]]; then
-    relative_path=".github/${file_path##*/.github/}"
+if [[ "$normalized_path" == */.github/* ]]; then
+    relative_path=".github/${normalized_path##*/.github/}"
 fi
 
 # Check exact matches
 for allowed in "${allowed_files[@]}"; do
     if [[ "$relative_path" == "$allowed" ]]; then
-        exit 0
+        exit 0  # Allow
     fi
 done
 
 # Check pattern match for PULL_REQUEST_TEMPLATE/*.md
 # shellcheck disable=SC2053
 if [[ "$relative_path" == $allowed_pattern ]]; then
-    exit 0
+    exit 0  # Allow
 fi
 
-echo "BLOCKED: GitHub plugin can only modify: ${allowed_files[*]} and $allowed_pattern" >&2
-exit 2
+echo "BLOCKED: GitHub plugin can only modify:" >&2
+echo "  - ${allowed_files[*]}" >&2
+echo "  - $allowed_pattern" >&2
+echo "" >&2
+echo "Attempted to modify: $FILE_PATH" >&2
+echo "" >&2
+echo "For other file types:" >&2
+echo "  - Go files (*.go) → use go:skill-dev" >&2
+echo "  - Dockerfile → use docker:skill-dev" >&2
+echo "  - Helm charts (*.yaml) → use helm:skill-dev" >&2
+echo "  - Other files → exit GitHub plugin scope first" >&2
+exit 2  # Block

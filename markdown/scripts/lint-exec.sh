@@ -4,12 +4,12 @@
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then
-    echo "Usage: /markdown:lint <path>" >&2
+    echo "Usage: /markdown:cmd-lint <path>" >&2
     echo "" >&2
     echo "Examples:" >&2
-    echo "  /markdown:lint README.md" >&2
-    echo "  /markdown:lint /path/to/docs" >&2
-    echo "  /markdown:lint ." >&2
+    echo "  /markdown:cmd-lint README.md" >&2
+    echo "  /markdown:cmd-lint /path/to/docs" >&2
+    echo "  /markdown:cmd-lint ." >&2
     exit 1
 fi
 

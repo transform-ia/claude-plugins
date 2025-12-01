@@ -28,15 +28,15 @@ for script in enforce-mcp-files.sh block-bash.sh; do
     fi
 done
 
-# Test: Hook scoping - should allow when not in plugin context
+# Test: Hook scoping - should allow when not in plugin context (no transcript_path)
 echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="" "$SCRIPTS_DIR/enforce-mcp-files.sh" && \
+    "$SCRIPTS_DIR/enforce-mcp-files.sh" && \
     pass "Allows writes when not in plugin context" || \
-    fail "Hook scoping" "Should allow when CLAUDE_PLUGIN_ROOT is empty"
+    fail "Hook scoping" "Should allow when transcript_path is missing"
 
 # Test: Hook scoping - should block .go files in plugin context
-result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-mcp-files.sh" 2>&1 || true)
+result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/enforce-mcp-files.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks .go files in plugin context"
 else
@@ -44,14 +44,14 @@ else
 fi
 
 # Test: Allows .mcp.json in plugin context
-echo '{"tool_name":"Write","tool_input":{"file_path":"/workspace/.mcp.json"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-mcp-files.sh" && \
+echo '{"tool_name":"Write","tool_input":{"file_path":"/workspace/.mcp.json"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/enforce-mcp-files.sh" && \
     pass "Allows .mcp.json in plugin context" || \
     fail "File restriction" "Should allow .mcp.json"
 
 # Test: kubectl restrictions - should block kubectl create
-result=$(echo '{"tool_input":{"command":"kubectl create job test --image=alpine"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+result=$(echo '{"tool_input":{"command":"kubectl create job test --image=alpine"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks kubectl create (security)"
 else
@@ -59,8 +59,8 @@ else
 fi
 
 # Test: kubectl restrictions - should block kubectl apply
-result=$(echo '{"tool_input":{"command":"kubectl apply -f /tmp/job.yaml"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+result=$(echo '{"tool_input":{"command":"kubectl apply -f /tmp/job.yaml"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks kubectl apply (security)"
 else
@@ -68,8 +68,8 @@ else
 fi
 
 # Test: kubectl restrictions - should block kubectl exec
-result=$(echo '{"tool_input":{"command":"kubectl exec -it pod -- sh"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+result=$(echo '{"tool_input":{"command":"kubectl exec -it pod -- sh"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks kubectl exec (security)"
 else
@@ -77,26 +77,26 @@ else
 fi
 
 # Test: kubectl restrictions - should allow kubectl get
-echo '{"tool_input":{"command":"kubectl get svc -n claude"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+echo '{"tool_input":{"command":"kubectl get svc -n claude"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" && \
     pass "Allows kubectl get (read-only)" || \
     fail "kubectl read" "Should allow kubectl get"
 
 # Test: kubectl restrictions - should allow kubectl describe
-echo '{"tool_input":{"command":"kubectl describe svc context7 -n claude"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+echo '{"tool_input":{"command":"kubectl describe svc context7 -n claude"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" && \
     pass "Allows kubectl describe (read-only)" || \
     fail "kubectl read" "Should allow kubectl describe"
 
 # Test: rm deletion - allows .mcp.json
-echo '{"tool_input":{"command":"rm /workspace/.mcp.json"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+echo '{"tool_input":{"command":"rm /workspace/.mcp.json"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" && \
     pass "Allows rm .mcp.json" || \
     fail "Deletion" "Should allow deleting .mcp.json"
 
 # Test: rm deletion - blocks non-.mcp.json files
-result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks rm non-.mcp.json files"
 else

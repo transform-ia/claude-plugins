@@ -1,5 +1,6 @@
 {
   "description": "Go development plugin hooks",
+  "_comment": "Hook scoping: All Pre hooks use detect-caller.py to parse transcript and only enforce restrictions when called from /go:* slash commands. This ensures hooks don't interfere with operations outside Go plugin context. Stop hook uses the same mechanism to only run golangci-lint for /go:* operations.",
   "hooks": {
     "PreToolUse": [
       {

@@ -34,21 +34,21 @@ output=$("$SCRIPTS_DIR/detect-exec.sh" "$PLUGIN_DIR" 2>&1) && \
     fail "detect-exec.sh" "Script failed to run"
 
 # Test: detect-exec.sh returns expected output format
-if [[ "$output" == *"Repository:"* ]] && [[ "$output" == *"Detected frameworks:"* ]]; then
+if [[ "$output" == *"Detected plugins:"* ]]; then
     pass "detect-exec.sh returns expected format"
 else
-    fail "detect-exec.sh output" "Missing expected sections"
+    fail "detect-exec.sh output" "Missing expected 'Detected plugins:' section"
 fi
 
-# Test: Hook scoping - should allow when not in plugin context
+# Test: Hook scoping - should allow when not in plugin context (no transcript_path)
 echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="" "$SCRIPTS_DIR/enforce-no-files.sh" && \
+    "$SCRIPTS_DIR/enforce-no-files.sh" && \
     pass "Allows writes when not in plugin context" || \
-    fail "Hook scoping" "Should allow when CLAUDE_PLUGIN_ROOT is empty"
+    fail "Hook scoping" "Should allow when transcript_path is missing"
 
 # Test: enforce-no-files.sh blocks Write in plugin context
-result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-no-files.sh" 2>&1 || true)
+result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/orchestrator:skill-dev" "$SCRIPTS_DIR/enforce-no-files.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks Write in plugin context"
 else
@@ -56,8 +56,8 @@ else
 fi
 
 # Test: enforce-no-files.sh blocks Edit in plugin context
-result=$(echo '{"tool_name":"Edit","tool_input":{"file_path":"/tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-no-files.sh" 2>&1 || true)
+result=$(echo '{"tool_name":"Edit","tool_input":{"file_path":"/tmp/test.go"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/orchestrator:skill-dev" "$SCRIPTS_DIR/enforce-no-files.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks Edit in plugin context"
 else
@@ -65,14 +65,14 @@ else
 fi
 
 # Test: block-bash.sh allows plugin scripts
-echo '{"tool_input":{"command":"/path/to/claude-plugins/orchestrator/scripts/detect-exec.sh /repo"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
+echo '{"tool_input":{"command":"/path/to/claude-plugins/orchestrator/scripts/detect-exec.sh /repo"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/orchestrator:skill-dev" "$SCRIPTS_DIR/block-bash.sh" && \
     pass "Allows plugin scripts" || \
     fail "Script access" "Should allow plugin scripts"
 
 # Test: block-bash.sh blocks git commands
-result=$(echo '{"tool_input":{"command":"git status"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+result=$(echo '{"tool_input":{"command":"git status"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/orchestrator:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks git commands"
 else
@@ -80,8 +80,8 @@ else
 fi
 
 # Test: block-bash.sh blocks cat/head/tail
-result=$(echo '{"tool_input":{"command":"cat /tmp/file.txt"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+result=$(echo '{"tool_input":{"command":"cat /tmp/file.txt"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/orchestrator:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks cat command"
 else
@@ -89,8 +89,8 @@ else
 fi
 
 # Test: block-bash.sh blocks arbitrary bash
-result=$(echo '{"tool_input":{"command":"ls -la /tmp"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+result=$(echo '{"tool_input":{"command":"ls -la /tmp"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/orchestrator:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
     pass "Blocks arbitrary bash commands"
 else

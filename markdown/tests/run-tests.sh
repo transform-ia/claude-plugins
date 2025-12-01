@@ -5,6 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCRIPTS_DIR="$PLUGIN_DIR/scripts"
+PARENT_SCRIPTS_DIR="$(cd "$PLUGIN_DIR/../scripts" && pwd)"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -15,6 +16,28 @@ failed=0
 
 pass() { echo -e "${GREEN}✓${NC} $1"; ((++passed)); }
 fail() { echo -e "${RED}✗${NC} $1: $2"; ((++failed)); }
+
+# Setup: Export CLAUDE_PLUGIN_ROOT for the hooks
+export CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR"
+
+# Helper: Create mock detect-caller.py that returns specific caller
+setup_mock_caller() {
+    local caller="$1"
+
+    # Create temporary mock detect-caller.py
+    cat > "$PARENT_SCRIPTS_DIR/detect-caller.py" <<EOF
+#!/usr/bin/env python3
+import sys
+print("$caller")
+sys.exit(0)
+EOF
+    chmod +x "$PARENT_SCRIPTS_DIR/detect-caller.py"
+}
+
+# Helper: Cleanup mock
+cleanup_mock_caller() {
+    rm -f "$PARENT_SCRIPTS_DIR/detect-caller.py"
+}
 
 echo "Testing Markdown Plugin"
 echo "========================"
@@ -28,41 +51,117 @@ for script in enforce-md-files.sh block-bash.sh lint-exec.sh stop-lint-check.sh;
     fi
 done
 
-# Test: Hook scoping - should allow when not in plugin context
-echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="" "$SCRIPTS_DIR/enforce-md-files.sh" && \
-    pass "Allows writes when not in plugin context" || \
-    fail "Hook scoping" "Should allow when CLAUDE_PLUGIN_ROOT is empty"
-
-# Test: Hook scoping - should block .go files in plugin context
-result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-md-files.sh" 2>&1 || true)
-if [[ $? -eq 2 ]] || [[ "$result" == *"BLOCKED"* ]]; then
-    pass "Blocks .go files in plugin context"
+# Test: New config and validator files exist
+if [[ -f "$SCRIPTS_DIR/config.sh" ]]; then
+    pass "config.sh exists"
 else
-    fail "File restriction" "Should block .go files"
+    fail "config.sh" "Not found"
 fi
 
-# Test: Allows .md files in plugin context
-echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.md"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/enforce-md-files.sh" && \
-    pass "Allows .md files in plugin context" || \
-    fail "File restriction" "Should allow .md files"
+if [[ -f "$SCRIPTS_DIR/lib/validators.sh" ]]; then
+    pass "lib/validators.sh exists"
+else
+    fail "lib/validators.sh" "Not found"
+fi
 
-# Test: rm deletion - allows .md files
-echo '{"tool_input":{"command":"rm /tmp/test.md"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" && \
-    pass "Allows rm *.md files" || \
-    fail "Deletion" "Should allow deleting .md files"
+# Test: Hook scoping - should allow when caller is NOT /markdown:*
+setup_mock_caller "/other:command"
+echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
+    "$SCRIPTS_DIR/enforce-md-files.sh" && \
+    pass "Allows writes when caller is not /markdown:*" || \
+    fail "Hook scoping" "Should allow when caller is not /markdown:*"
+cleanup_mock_caller
+
+# Test: Hook scoping - should block .go files when caller is /markdown:*
+setup_mock_caller "/markdown:skill-dev"
+result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
+    "$SCRIPTS_DIR/enforce-md-files.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]]; then
+    pass "Blocks .go files when caller is /markdown:*"
+else
+    fail "File restriction" "Should block .go files when caller is /markdown:*"
+fi
+cleanup_mock_caller
+
+# Test: Allows .md files when caller is /markdown:*
+setup_mock_caller "/markdown:skill-dev"
+echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.md"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
+    "$SCRIPTS_DIR/enforce-md-files.sh" && \
+    pass "Allows .md files when caller is /markdown:*" || \
+    fail "File restriction" "Should allow .md files"
+cleanup_mock_caller
+
+# Test: Fail-closed behavior - missing transcript_path
+setup_mock_caller "/markdown:skill-dev"
+result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.md"},"tool_use_id":"test-123"}' | \
+    "$SCRIPTS_DIR/enforce-md-files.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]] && [[ "$result" == *"Missing transcript metadata"* ]]; then
+    pass "Fail-closed: blocks when transcript_path missing"
+else
+    fail "Fail-closed security" "Should block when transcript_path missing"
+fi
+cleanup_mock_caller
+
+# Test: Fail-closed behavior - caller detection fails
+setup_mock_caller "__DETECTION_FAILED__"
+result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.md"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
+    "$SCRIPTS_DIR/enforce-md-files.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]] && [[ "$result" == *"Caller detection failed"* ]]; then
+    pass "Fail-closed: blocks when caller detection fails"
+else
+    fail "Fail-closed security" "Should block when caller detection fails"
+fi
+cleanup_mock_caller
+
+# Test: rm deletion - allows .md files with exact match
+setup_mock_caller "/markdown:skill-dev"
+echo '{"tool_input":{"command":"rm *.md"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
+    "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows 'rm *.md' (exact allowlist match)" || \
+    fail "Deletion" "Should allow 'rm *.md'"
+cleanup_mock_caller
+
+# Test: rm deletion - blocks non-exact patterns
+setup_mock_caller "/markdown:skill-dev"
+result=$(echo '{"tool_input":{"command":"rm /tmp/test.md"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
+    "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+if [[ "$result" == *"BLOCKED"* ]]; then
+    pass "Blocks 'rm /tmp/test.md' (not in allowlist)"
+else
+    fail "Deletion security" "Should block commands not in exact allowlist"
+fi
+cleanup_mock_caller
 
 # Test: rm deletion - blocks non-md files
-result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"}}' | \
-    CLAUDE_PLUGIN_ROOT="$PLUGIN_DIR" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
+setup_mock_caller "/markdown:skill-dev"
+result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
+    "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
-    pass "Blocks rm non-.md files"
+    pass "Blocks 'rm /tmp/test.go' (not in allowlist)"
 else
     fail "Deletion security" "Should block deleting non-.md files"
 fi
+cleanup_mock_caller
+
+# Test: Allowlist includes all expected patterns
+setup_mock_caller "/markdown:skill-dev"
+for pattern in "rm *.md" "rm **/*.md" "rm -f *.md" "rm -rf *.md"; do
+    if echo "{\"tool_input\":{\"command\":\"$pattern\"},\"transcript_path\":\"/tmp/transcript.json\",\"tool_use_id\":\"test-123\"}" | \
+        "$SCRIPTS_DIR/block-bash.sh" 2>&1 | grep -q "BLOCKED"; then
+        fail "Allowlist" "Pattern '$pattern' should be allowed but was blocked"
+    else
+        pass "Allowlist allows: '$pattern'"
+    fi
+done
+cleanup_mock_caller
+
+# Test: Plugin scripts are allowed
+setup_mock_caller "/markdown:skill-dev"
+echo "{\"tool_input\":{\"command\":\"${CLAUDE_PLUGIN_ROOT}/scripts/lint-exec.sh README.md\"},\"transcript_path\":\"/tmp/transcript.json\",\"tool_use_id\":\"test-123\"}" | \
+    "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows plugin's own scripts" || \
+    fail "Plugin scripts" "Should allow ${CLAUDE_PLUGIN_ROOT}/scripts/*"
+cleanup_mock_caller
 
 echo ""
 echo "Results: $passed passed, $failed failed"

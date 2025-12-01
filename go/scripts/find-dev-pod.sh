@@ -1,7 +1,10 @@
 #!/bin/bash
 # Find golang-chart dev pod for given workspace path
 # Usage: find-dev-pod.sh <workspace-path>
-# Exit 2 if no matching pod found (blocking error)
+#
+# Exit codes (per Claude Code docs):
+#   0 = Success - prints pod name to stdout
+#   2 = BLOCKING error - no matching pod found
 
 set -euo pipefail
 

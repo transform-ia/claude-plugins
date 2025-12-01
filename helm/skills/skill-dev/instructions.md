@@ -35,11 +35,26 @@ Only the following file(s) can be written, edited or deleted:
 - `templates/NOTES.txt`
 - `.helmignore`
 
-## Out of Scope - Bail Out Immediately
+## Out of Scope - Exit Immediately
 
-**If the request does NOT involve allowed tools and/or files, STOP and report:**
+**If the request does NOT involve allowed tools and/or files:**
 
-`Helm plugin can't handle request outside its scope.`
+1. **Immediately respond** with:
+   ```
+   Helm plugin cannot handle this request - it is outside the allowed scope.
+
+   Allowed: Chart.yaml, values.yaml, templates/*, .helmignore and /helm:* commands
+   Requested: [describe what was requested]
+
+   Use the appropriate plugin instead:
+   - Go code → go:agent-dev
+   - Dockerfile → docker:agent-dev
+   - Markdown → markdown:agent-dev
+   ```
+
+2. **Stop execution** - do not attempt workarounds or continue
+3. **Do not make any tool calls** for the out-of-scope operation
+4. **Wait for user** to rephrase or switch plugins
 
 ## Post processing
 

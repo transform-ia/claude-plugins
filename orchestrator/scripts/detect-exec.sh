@@ -5,11 +5,11 @@
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then
-    echo "Usage: /orchestrator:detect <directory>" >&2
+    echo "Usage: /orchestrator:cmd-detect <directory>" >&2
     echo "" >&2
     echo "Examples:" >&2
-    echo "  /orchestrator:detect /path/to/repo" >&2
-    echo "  /orchestrator:detect ." >&2
+    echo "  /orchestrator:cmd-detect /path/to/repo" >&2
+    echo "  /orchestrator:cmd-detect ." >&2
     exit 1
 fi
 
@@ -50,9 +50,9 @@ if [[ -f "package.json" ]]; then
     DETECTED+=("nodejs")
 fi
 
-# Markdown detection (significant .md files, not just README)
+# Markdown detection (any .md files)
 MD_COUNT=$(find . -maxdepth 2 -name "*.md" -type f 2>/dev/null | wc -l)
-if [[ $MD_COUNT -gt 1 ]]; then
+if [[ $MD_COUNT -gt 0 ]]; then
     DETECTED+=("markdown")
 fi
 

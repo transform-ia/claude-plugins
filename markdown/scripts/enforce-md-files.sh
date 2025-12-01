@@ -8,32 +8,30 @@
 set -euo pipefail
 trap 'echo "HOOK ERROR: enforce-md-files.sh failed" >&2; exit 2' ERR
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/validators.sh"
+
 input=$(cat)
 
-# Detect caller from transcript - only enforce for /markdown:* commands
+# Parse hook input
 transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
 tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
-DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
-caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
-
-if [[ "$caller" != /markdown:* ]]; then
-    exit 0  # Not from markdown plugin command, allow
-fi
-
 tool=$(echo "$input" | jq -r '.tool_name // empty')
-
-if [[ "$tool" != "Write" && "$tool" != "Edit" ]]; then
-    exit 0
-fi
-
 file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
-case "$file_path" in
-    *.md)
-        exit 0
-        ;;
-    *)
-        echo "BLOCKED: Markdown plugin can only modify *.md files." >&2
-        exit 2
-        ;;
-esac
+# Check if in plugin scope (handles fail-closed internally)
+if ! in_plugin_scope "$transcript_path" "$tool_use_id"; then
+    exit 0  # Not in scope - allow
+fi
+
+# Only enforce for Write/Edit tools
+[[ "$tool" != "Write" && "$tool" != "Edit" ]] && exit 0
+
+# Validate file extension
+if validate_file_extension "$file_path"; then
+    exit 0  # Allowed
+else
+    echo "$MSG_BLOCKED_FILE" >&2
+    echo "Attempted: $file_path" >&2
+    exit 2
+fi

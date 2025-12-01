@@ -1,35 +1,59 @@
 #!/bin/bash
-# Enforce MCP plugin can only modify .mcp.json files
+# PreToolUse: Enforce MCP plugin can only modify .mcp.json files
+#
+# Exit codes (per Claude Code docs):
+#   0 = Allow (success)
+#   2 = BLOCKING error - stops Claude, shows error
+#   other = Non-blocking - Claude continues (BAD for enforcement!)
+#
+# CRITICAL: Any script failure MUST exit 2 to block Claude
+
 set -euo pipefail
 
-input=$(cat)
+# Trap any error and convert to exit 2 (blocking)
+trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in enforce-mcp-files.sh" >&2; exit 2' ERR
 
-# Detect caller from transcript - only enforce for /mcp:* commands
-transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
-tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
-DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
-caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
+# Source shared hook library
+source "/workspace/sandbox/transform-ia/claude-plugins/scripts/lib/hook-common.sh"
 
-if [[ "$caller" != /mcp:* ]]; then
-    exit 0  # Not from MCP plugin command, allow
+# Parse hook input
+parse_hook_input
+
+# Check if in MCP plugin scope
+if ! in_plugin_scope "$TRANSCRIPT_PATH" "$TOOL_USE_ID" "mcp"; then
+    exit 0  # Not in scope - allow
 fi
 
-file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
+# Only check Write/Edit operations
+if [[ "$TOOL_NAME" != "Write" && "$TOOL_NAME" != "Edit" ]]; then
+    exit 0  # Allow - not a file write operation
+fi
 
-if [[ -z "$file_path" ]]; then
+if [[ -z "$FILE_PATH" ]]; then
     exit 0  # No file path, allow
 fi
 
+# Normalize path to prevent traversal attacks
+normalized_path=$(normalize_path "$FILE_PATH")
+
 # MCP plugin can only modify .mcp.json files
-case "$file_path" in
+case "$normalized_path" in
     *.mcp.json|*/.mcp.json)
-        exit 0
+        exit 0  # Allow
         ;;
     *)
         echo "BLOCKED: MCP plugin can only modify .mcp.json files." >&2
-        echo "File: $file_path" >&2
+        echo "" >&2
+        echo "Attempted to modify: $FILE_PATH" >&2
         echo "" >&2
         echo "The MCP plugin is restricted to MCP server configuration only." >&2
-        exit 2
+        echo "" >&2
+        echo "For other file types:" >&2
+        echo "  - Go files (*.go) → use go:skill-dev" >&2
+        echo "  - Dockerfile → use docker:skill-dev" >&2
+        echo "  - Helm charts (*.yaml) → use helm:skill-dev" >&2
+        echo "  - GitHub workflows → use github:skill-dev" >&2
+        echo "  - Other files → exit MCP plugin scope first" >&2
+        exit 2  # Block
         ;;
 esac

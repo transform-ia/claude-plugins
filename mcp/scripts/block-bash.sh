@@ -1,41 +1,48 @@
 #!/bin/bash
-# Block most bash commands in MCP plugin context
+# PreToolUse: Block most Bash commands when in MCP plugin context
 # Allow only: claude mcp, kubectl (for testing), curl, nc (for connectivity)
+#
+# Exit codes (per Claude Code docs):
+#   0 = Allow (success)
+#   2 = BLOCKING error - stops Claude, shows error
+#   other = Non-blocking - Claude continues (BAD for enforcement!)
+
 set -euo pipefail
+trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in block-bash.sh" >&2; exit 2' ERR
 
-input=$(cat)
+# Source shared hook library
+source "/workspace/sandbox/transform-ia/claude-plugins/scripts/lib/hook-common.sh"
 
-# Detect caller from transcript - only enforce for /mcp:* commands
-transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
-tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
-DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
-caller=$("$DETECT_CALLER" "$transcript_path" "$tool_use_id" 2>/dev/null || echo "")
+# Parse hook input
+parse_hook_input
 
-if [[ "$caller" != /mcp:* ]]; then
-    exit 0  # Not from MCP plugin command, allow
+# Check if in MCP plugin scope
+if ! in_plugin_scope "$TRANSCRIPT_PATH" "$TOOL_USE_ID" "mcp"; then
+    exit 0  # Not in scope - allow
 fi
 
-command=$(echo "$input" | jq -r '.tool_input.command // empty')
-
-if [[ -z "$command" ]]; then
-    exit 0
+if [[ -z "$COMMAND" ]]; then
+    exit 0  # No command to check
 fi
 
 # Allow claude mcp commands
-if [[ "$command" =~ ^claude[[:space:]]+mcp ]]; then
+if [[ "$COMMAND" =~ ^claude[[:space:]]+mcp ]]; then
     exit 0
 fi
 
 # Allow rm for .mcp.json files only
-if [[ "$command" =~ ^rm[[:space:]] ]]; then
-    files=$(echo "$command" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
+if [[ "$COMMAND" =~ ^rm[[:space:]] ]]; then
+    files=$(echo "$COMMAND" | sed 's/^rm[[:space:]]*//; s/-[rfiv]*[[:space:]]*//g')
     for file in $files; do
         filename=$(basename "$file")
         if [[ "$filename" == ".mcp.json" ]]; then
             continue  # Allowed
         else
             echo "BLOCKED: Can only delete .mcp.json files in MCP plugin." >&2
+            echo "" >&2
             echo "Attempted to delete: $file" >&2
+            echo "" >&2
+            echo "To delete other files, exit the MCP plugin scope first." >&2
             exit 2
         fi
     done
@@ -44,15 +51,15 @@ fi
 
 # Allow ONLY read-only kubectl commands for connectivity testing
 # BLOCKED: create, apply, delete, patch, edit, replace, run, exec (security risk)
-if [[ "$command" =~ ^kubectl[[:space:]] ]]; then
+if [[ "$COMMAND" =~ ^kubectl[[:space:]] ]]; then
     # Block dangerous kubectl operations
-    if [[ "$command" =~ kubectl[[:space:]]+(create|apply|delete|patch|edit|replace|run|exec|cp|attach|port-forward) ]]; then
+    if [[ "$COMMAND" =~ kubectl[[:space:]]+(create|apply|delete|patch|edit|replace|run|exec|cp|attach|port-forward) ]]; then
         echo "BLOCKED: kubectl write operations not allowed in MCP plugin." >&2
         echo "Only read operations allowed: get, describe, logs" >&2
         exit 2
     fi
     # Allow only read operations
-    if [[ "$command" =~ kubectl[[:space:]]+(get|describe|logs)[[:space:]] ]]; then
+    if [[ "$COMMAND" =~ kubectl[[:space:]]+(get|describe|logs)[[:space:]] ]]; then
         exit 0
     fi
     echo "BLOCKED: Only 'kubectl get', 'kubectl describe', 'kubectl logs' allowed." >&2
@@ -60,33 +67,33 @@ if [[ "$command" =~ ^kubectl[[:space:]] ]]; then
 fi
 
 # Allow curl for endpoint testing
-if [[ "$command" =~ ^curl[[:space:]] ]]; then
+if [[ "$COMMAND" =~ ^curl[[:space:]] ]]; then
     exit 0
 fi
 
 # Allow nc for port testing
-if [[ "$command" =~ ^nc[[:space:]] ]] || [[ "$command" =~ ^timeout[[:space:]].*nc[[:space:]] ]]; then
+if [[ "$COMMAND" =~ ^nc[[:space:]] ]] || [[ "$COMMAND" =~ ^timeout[[:space:]].*nc[[:space:]] ]]; then
     exit 0
 fi
 
 # Allow nslookup for DNS testing
-if [[ "$command" =~ ^nslookup[[:space:]] ]]; then
+if [[ "$COMMAND" =~ ^nslookup[[:space:]] ]]; then
     exit 0
 fi
 
 # Allow cat for reading .mcp.json
-if [[ "$command" =~ ^cat[[:space:]] ]] && [[ "$command" =~ \.mcp\.json ]]; then
+if [[ "$COMMAND" =~ ^cat[[:space:]] ]] && [[ "$COMMAND" =~ \.mcp\.json ]]; then
     exit 0
 fi
 
 # Block everything else
-echo "BLOCKED: MCP plugin restricts bash commands." >&2
+echo "BLOCKED: Bash not allowed in MCP plugin context." >&2
 echo "" >&2
 echo "Available slash commands:" >&2
-echo "  /mcp:add     - Add MCP server to .mcp.json" >&2
-echo "  /mcp:list    - List configured MCP servers" >&2
-echo "  /mcp:remove  - Remove MCP server from config" >&2
-echo "  /mcp:test    - Test MCP server connectivity" >&2
+echo "  /mcp:cmd-add     - Add MCP server to .mcp.json" >&2
+echo "  /mcp:cmd-list    - List configured MCP servers" >&2
+echo "  /mcp:cmd-remove  - Remove MCP server from config" >&2
+echo "  /mcp:cmd-test    - Test MCP server connectivity" >&2
 echo "" >&2
 echo "Allowed bash for testing:" >&2
 echo "  - cat .mcp.json (read config)" >&2
@@ -95,5 +102,5 @@ echo "  - curl (endpoint testing)" >&2
 echo "  - kubectl get/describe/logs (connectivity testing)" >&2
 echo "  - nc, nslookup (network testing)" >&2
 echo "" >&2
-echo "For other operations, exit the plugin context first." >&2
+echo "For other operations, exit the MCP plugin scope first." >&2
 exit 2

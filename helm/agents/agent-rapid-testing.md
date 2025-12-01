@@ -16,6 +16,51 @@ model: sonnet
 **You ARE the Rapid Testing agent. Do NOT delegate to any other agent. Execute
 the work directly.**
 
+## Container Image Tag Resolution
+
+**IMPORTANT:** Test pod manifests contain `${LATEST_TAG}` placeholders that MUST be resolved before creating pods.
+
+**How to resolve image tags:**
+
+1. **Query for the latest tag** using the image reference:
+   ```bash
+   /docker:cmd-image-tag <image-reference>
+   ```
+
+   **Image reference formats:**
+   - With registry: `ghcr.io/transform-ia/myapp`
+   - Docker Hub (no host): `alpine`, `nginx`, `postgres`
+
+2. **Examples:**
+   ```bash
+   # GHCR images (full path)
+   /docker:cmd-image-tag ghcr.io/transform-ia/myapp
+   /docker:cmd-image-tag ghcr.io/transform-ia/dockerhub-mcp
+
+   # Docker Hub images (no host needed)
+   /docker:cmd-image-tag alpine
+   /docker:cmd-image-tag redis
+   ```
+
+3. **Replace `${LATEST_TAG}`** in the manifest with the actual tag returned
+
+**Example:**
+```yaml
+# TEMPLATE (DO NOT USE AS-IS):
+image: ghcr.io/transform-ia/myapp:${LATEST_TAG}
+
+# STEP 1: Query tag
+/docker:cmd-image-tag ghcr.io/transform-ia/myapp
+# Returns: v0.1.5
+
+# STEP 2: Use in manifest:
+image: ghcr.io/transform-ia/myapp:v0.1.5
+```
+
+**NEVER:**
+- Copy `${LATEST_TAG}` literally into pod manifests (invalid)
+- Use `latest` tag for testing (defeats tag tracking)
+
 ## Overview
 
 When developing containers or debugging deployment issues, the full CI/CD
