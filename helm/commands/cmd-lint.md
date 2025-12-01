@@ -7,8 +7,17 @@ allowed-tools: [Bash, Read, Grep, Glob]
 
 ## Permissions
 
-This command modifies Chart.yaml and values.yaml (prettier formatting).
-Templates are not modified.
+**Permission Level**: 2 (Auto-Formatting)
+
+This command auto-formats Chart.yaml and values.yaml using prettier.
+Templates are validated but not modified.
+
+**Modified files**:
+- `Chart.yaml` (formatted)
+- `values.yaml` (formatted)
+
+**Read-only checks**:
+- `templates/*` (validated, not modified)
 
 ---
 

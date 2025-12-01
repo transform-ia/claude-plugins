@@ -7,7 +7,14 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command is read-only (runs tests, does not modify source files).
+**Permission Level**: 0 (Read-Only)
+
+This command is read-only. It does not modify any files or create persistent artifacts.
+
+**Read-only operations**:
+- Reads `*.go` source files
+- Executes test code
+- Outputs results to stdout
 
 ---
 

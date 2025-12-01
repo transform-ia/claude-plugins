@@ -1,5 +1,5 @@
 ---
-name: ops
+name: skill-ops
 description: |
   Kubernetes operations for ArgoCD Application management.
 

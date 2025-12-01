@@ -1,5 +1,5 @@
 ---
-name: ops
+name: agent-ops
 description: |
   Kubernetes operations agent for ArgoCD Application management.
   Handles deployments, sync status, and cluster operations.

@@ -1,5 +1,5 @@
 ---
-name: builder
+name: skill-builder
 description: |
   GitHub Actions build monitoring and workflow status.
 

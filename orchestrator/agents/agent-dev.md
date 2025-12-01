@@ -1,5 +1,5 @@
 ---
-name: dev
+name: agent-dev
 description: |
   Repository detection and plugin orchestration.
   Dispatches to appropriate plugins - never implements directly.

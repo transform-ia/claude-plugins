@@ -1,5 +1,5 @@
 ---
-name: plugin-creator
+name: agent-plugin-creator
 description: |
   Creates new Claude Code plugins following established patterns.
   Generates complete plugin structure with hooks, commands, skills, and agents.

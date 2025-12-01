@@ -1,5 +1,5 @@
 ---
-name: dev
+name: skill-dev
 description: |
   Repository detection and plugin orchestration.
 

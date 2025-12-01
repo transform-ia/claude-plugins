@@ -1,5 +1,5 @@
 ---
-name: dev
+name: agent-dev
 description: |
   Helm chart development agent.
   Handles Chart.yaml, values.yaml, templates/*.

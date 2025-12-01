@@ -1,5 +1,5 @@
 ---
-name: dev
+name: skill-dev
 description: |
   Markdown documentation linting and formatting.
 

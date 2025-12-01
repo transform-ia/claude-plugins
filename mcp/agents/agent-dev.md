@@ -1,5 +1,5 @@
 ---
-name: dev
+name: agent-dev
 description: |
   MCP server configuration agent.
   Handles .mcp.json files.

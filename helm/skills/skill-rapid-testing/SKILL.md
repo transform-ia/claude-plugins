@@ -1,5 +1,5 @@
 ---
-name: rapid-testing
+name: skill-rapid-testing
 description: |
   Fast container testing via direct pod creation in Kubernetes.
 

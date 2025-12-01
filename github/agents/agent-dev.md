@@ -1,5 +1,5 @@
 ---
-name: dev
+name: agent-dev
 description: |
   GitHub CI/CD development agent.
   Handles .github/workflows/*.yaml, .github/dependabot.yaml.
