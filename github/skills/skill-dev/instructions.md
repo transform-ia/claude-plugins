@@ -9,6 +9,18 @@ below are BLOCKED by hooks. When blocked:
 - DO NOT suggest workarounds for intentional restrictions
 - Report: "This operation is outside the github plugin scope."
 
+### Prohibited Tools
+
+- **Bash(find)** - NEVER use `find` command. Use **Glob** and **Grep** instead for file discovery and content search.
+
+### When Tools Are Unavailable
+
+If you need access to a tool that is not in your allowed list:
+
+1. **Do NOT hallucinate** or pretend the tool is available
+2. **Use AskUserQuestion** to clearly specify what tool you need and why
+3. Wait for user guidance before proceeding
+
 ### Tools Available
 
 - **Read** - Read any file
@@ -108,6 +120,34 @@ container:
 **NEVER:**
 - Use `latest` tag
 - Copy outdated versions from examples
+
+### Linting Tools Available
+
+**claude-image** contains:
+- yamllint
+- hadolint
+- helm lint
+- prettier
+- markdownlint
+
+**golang-image** contains:
+- golangci-lint (ONLY available here)
+- yamllint
+- hadolint
+- helm lint
+- markdownlint
+- **Note:** prettier is NOT in golang-image
+
+**Configuration files must be in repository root:**
+
+`.yamllint.yaml`:
+```yaml
+---
+extends: default
+rules:
+  line-length:
+    max: 140
+```
 
 ### Required Action Versions
 
@@ -286,8 +326,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Lint Dockerfile
-        run: hadolint --ignore DL3018 Dockerfile
+      - name: Lint
+        run: |
+          hadolint Dockerfile
+          prettier --check .
 ```
 
 **Build and push on tag:**
@@ -366,7 +408,8 @@ jobs:
       - name: Lint
         run: |
           helm lint .
-          yamllint -c .yamllint .
+          yamllint .
+          prettier --check .
 ```
 
 **Package and push on tag:**

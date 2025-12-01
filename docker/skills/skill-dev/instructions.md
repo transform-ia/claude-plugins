@@ -65,9 +65,23 @@ Only the following file(s) can be written, edited or deleted:
 
 When you finish (Post), hooks will automatically:
 
-- Run hadolint validation (Note: DL3018 rule is skipped - apk version pinning is optional as Alpine packages change frequently)
+- Run hadolint validation
 
-Fix all other issues before completing the task.
+Configuration is managed via `.hadolint.yaml` in repository root (see Configuration section below).
+
+Fix all issues before completing the task.
+
+### Configuration
+
+`.hadolint.yaml` must be in repository root:
+```yaml
+---
+ignored:
+  - DL3018
+```
+
+**Why DL3018 is ignored:**
+apk version pinning is optional as Alpine packages change frequently. Do NOT use `--ignore` flags in command line - all configuration is in `.hadolint.yaml`.
 
 ### Hadolint Common Fixes
 
