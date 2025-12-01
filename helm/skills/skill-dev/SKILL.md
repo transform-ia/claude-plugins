@@ -1,5 +1,5 @@
 ---
-name: dev
+name: skill-dev
 description: |
   Helm chart development, linting, and validation.
 

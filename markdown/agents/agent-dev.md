@@ -1,5 +1,5 @@
 ---
-name: dev
+name: agent-dev
 description: |
   Markdown documentation agent.
   Handles *.md files.

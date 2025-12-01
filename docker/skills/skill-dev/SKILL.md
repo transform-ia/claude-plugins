@@ -1,5 +1,5 @@
 ---
-name: dev
+name: skill-dev
 description: |
   Dockerfile development, linting with hadolint, and image tag discovery.
 

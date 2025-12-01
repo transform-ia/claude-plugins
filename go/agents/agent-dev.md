@@ -1,5 +1,5 @@
 ---
-name: dev
+name: agent-dev
 description: |
   Go development agent.
   Handles *.go, go.mod, go.sum files.

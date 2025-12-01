@@ -1,5 +1,5 @@
 ---
-name: rapid-testing
+name: agent-rapid-testing
 description: |
   Fast container testing agent for rapid iteration.
   Creates test pods directly in kubernetes for 12-60x faster testing.

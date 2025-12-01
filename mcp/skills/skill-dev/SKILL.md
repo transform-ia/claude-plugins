@@ -1,5 +1,5 @@
 ---
-name: dev
+name: skill-dev
 description: |
   MCP server configuration management for .mcp.json files.
 

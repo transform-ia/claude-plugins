@@ -63,6 +63,30 @@ A user-invocable shortcut that runs a plugin script. Format: `/plugin:cmd-name [
 
 **Location**: `<plugin>/commands/cmd-*/COMMAND.md`
 
+#### Command Permission Levels
+
+Commands are classified by their modification scope:
+
+**Level 0: Read-Only**
+- **Definition**: No files modified, no artifacts created
+- **Examples**: `/go:cmd-test` (runs tests), `/docker:cmd-image-tag` (queries registry)
+- **Standard Wording**: "This command is read-only. It does not modify any files or create artifacts."
+
+**Level 1: Artifact Creation**
+- **Definition**: Creates artifacts (binaries, reports) but does NOT modify source files
+- **Examples**: `/go:cmd-build` (creates binary), `/helm:cmd-template` (renders YAML)
+- **Standard Wording**: "This command creates artifacts but does not modify source files (*.go, go.mod, go.sum)."
+
+**Level 2: Auto-Formatting**
+- **Definition**: Modifies files with automated formatting only (reversible, no logic changes)
+- **Examples**: `/helm:cmd-lint` (prettier on Chart.yaml/values.yaml), Stop hooks (gofmt, prettier)
+- **Standard Wording**: "This command auto-formats files ({file list}) using {tool}. {Other files} are not modified."
+
+**Level 3: Source Modification**
+- **Definition**: Modifies source code logic or content
+- **Examples**: Edit tool, Write tool
+- **Standard Wording**: "This command modifies source files."
+
 ### Transcript
 A JSONL (JSON Lines) file containing the conversation history. Each line is a JSON object representing a message or tool call. Hooks use the transcript to determine plugin context.
 
@@ -150,19 +174,36 @@ tools:
 
 ## File Patterns
 
-### Glob Patterns
-Used in hooks to match files:
-- `*.go` - Any .go file at current level or deeper
-- `*/go.mod` - go.mod at any depth (includes `./go.mod` via wildcard)
-- `Dockerfile*` - Dockerfile, Dockerfile.dev, Dockerfile.prod, etc.
-- `.mcp.json` - Exact filename match
-- `templates/**/*.yaml` - Any .yaml file under templates/ at any depth
+### File Pattern Matching Scope
+
+**Scope Boundaries**: All file patterns are evaluated against the FULL ABSOLUTE PATH
+of the target file after normalization (via `readlink -m` in `normalize_path()`).
+
+**Security**: Patterns match against NORMALIZED paths only. Path traversal attempts
+(e.g., `../../etc/passwd`) are normalized before matching, so a pattern like `*.go`
+will NOT match `/etc/passwd` even if attempted via traversal.
+
+**Depth Semantics**: "At any depth" means the pattern matches anywhere in the
+filesystem after path normalization. Patterns do NOT automatically restrict to git
+root or working directory - hook scripts verify plugin scope BEFORE pattern matching.
+
+### Glob Patterns Used in Hooks
+
+| Pattern | Matches | Does NOT Match | Notes |
+|---------|---------|----------------|-------|
+| `*.go` | `/any/path/file.go`, `./file.go`, `file.go` | `file.go.txt`, `go.txt` | Matches any path ending in `.go` |
+| `*/go.mod` | `/dir/go.mod`, `./dir/go.mod` | `go.mod`, `/go.mod` | Requires at least one directory component |
+| `Dockerfile*` | `Dockerfile`, `Dockerfile.dev`, `/path/Dockerfile.prod` | `MyDockerfile`, `dockerfile` | Prefix match, case-sensitive |
+| `.mcp.json` | Only literal `.mcp.json` (basename match in code) | `/path/.mcp.json` | Matched via basename, not full path |
 
 ### Pattern Matching in Hooks
-Hooks use bash case statements to match file paths:
+Hooks use bash case statements to match normalized file paths:
 
 ```bash
-case "$file_path" in
+# Normalize path to prevent traversal attacks
+normalized_path=$(normalize_path "$FILE_PATH")
+
+case "$normalized_path" in
   *.go|*/go.mod|*/go.sum)
     # Allow Go files
     exit 0
@@ -254,18 +295,38 @@ A service that provides tools and resources to Claude Code. Examples:
 - Custom services - Application-specific tools
 
 ### MCP Configuration
-`.mcp.json` file mapping server names to URLs:
+`.mcp.json` file mapping server names to URLs.
 
+**MCP Server Standards by Type**:
+
+1. **golang-chart servers** (Go development environments):
+   - Port: `81` (FIXED, not configurable)
+   - Endpoint: `/mcp` (FIXED, not configurable)
+   - Discovery: Auto-discovered via `golang.dev/workdir` label
+   - Example: `http://myapp-dev.claude.svc.cluster.local:81/mcp`
+   - Rationale: Standardization across all Go dev pods for consistency
+
+2. **External/custom services** (application-specific):
+   - Port: ANY (configurable per service)
+   - Endpoint: ANY (configurable per service)
+   - Discovery: Manual configuration in `.mcp.json`
+   - Example: `http://myapi.prod.svc.cluster.local:8080/api/mcp`
+
+**Example `.mcp.json`**:
 ```json
 {
-  "server-name": {
+  "agents-dev": {
     "type": "http",
-    "url": "http://service.namespace.svc.cluster.local:port/mcp"
+    "url": "http://agents-dev.claude.svc.cluster.local:81/mcp"
+  },
+  "custom-service": {
+    "type": "http",
+    "url": "http://my-service.prod.svc.cluster.local:3000/mcp"
   }
 }
 ```
 
-**Types**:
+**Connection Types**:
 - `http` - Standard HTTP server
 - `sse` - Server-Sent Events
 - `stdio` - Command-line tool
@@ -282,13 +343,49 @@ Standard exit codes used by hooks and scripts:
 
 ## Hook Timeouts
 
-| Plugin | Stop Timeout | Rationale |
-|--------|--------------|-----------|
-| go     | 120s         | golangci-lint on large codebases |
-| helm   | 120s         | helm lint + yamllint on complex charts |
-| docker | 60s          | hadolint is fast |
-| github | 60s          | yamllint + prettier are fast |
-| markdown | 60s        | markdownlint + prettier are fast |
+### Pre-Hook Timeouts
+All PreToolUse hooks use **5-second timeout**:
+- File path validation: < 100ms typical
+- Caller detection: < 200ms typical
+- Bash command parsing: < 50ms typical
+
+**On timeout**: Exit code 2 (blocking) - operation is denied for safety.
+
+### Stop Hook Timeouts
+
+| Plugin   | Timeout | Linter(s)           | Typical Runtime | Typical Project Size |
+|----------|---------|---------------------|-----------------|----------------------|
+| go       | 120s    | golangci-lint       | 30-90s          | < 50k LOC            |
+| helm     | 120s    | helm + yamllint     | 20-60s          | < 100 templates      |
+| docker   | 60s     | hadolint            | 5-15s           | < 10 Dockerfiles     |
+| github   | 60s     | yamllint + prettier | 5-20s           | < 20 workflows       |
+| markdown | 60s     | markdownlint + prettier | 10-30s      | < 100 files          |
+
+**Timeout Behavior**:
+1. Hook process is killed (SIGTERM, then SIGKILL)
+2. Exit code 2 is returned (blocking error)
+3. User sees: "HOOK TIMEOUT: Linting exceeded {timeout}s"
+4. Claude is blocked from proceeding
+5. User must fix manually or adjust timeout
+
+**When to Increase Timeout**:
+- Monorepo with >100k LOC: increase go timeout to 300s
+- Helm chart with >200 templates: increase helm timeout to 180s
+- Multiple chained linters: sum individual timeouts + 20s buffer
+
+**How to Adjust Timeout** - Edit `<plugin>/hooks/hooks.json`:
+```json
+{
+  "hooks": {
+    "Stop": [{
+      "hooks": [{
+        "command": "${CLAUDE_PLUGIN_ROOT}/scripts/stop-lint-check.sh",
+        "timeout": 180
+      }]
+    }]
+  }
+}
+```
 
 ## Test Mode (TEST_CALLER)
 

@@ -7,7 +7,17 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command is read-only for source files (generates binary artifact, does not modify `*.go`, `go.mod`, or `go.sum`).
+**Permission Level**: 1 (Artifact Creation)
+
+This command creates a binary artifact but does not modify source files.
+
+**Created artifacts**:
+- Compiled Go binary (in project directory)
+
+**Source files unchanged**:
+- `*.go` (not modified)
+- `go.mod` (not modified)
+- `go.sum` (not modified)
 
 ---
 

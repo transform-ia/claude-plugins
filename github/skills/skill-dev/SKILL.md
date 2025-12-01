@@ -1,5 +1,5 @@
 ---
-name: dev
+name: skill-dev
 description: |
   GitHub Actions workflows, CI/CD pipelines, and Dependabot configuration.
 

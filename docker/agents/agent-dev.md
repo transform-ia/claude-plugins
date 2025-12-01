@@ -1,5 +1,5 @@
 ---
-name: dev
+name: agent-dev
 description: |
   Dockerfile development agent.
   Handles Dockerfile, Dockerfile.*, .dockerignore files.

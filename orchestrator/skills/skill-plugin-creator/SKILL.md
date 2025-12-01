@@ -1,5 +1,5 @@
 ---
-name: plugin-creator
+name: skill-plugin-creator
 description: |
   Creates new Claude Code plugins following established patterns.
 

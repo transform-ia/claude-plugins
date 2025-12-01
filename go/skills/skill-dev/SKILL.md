@@ -1,5 +1,5 @@
 ---
-name: dev
+name: skill-dev
 description: |
   Go development with Kubernetes dev containers.
 
