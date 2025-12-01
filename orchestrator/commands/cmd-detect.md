@@ -23,6 +23,6 @@ Detection rules:
 - `go.mod` → Go plugin
 - `Chart.yaml` or `helm/Chart.yaml` → Helm plugin
 - `Dockerfile` or `Dockerfile.*` → Docker plugin
-- `.github/workflows/` or `.github/dependabot.yml` → GitHub plugin
+- `.github/workflows/` or `.github/dependabot.yaml` → GitHub plugin
 - `package.json` → Node.js (for npm dependabot)
 - Multiple `.md` files → Markdown plugin
