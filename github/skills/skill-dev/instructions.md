@@ -31,6 +31,7 @@ If you need access to a tool that is not in your allowed list:
   - `rm` to restricted files (see below)
   - `gh` commands: ONLY read-only operations (`list`, `view`, `watch`, `status`, `diff`) - hooks block write operations (`create`, `delete`, `edit`, `merge`, etc.)
   - `gh api`: ONLY GET requests - hooks block POST/PUT/PATCH/DELETE methods
+  - **Exception**: Deleting container registry images (see "Deleting Container Images" section below)
 - **SlashCommand**:
   | Command | Purpose |
   |---------|---------|
@@ -235,6 +236,56 @@ NO CONFIRMATION NEEDED - these are policy violations that must be cleaned up.
 Only after cleanup is complete, proceed to create or update `ci.yaml` and `build.yaml`.
 
 **If ONLY canonical files exist** (`ci.yaml`, `build.yaml`), skip Steps 2-3 and proceed directly to Step 4.
+
+## Deleting Container Images
+
+When you need to delete a Docker image from GitHub Container Registry (GHCR):
+
+### Step 1: Find the Version ID
+
+Use the GitHub API to find the version ID for the specific tag:
+
+```bash
+# For organization-owned packages
+gh api /orgs/<org-name>/packages/container/<image-name>/versions --jq '.[] | select(.metadata.container.tags[]? == "<tag>") | .id'
+
+# Example:
+gh api /orgs/transform-ia/packages/container/claude-image/versions --jq '.[] | select(.metadata.container.tags[]? == "1.0.0") | .id'
+# Output: 595754170
+```
+
+### Step 2: Delete the Version
+
+Use the version ID to delete the image:
+
+```bash
+# For organization-owned packages
+gh api --method DELETE /orgs/<org-name>/packages/container/<image-name>/versions/<version-id>
+
+# Example:
+gh api --method DELETE /orgs/transform-ia/packages/container/claude-image/versions/595754170
+```
+
+### Complete Cleanup Example
+
+To completely remove a release and its artifacts:
+
+```bash
+# 1. Delete the GitHub release (if it exists)
+gh release delete <tag> --repo <owner>/<repo> --yes
+
+# 2. Delete the remote git tag
+git push --delete origin <tag>
+
+# 3. Delete the local git tag
+git tag -d <tag>
+
+# 4. Find and delete the Docker image
+VERSION_ID=$(gh api /orgs/<org-name>/packages/container/<image-name>/versions --jq '.[] | select(.metadata.container.tags[]? == "<version>") | .id')
+gh api --method DELETE /orgs/<org-name>/packages/container/<image-name>/versions/$VERSION_ID
+```
+
+**Note:** Deleting container images requires `packages: write` permission. This is one of the few DELETE operations allowed through `gh api` in the github plugin.
 
 ## Release Workflow
 
