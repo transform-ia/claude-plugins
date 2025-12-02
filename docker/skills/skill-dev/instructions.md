@@ -141,6 +141,65 @@ LICENSE
 .dockerignore
 ```
 
+## UPX Binary Compression
+
+**Use UPX (Ultimate Packer for eXecutables) to compress Go binaries for smaller images.**
+
+**CRITICAL: Transform-IA provides an upx-image for multi-stage builds.**
+
+**Example with UPX compression:**
+
+```dockerfile
+# Build stage
+FROM golang:<version>-alpine AS builder  # e.g., golang:1.23.4-alpine
+WORKDIR /build
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o app .
+
+# UPX compression stage
+# NOTE: upx-image currently only provides 'latest' tag (non-compliant with standards)
+FROM ghcr.io/transform-ia/upx-image:latest AS upx
+COPY --from=builder /build/app /app
+RUN upx --best --lzma /app
+
+# Runtime stage - minimal image
+FROM scratch
+COPY --from=upx /app /app
+ENTRYPOINT ["/app"]
+```
+
+**Build flags for optimal compression:**
+
+- `-ldflags="-s -w"`: Strip debug info and symbol table
+- `CGO_ENABLED=0`: Disable CGO for static binary
+- `GOOS=linux`: Target Linux (for containers)
+
+**UPX options:**
+
+- `--best`: Best compression (slower build)
+- `--lzma`: LZMA compression (smaller output)
+- `--brute`: Maximum compression (very slow)
+- `-1` to `-9`: Compression level (9 = best)
+
+**Size reduction example:**
+
+```
+Original Go binary:  15 MB
+With -ldflags:       10 MB
+With UPX --best:     3.5 MB
+With UPX --brute:    3.0 MB
+```
+
+**When to use UPX:**
+
+- ✅ Go binaries (static linking)
+- ✅ Rust binaries (static linking)
+- ✅ Single-binary applications
+- ❌ Dynamically linked binaries (may break)
+- ❌ When startup time is critical (UPX adds decompression overhead)
+
 ## Dependency Management
 
 **Use dependency files when the package manager supports them:**

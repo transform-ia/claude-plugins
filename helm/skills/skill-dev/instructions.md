@@ -30,7 +30,6 @@ Only the following file(s) can be written, edited or deleted:
 
 - `Chart.yaml`
 - `values.yaml`
-- `templates/**/*.yaml`
 - `templates/**/*.tpl`
 - `templates/NOTES.txt`
 - `.helmignore`
@@ -67,6 +66,27 @@ When you finish (Post), hooks will automatically run:
 If validation fails, you MUST fix all issues before the task can be completed.
 The hooks block completion until all checks pass.
 
+## File Extensions
+
+**IMPORTANT: All Helm template files MUST use `.tpl` extension**
+
+Kubernetes manifest templates should be named:
+- `deployment.tpl` (NOT deployment.yaml)
+- `service.tpl` (NOT service.yaml)
+- `configmap.tpl` (NOT configmap.yaml)
+- etc.
+
+**Rationale:**
+- `.yaml` files get reformatted by prettier, breaking Go template syntax
+- yamllint produces false positives on unrendered Go templates
+- `.tpl` extension clearly indicates "template file" to all tools
+
+**Exceptions:**
+- `Chart.yaml` - Helm chart metadata (plain YAML, not a template)
+- `values.yaml` - Default values (plain YAML, not a template)
+- `_helpers.tpl` - Template helpers (already uses .tpl by convention)
+- `NOTES.txt` - Installation notes (plain text, not YAML)
+
 ## Standards
 
 ### NEVER
@@ -91,7 +111,7 @@ chart/
 └── templates/
     ├── _helpers.tpl
     ├── NOTES.txt
-    └── *.yaml
+    └── *.tpl
 ```
 
 ## Patterns
@@ -155,14 +175,14 @@ spec:
         checksum/config:
           {
             {
-              include (print $.Template.BasePath "/configmap.yaml") . |
+              include (print $.Template.BasePath "/configmap.tpl") . |
               sha256sum,
             },
           }
         checksum/secret:
           {
             {
-              include (print $.Template.BasePath "/secret.yaml") . | sha256sum,
+              include (print $.Template.BasePath "/secret.tpl") . | sha256sum,
             },
           }
 ```

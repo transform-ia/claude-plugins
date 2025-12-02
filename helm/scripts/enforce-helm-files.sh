@@ -36,7 +36,7 @@ filename=$(basename "$normalized_path")
 # Check if path contains templates/ directory
 if [[ "$normalized_path" == */templates/* ]]; then
     case "$filename" in
-        *.yaml|*.yml|*.tpl|_helpers.tpl|NOTES.txt)
+        *.tpl|NOTES.txt)
             exit 0  # Allow
             ;;
     esac

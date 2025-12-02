@@ -10,15 +10,7 @@ tools:
   - Edit(.github/*)
   - Glob
   - Grep
-  - Bash(rm .github/**/*.yaml, rm .github/**/*.yml, rm .github/**/*.md)
-  - Bash(gh * list *)
-  - Bash(gh * view *)
-  - Bash(gh * watch *)
-  - Bash(gh * status *)
-  - Bash(gh * diff *)
-  - Bash(gh api *)
-  - Bash(git *)
-  - Bash(tree *)
+  - Bash
   - Task
   - TodoWrite
   - SlashCommand(/github:*)
