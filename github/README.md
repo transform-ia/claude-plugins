@@ -67,6 +67,29 @@ Lint `.github/` workflow files using yamllint and prettier.
 
 ---
 
+### /github:cmd-latest-version
+Get the latest semantic version tag from a git repository.
+
+**Usage:**
+```bash
+/github:cmd-latest-version <path>
+```
+
+**Examples:**
+```bash
+/github:cmd-latest-version /workspace/my-project
+/github:cmd-latest-version .
+```
+
+**What it does:**
+- Returns highest semantic version tag (e.g., v0.2.0 from v0.1.0, v0.1.1, v0.2.0)
+- Uses proper semantic version sorting (v0.10.0 > v0.9.0)
+- Returns v0.0.0 if no semantic version tags exist
+- Only considers tags matching pattern: v?X.Y.Z
+- READ-ONLY operation, no modifications made
+
+---
+
 ### /github:cmd-release
 Execute a full release workflow with version bump, tagging, and build monitoring.
 
