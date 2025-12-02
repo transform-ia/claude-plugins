@@ -1,6 +1,6 @@
 ---
 description: "Full release workflow: /github:cmd-release <version>"
-allowed-tools: [Read, Edit, Write, Bash, Bash(git *), Bash(tree *)]
+allowed-tools: [Bash, SlashCommand]
 ---
 
 # GitHub Release
@@ -32,61 +32,84 @@ not proceed with any tool calls.
 Execute a full release workflow with version bump, build monitoring, and
 deployment.
 
-**Usage**: `/github:cmd-release <version>`
+**Usage**: `/github:cmd-release [directory] <version>`
 
 **Examples**:
 
 ```text
-/github:cmd-release 1.2.0
-/github:cmd-release patch    # Auto-bump patch version
-/github:cmd-release minor    # Auto-bump minor version
+/github:cmd-release 1.2.0                                    # Explicit version in current dir
+/github:cmd-release patch                                    # Auto-bump patch version
+/github:cmd-release minor                                    # Auto-bump minor version
+/github:cmd-release major                                    # Auto-bump major version
+/github:cmd-release auto                                     # Auto-detect from files or commits
+/github:cmd-release /path/to/project patch                   # Release project in specific directory
+/github:cmd-release /workspace/my-app auto                   # Auto-detect version for specific project
 ```
 
 ## Full Release Workflow
 
-### Phase 1: Prepare Release
+### Phase 1: Auto-commit Changes
 
-1. **Determine version**:
-   - If `patch`/`minor`/`major`: Calculate from current version
-   - If explicit version: Use provided value
+**This command automatically handles uncommitted files for you.**
 
-2. **Update version files** (if applicable to current project):
-   - **Go**: Update version constants/files
-   - **Node.js**: Update `package.json` version
-   - **Helm**: Update `Chart.yaml` version
-   - **Docker**: Tag will be created from git tag
+1. **Check for uncommitted changes**:
+   - If changes exist: Automatically stage all files with `git add .`
+   - Generate descriptive commit message based on changed files
+   - Commit: `git commit -m "Release v$VERSION: <description>"`
+   - If no changes: Skip commit and proceed to tagging
 
-3. **Commit version bump**:
+No need to commit manually before running this command - it handles that for you.
 
-   ```bash
-   git add -A
-   git commit -m "Bump version to $VERSION"
-   ```
+### Phase 2: Determine Version
 
-4. **Create and push tag**:
+**The command first determines the current version from the latest git tag**, then bumps it based on your argument.
 
+1. **Current version detection**:
+   - Finds latest git tag (e.g., `v1.2.3`)
+   - Strips `v` prefix to get version number
+   - If no tags exist, assumes `0.0.0`
+
+2. **Version bump based on argument**:
+   - `patch`: Bumps `1.2.3` → `1.2.4` (bug fixes)
+   - `minor`: Bumps `1.2.3` → `1.3.0` (new features)
+   - `major`: Bumps `1.2.3` → `2.0.0` (breaking changes)
+   - `auto`: Smart detection (see below)
+   - Explicit (e.g., `1.5.0`): Uses exactly what you provide
+
+3. **Auto-detection priority** (when using `auto`):
+   - **Priority 1**: If `Chart.yaml` or `package.json` has a version different from current tag, use that
+   - **Priority 2**: Analyze conventional commits since last tag (`feat:` = minor, `fix:` = patch, `BREAKING:` = major)
+   - **Priority 3**: Ask user if cannot determine
+
+4. **Note**: Version files (Chart.yaml, package.json) are NOT modified by this command.
+   If you want to use the version from those files, update them first, then run `/github:cmd-release auto`.
+
+### Phase 3: Create and Push Tag
+
+1. **Validate version**:
+   - Check that tag doesn't already exist
+   - Fail early if tag exists
+
+2. **Create and push tag**:
    ```bash
    git tag "v$VERSION"
    git push origin HEAD --tags
    ```
 
-### Phase 2: Monitor Build
+### Phase 4: Monitor Build
 
-1. **Wait for GitHub Actions trigger** (10 second delay)
+**Automatically calls `/github:cmd-build` to wait for all workflows to complete.**
 
-2. **Watch build progress**:
+1. **Build monitoring** (via `/github:cmd-build`):
+   - Pushes code and tags to origin
+   - Waits for GitHub Actions to trigger workflows
+   - Monitors ALL workflows for this commit in parallel
+   - Waits indefinitely (no timeout) until all complete
+   - Shows real-time status of each workflow
 
-   ```bash
-   # Get latest workflow run ID
-   gh run list --limit 1 --json databaseId --jq '.[0].databaseId'
-
-   # Watch build progress
-   gh run watch <run-id> --exit-status
-   ```
-
-3. **Report result**:
-   - ✅ Build succeeded: Report tag and image/artifact location
-   - ❌ Build failed: Show failure logs and exit
+2. **Report result**:
+   - ✅ All workflows passed: Success with tag and repository info
+   - ❌ Any workflow failed: Shows which workflows failed, their logs, and exits with error
 
 ### Post-Release Actions
 
@@ -135,7 +158,18 @@ gh run view <run-id> --log-failed
 
 ## Notes
 
-- Uses MCP GitHub tools where possible
-- Falls back to `gh` CLI for Actions monitoring
+- Uses `gh` CLI for Actions monitoring
+- Calls `/github:cmd-build` for build monitoring
 - Respects `.github/workflows/` configuration
 - Does not force push or modify protected branches
+- Version files should be updated manually before running this command
+
+## Execution
+
+```text
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/release-exec.sh $ARGUMENTS")
+```
+
+Where `$ARGUMENTS` can be:
+- Just `<version>` (operates in current directory)
+- `<directory> <version>` (changes to directory first)

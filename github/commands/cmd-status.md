@@ -1,6 +1,6 @@
 ---
 description: "Check workflow status: /github:cmd-status [owner/repo] [limit]"
-allowed-tools: [Bash, Bash(git *), Bash(tree *)]
+allowed-tools: [Bash]
 ---
 
 # GitHub Status

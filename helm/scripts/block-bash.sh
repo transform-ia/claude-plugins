@@ -52,11 +52,11 @@ if [[ "$COMMAND" =~ ^rm[[:space:]] ]]; then
                 # Check if in templates directory
                 if [[ "$file" == */templates/* ]]; then
                     case "$filename" in
-                        *.yaml|*.yml|*.tpl|_helpers.tpl|NOTES.txt)
+                        *.tpl|NOTES.txt)
                             # Allowed template file
                             ;;
                         *)
-                            echo "BLOCKED: Can only delete .yaml/.yml/.tpl files in templates/ in Helm plugin." >&2
+                            echo "BLOCKED: Can only delete .tpl files in templates/ in Helm plugin." >&2
                             echo "" >&2
                             echo "Attempted to delete: $file" >&2
                             echo "" >&2

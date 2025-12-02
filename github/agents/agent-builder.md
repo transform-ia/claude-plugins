@@ -8,14 +8,7 @@ tools:
   - Read(.github/*)
   - Glob
   - Grep
-  - Bash(gh run list *)
-  - Bash(gh run view *)
-  - Bash(gh run watch *)
-  - Bash(gh workflow list *)
-  - Bash(gh workflow view *)
-  - Bash(gh api *)
-  - Bash(git *)
-  - Bash(tree *)
+  - Bash
   - mcp__github__*
 model: haiku
 ---
