@@ -61,7 +61,7 @@ This repository maintains two types of documentation:
 
 ### CLAUDE.md (For Claude Code)
 
-- **Purpose**: Working notebook for Claude Code on how to work in this repository
+- **Purpose**: Architecture and documentation reference for Claude Code - describes project structure, conventions, and workflow rules
 - **Target Audience**: Claude Code (the AI assistant)
 - **Specification**: See `reference/readme-spec.md` (CLAUDE.md section)
 - **Length**: Typically 50-100 lines
@@ -72,6 +72,7 @@ This repository maintains two types of documentation:
   - Filesystem conventions
   - Tool-specific notes
   - Integration points
+- **NOT for**: Task tracking, scratch notes, temporary reminders, or in-progress work items
 
 ### Key Principles
 
@@ -81,6 +82,25 @@ This repository maintains two types of documentation:
 **Avoid duplication**: Don't repeat content between the two files.
 **Stay current**: No historical notes or migration stories in CLAUDE.md.
 **Reference, don't duplicate**: Point to config files that change frequently rather than documenting their current state.
+**No tasks in CLAUDE.md**: Task tracking belongs in conversations, TodoWrite tool, or GitHub Issues - not in documentation files.
+
+### Single Source of Truth
+
+**For plugin instructions.md files:**
+
+- **Standards and conventions**: Belong in instructions.md
+- **Workflow templates and examples**: Belong in instructions.md
+- **Command behavior documentation**: Belongs ONLY in the command's `.md` file (e.g., `commands/cmd-release.md`)
+
+**Never duplicate command documentation in instructions.md.** Instead, reference the command:
+
+```markdown
+## Release Workflow
+
+Use `/github:cmd-release` for the full release cycle.
+```
+
+This ensures the command file is the single source of truth for how that command works.
 
 ### When Creating/Updating Documentation
 

@@ -108,5 +108,5 @@ Delete a git tag locally, remotely, and clean up associated artifacts (Docker im
 ## Execution
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/delete-tag-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-delete-tag.sh $ARGUMENTS")
 ```

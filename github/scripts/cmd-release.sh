@@ -1,6 +1,6 @@
 #!/bin/bash
 # Full release workflow: version bump, commit, tag, build
-# Usage: release-exec.sh [directory] <version|patch|minor|major|auto>
+# Usage: cmd-release.sh [directory] <version|patch|minor|major|auto>
 set -euo pipefail
 
 # === SECTION 0: Parse Arguments ===
@@ -235,10 +235,10 @@ echo "Monitoring GitHub Actions workflows..."
 echo "==========================================="
 echo ""
 
-# Call build-exec.sh to monitor workflows
+# Call cmd-build.sh to monitor workflows
 # Use same repo detection
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-"${SCRIPT_DIR}/build-exec.sh" "$REPO"
+"${SCRIPT_DIR}/cmd-build.sh" "$REPO"
 
 BUILD_EXIT=$?
 

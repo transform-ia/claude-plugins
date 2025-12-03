@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute 'go mod tidy' in dev pod
-# Usage: tidy-exec.sh <directory>
+# Usage: cmd-tidy.sh <directory>
 #
 # Exit codes:
 #   0 = Success - dependencies updated

@@ -14,5 +14,5 @@ This command can only modify: `Dockerfile`, `Dockerfile.*`, `.dockerignore`
 Run hadolint using the plugin script.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/lint-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-lint.sh $ARGUMENTS")
 ```

@@ -20,7 +20,7 @@ echo "Testing Orchestrator Plugin"
 echo "============================"
 
 # Test: Scripts exist and are executable
-for script in detect-exec.sh block-bash.sh enforce-no-files.sh; do
+for script in cmd-detect.sh block-bash.sh enforce-no-files.sh; do
     if [[ -x "$SCRIPTS_DIR/$script" ]]; then
         pass "$script exists and is executable"
     else
@@ -28,16 +28,16 @@ for script in detect-exec.sh block-bash.sh enforce-no-files.sh; do
     fi
 done
 
-# Test: detect-exec.sh runs without error on current directory
-output=$("$SCRIPTS_DIR/detect-exec.sh" "$PLUGIN_DIR" 2>&1) && \
-    pass "detect-exec.sh runs successfully" || \
-    fail "detect-exec.sh" "Script failed to run"
+# Test: cmd-detect.sh runs without error on current directory
+output=$("$SCRIPTS_DIR/cmd-detect.sh" "$PLUGIN_DIR" 2>&1) && \
+    pass "cmd-detect.sh runs successfully" || \
+    fail "cmd-detect.sh" "Script failed to run"
 
-# Test: detect-exec.sh returns expected output format
+# Test: cmd-detect.sh returns expected output format
 if [[ "$output" == *"Detected plugins:"* ]]; then
-    pass "detect-exec.sh returns expected format"
+    pass "cmd-detect.sh returns expected format"
 else
-    fail "detect-exec.sh output" "Missing expected 'Detected plugins:' section"
+    fail "cmd-detect.sh output" "Missing expected 'Detected plugins:' section"
 fi
 
 # Test: Hook scoping - should allow when not in plugin context (no transcript_path)
@@ -65,7 +65,7 @@ else
 fi
 
 # Test: block-bash.sh allows plugin scripts
-echo '{"tool_input":{"command":"/path/to/claude-plugins/orchestrator/scripts/detect-exec.sh /repo"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+echo '{"tool_input":{"command":"/path/to/claude-plugins/orchestrator/scripts/cmd-detect.sh /repo"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
     TEST_CALLER="/orchestrator:skill-dev" "$SCRIPTS_DIR/block-bash.sh" && \
     pass "Allows plugin scripts" || \
     fail "Script access" "Should allow plugin scripts"

@@ -1,90 +1,5 @@
 # GitHub CI/CD Development
 
-## Permissions
-
-All operations not explicitly listed in "Tools Available" and "File Restrictions"
-below are BLOCKED by hooks. When blocked:
-
-- This is EXPECTED behavior for operations outside the plugin's purpose
-- DO NOT suggest workarounds for intentional restrictions
-- Report: "This operation is outside the github plugin scope."
-
-### Prohibited Tools
-
-- **Bash(find)** - NEVER use `find` command. Use **Glob** and **Grep** instead for file discovery and content search.
-
-### When Tools Are Unavailable
-
-If you need access to a tool that is not in your allowed list:
-
-1. **Do NOT hallucinate** or pretend the tool is available
-2. **Use AskUserQuestion** to clearly specify what tool you need and why
-3. Wait for user guidance before proceeding
-
-### Tools Available
-
-- **Read** - Read any file
-- **Glob** - Find files by pattern
-- **Grep** - Search file contents
-- **Write/Edit** - to restricted files (see below)
-- **Bash** - Restricted to:
-  - `rm` to restricted files (see below)
-  - `gh` commands: ONLY read-only operations (`list`, `view`, `watch`, `status`, `diff`) - hooks block write operations (`create`, `delete`, `edit`, `merge`, etc.)
-  - `gh api`: ONLY GET requests - hooks block POST/PUT/PATCH/DELETE methods
-  - **Exception**: Deleting container registry images (see "Deleting Container Images" section below)
-- **SlashCommand**:
-  | Command | Purpose |
-  |---------|---------|
-  | `/github:cmd-lint [dir]` | Run yamllint + prettier |
-  | `/github:cmd-status [repo]` | Check workflow status |
-  | `/github:cmd-logs <run-id>` | Get workflow logs |
-  | `/github:cmd-release <version>` | Full release workflow with build monitoring |
-  | `/orchestrator:cmd-detect [dir]` | Detect project type for CI config |
-- **MCP Tools**:
-  - `mcp__github__*` - GitHub API
-
-### File Restrictions
-
-Only the following file(s) can be written, edited or deleted:
-
-- `.github/workflows/ci.yaml`
-- `.github/workflows/build.yaml`
-- `.github/dependabot.yaml`
-- `.github/PULL_REQUEST_TEMPLATE/*.md`
-- `.github/workflows/*.yml` (delete only - wrong extension)
-- `.github/workflows/*.yaml` (delete only - non-canonical names)
-
-**Convention:** Use `.yaml` not `.yml`. Delete any non-canonical workflow files.
-
-## Out of Scope - Exit Immediately
-
-**If the request does NOT involve allowed tools and/or files:**
-
-1. **Immediately respond** with:
-   ```
-   GitHub plugin cannot handle this request - it is outside the allowed scope.
-
-   Allowed: .github/workflows/*.yaml, .github/dependabot.yaml and /github:* commands
-   Requested: [describe what was requested]
-
-   Use the appropriate plugin instead:
-   - Go code → go:agent-dev
-   - Dockerfile → docker:agent-dev
-   - Helm charts → helm:agent-dev
-   ```
-
-2. **Stop execution** - do not attempt workarounds or continue
-3. **Do not make any tool calls** for the out-of-scope operation
-4. **Wait for user** to rephrase or switch plugins
-
-## Post processing
-
-When you finish (Post), hooks will automatically:
-
-- Run yamllint + prettier validation
-
-Fix all issues before completing the task.
-
 ## Standards
 
 ### NEVER
@@ -176,12 +91,10 @@ stability.
 
 ## Canonical Workflow Files
 
-**Single source of truth - only these files MUST exist:**
+**Single source of truth - only `ci.yaml` should exist.**
 
-| File | Purpose |
-|------|---------|
-| `ci.yaml` | Linting and testing (push/PR) |
-| `build.yaml` | Build and publish (tags) |
+All project types use a single combined workflow file with lint and build jobs.
+The build job depends on lint (`needs: lint`) ensuring builds only run after lint passes.
 
 ### CRITICAL: Workflow Cleanup Procedure
 
@@ -196,46 +109,33 @@ Glob: .github/workflows/*.y*ml
 
 #### Step 2: Classify Files
 
-Categorize each file found:
-
-**KEEP (canonical files):**
-- `ci.yaml` - Linting and testing
-- `build.yaml` - Build and publish
+**KEEP:** `ci.yaml` only
 
 **DELETE (non-canonical files):**
 - Any file with `.yml` extension (wrong extension, must be `.yaml`)
-- Any `.yaml` file NOT named `ci.yaml` or `build.yaml` (non-canonical names)
+- `build.yaml` (should be combined into `ci.yaml`)
+- Any other `.yaml` file (non-canonical names)
 
 Examples to DELETE:
+- `build.yaml` ❌ (should be in ci.yaml)
 - `build-and-push.yml` ❌ (wrong extension)
 - `lint.yaml` ❌ (non-canonical name)
 - `docker-build.yaml` ❌ (non-canonical name)
-- `test.yml` ❌ (wrong extension)
 
 #### Step 3: Delete Non-Canonical Files
 
 **If non-canonical files exist, delete them immediately:**
 
-Show the user which files will be deleted:
-```
-Deleting non-canonical workflows:
-- lint.yml (wrong extension)
-- build-and-push.yaml (non-canonical name)
-```
-
-Delete files:
 ```bash
-rm .github/workflows/lint.yml
-rm .github/workflows/build-and-push.yaml
+rm .github/workflows/build.yaml
+rm .github/workflows/*.yml
 ```
 
 NO CONFIRMATION NEEDED - these are policy violations that must be cleaned up.
 
-#### Step 4: Create/Update Canonical Files
+#### Step 4: Create/Update ci.yaml
 
-Only after cleanup is complete, proceed to create or update `ci.yaml` and `build.yaml`.
-
-**If ONLY canonical files exist** (`ci.yaml`, `build.yaml`), skip Steps 2-3 and proceed directly to Step 4.
+Only after cleanup is complete, create or update `ci.yaml` with combined lint + build jobs.
 
 ## Deleting Container Images
 
@@ -299,13 +199,14 @@ Use after:
 
 ### Release Procedure
 
-1. **Commit all changes** (workflow files, etc.)
-2. **Run `/github:cmd-release <version>`** which will:
+1. **Check current version** with `/github:cmd-latest-version <path>`
+2. **Commit all changes** (workflow files, etc.) - or let cmd-release auto-commit
+3. **Run `/github:cmd-release <version>`** which will:
    - Create and push the git tag
    - Push commits to remote
    - Wait for GitHub Actions build to complete
    - Report build success or failure
-3. **If build fails**: Check logs with `/github:cmd-logs <run-id>` and fix issues
+4. **If build fails**: Check logs with `/github:cmd-logs <run-id>` and fix issues
 
 ### Version Formats
 
@@ -354,7 +255,10 @@ jobs:
 
 ### Docker Projects
 
-**Lint workflow:**
+**Combined CI and Build workflow:**
+
+Docker projects use a single workflow file with `needs:` dependency to ensure linting
+passes before publishing.
 
 ```yaml
 ---
@@ -362,43 +266,33 @@ name: CI
 
 "on":
   push:
-    branches: [main, master]
   pull_request:
-
-permissions:
-  contents: read
-
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/transform-ia/claude-image:<<QUERY_LATEST_TAG>>
-      options: --user 0
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Lint
-        run: |
-          hadolint Dockerfile
-          prettier --check .
-```
-
-**Build and push on tag:**
-
-```yaml
----
-name: Build and Push
-
-"on":
-  push:
-    tags: ["v*"]
 
 permissions:
   contents: read
   packages: write
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/transform-ia/claude-image:0.1.0
+      options: --user 0
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint Dockerfile
+        run: hadolint Dockerfile
+
+      - name: Lint YAML
+        run: yamllint .
+
+      - name: Lint Markdown
+        run: markdownlint .
+
   build:
+    needs: lint
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -428,6 +322,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 ```
+
+**Key differences from other project types:**
+- Single workflow file (no separate `build.yaml`)
+- `needs: lint` ensures build only runs after lint passes
+- `if: startsWith(github.ref, 'refs/tags/v')` limits build to tag pushes
 
 ### Helm Projects
 

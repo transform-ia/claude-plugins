@@ -28,5 +28,5 @@ DO NOT proceed with tool calls.
 Query GitHub Actions workflow runs using gh CLI.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/status-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-status.sh $ARGUMENTS")
 ```

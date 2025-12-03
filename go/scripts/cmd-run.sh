@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute 'go run .' in dev pod
-# Usage: run-exec.sh <directory> [args...]
+# Usage: cmd-run.sh <directory> [args...]
 #
 # Exit codes:
 #   0 = Success - program ran successfully

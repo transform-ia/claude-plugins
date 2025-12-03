@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute 'go build' in dev pod
-# Usage: build-exec.sh <directory>
+# Usage: cmd-build.sh <directory>
 #
 # Exit codes:
 #   0 = Success - build completed

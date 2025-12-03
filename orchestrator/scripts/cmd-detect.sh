@@ -1,7 +1,7 @@
 #!/bin/bash
 # Detect frameworks/technologies in a repository
 # Returns: "Detected plugins: go, helm, docker, ..." or "Detected plugins: none"
-# Usage: detect-exec.sh <directory>
+# Usage: cmd-detect.sh <directory>
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then

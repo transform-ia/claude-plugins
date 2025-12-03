@@ -264,7 +264,7 @@ Build monitoring agent for GitHub Actions.
    [Instructions for Claude]
    ```
 
-2. For simple commands, create `/scripts/<name>-exec.sh`:
+2. For simple commands, create `/scripts/cmd-<name>.sh`:
    ```bash
    #!/bin/bash
    set -euo pipefail

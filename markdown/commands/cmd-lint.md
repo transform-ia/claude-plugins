@@ -16,5 +16,5 @@ Note: markdownlint can auto-fix issues (--fix flag is enabled).
 Run markdownlint using the plugin script. Do NOT cd or change directory.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/lint-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-lint.sh $ARGUMENTS")
 ```

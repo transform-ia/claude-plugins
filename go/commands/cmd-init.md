@@ -22,5 +22,5 @@ respond with: "Error: directory and package-name required. Usage: /go:cmd-init
 Run the init script using absolute path. Do NOT cd or change directory.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/init-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-init.sh $ARGUMENTS")
 ```

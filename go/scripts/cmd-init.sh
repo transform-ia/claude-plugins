@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute 'go mod init' in dev pod
-# Usage: init-exec.sh <directory> <package-name>
+# Usage: cmd-init.sh <directory> <package-name>
 #
 # Exit codes:
 #   0 = Success - go.mod created

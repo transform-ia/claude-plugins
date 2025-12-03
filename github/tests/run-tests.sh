@@ -20,7 +20,7 @@ echo "Testing GitHub Plugin"
 echo "====================="
 
 # Test: Scripts exist and are executable
-for script in enforce-github-files.sh block-bash.sh lint-exec.sh status-exec.sh logs-exec.sh stop-lint-check.sh; do
+for script in enforce-github-files.sh block-bash.sh cmd-lint.sh cmd-status.sh cmd-logs.sh stop-lint-check.sh; do
     if [[ -x "$SCRIPTS_DIR/$script" ]]; then
         pass "$script exists and is executable"
     else

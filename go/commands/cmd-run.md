@@ -22,5 +22,5 @@ tool calls.
 Run the run script using absolute path. Do NOT cd or change directory.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/run-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-run.sh $ARGUMENTS")
 ```

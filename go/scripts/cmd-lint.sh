@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute 'golangci-lint' in dev pod
-# Usage: lint-exec.sh <directory>
+# Usage: cmd-lint.sh <directory>
 #
 # Exit codes:
 #   0 = Success - no lint errors

@@ -16,5 +16,5 @@ files.
 Run helm template to preview rendered Kubernetes manifests.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/template-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-template.sh $ARGUMENTS")
 ```

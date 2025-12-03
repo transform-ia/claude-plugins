@@ -1,6 +1,6 @@
 #!/bin/bash
 # Query GitHub Actions workflow status using gh CLI
-# Usage: status-exec.sh <owner/repo> [limit]
+# Usage: cmd-status.sh <owner/repo> [limit]
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then

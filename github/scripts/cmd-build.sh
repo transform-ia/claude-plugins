@@ -1,6 +1,6 @@
 #!/bin/bash
 # Push code and wait for ALL GitHub Actions workflows to complete
-# Usage: build-exec.sh [owner/repo]
+# Usage: cmd-build.sh [owner/repo]
 set -euo pipefail
 
 # === SECTION 1: Repository Detection ===

@@ -32,5 +32,5 @@ calls.
 Run the build script using absolute path. Do NOT cd or change directory.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/build-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-build.sh $ARGUMENTS")
 ```

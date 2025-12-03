@@ -24,7 +24,7 @@ Query available tags for a Docker image.
 For GHCR images (ghcr.io/\*), use the script:
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/image-tag-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-image-tag.sh $ARGUMENTS")
 ```
 
 For Docker Hub images, prefer the MCP tool:

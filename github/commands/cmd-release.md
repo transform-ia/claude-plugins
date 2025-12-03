@@ -9,7 +9,6 @@ allowed-tools: [Bash, SlashCommand]
 
 This command can modify:
 - `.github/workflows/ci.yaml`
-- `.github/workflows/build.yaml`
 - `.github/dependabot.yaml`
 - `.github/PULL_REQUEST_TEMPLATE/*.md`
 - Git repository state (commits and tags via git commands)
@@ -167,7 +166,7 @@ gh run view <run-id> --log-failed
 ## Execution
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/release-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-release.sh $ARGUMENTS")
 ```
 
 Where `$ARGUMENTS` can be:

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute helm template to preview rendered manifests
-# Usage: template-exec.sh <directory> [release-name]
+# Usage: cmd-template.sh <directory> [release-name]
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then

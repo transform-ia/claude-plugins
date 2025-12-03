@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute prettier + yamllint + helm lint on a chart directory
-# Usage: lint-exec.sh <directory>
+# Usage: cmd-lint.sh <directory>
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then

@@ -75,5 +75,5 @@ Push code and monitor ALL workflow runs until completion.
 ## Execution
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/build-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-build.sh $ARGUMENTS")
 ```
