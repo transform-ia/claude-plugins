@@ -111,7 +111,7 @@ test_find_dev_pod_error() {
 
 # Test: block-bash.sh allows plugin scripts
 test_block_bash_allows_plugin() {
-    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/lint-exec.sh /dir"}}'
+    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/cmd-lint.sh /dir"}}'
     local output
     local exit_code=0
     output=$(echo "$input" | "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
@@ -189,7 +189,7 @@ test_enforce_go_blocks_other() {
 
 # Test: post-bash-check.sh allows successful plugin scripts
 test_post_bash_allows_success() {
-    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/build-exec.sh"},"tool_result":{"exit_code":0}}'
+    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/cmd-build.sh"},"tool_result":{"exit_code":0}}'
     local output
     local exit_code=0
     output=$(echo "$input" | "$SCRIPTS_DIR/post-bash-check.sh" 2>&1) || exit_code=$?
@@ -202,7 +202,7 @@ test_post_bash_allows_success() {
 
 # Test: post-bash-check.sh blocks failed plugin scripts
 test_post_bash_blocks_failure() {
-    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/build-exec.sh"},"tool_result":{"exit_code":2}}'
+    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/cmd-build.sh"},"tool_result":{"exit_code":2}}'
     local output
     local exit_code=0
     output=$(echo "$input" | "$SCRIPTS_DIR/post-bash-check.sh" 2>&1) || exit_code=$?
@@ -216,8 +216,8 @@ test_post_bash_blocks_failure() {
 # Run tests
 header "Testing script existence"
 for script in block-bash.sh enforce-go-files.sh find-dev-pod.sh find-git-root.sh \
-              lint-exec.sh build-exec.sh test-exec.sh run-exec.sh init-exec.sh \
-              tidy-exec.sh post-bash-check.sh stop-lint-check.sh sync-go-mcp.sh; do
+              cmd-lint.sh cmd-build.sh cmd-test.sh cmd-run.sh cmd-init.sh \
+              cmd-tidy.sh post-bash-check.sh stop-lint-check.sh sync-go-mcp.sh; do
     test_script_exists "$script"
 done
 
@@ -245,7 +245,7 @@ test_post_bash_allows_success
 test_post_bash_blocks_failure
 
 header "Testing exec scripts require directory"
-for script in lint-exec.sh build-exec.sh test-exec.sh run-exec.sh tidy-exec.sh; do
+for script in cmd-lint.sh cmd-build.sh cmd-test.sh cmd-run.sh cmd-tidy.sh; do
     test_requires_dir_arg "$script"
 done
 

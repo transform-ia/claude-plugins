@@ -19,7 +19,7 @@ Check for values in values\*.yaml that are not referenced in templates.
 **Step 1**: Run the analysis script:
 
 ```text
-Bash("/workspace/sandbox/transform-ia/claude-plugins/helm/scripts/check-unused-values-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-check-unused-values.sh $ARGUMENTS")
 ```
 
 **Step 2**: If the script reports unused values, offer to remove them using

@@ -1,77 +1,6 @@
 # Docker Development
 
-## Permissions
-
-Unless specified, everything else is BLOCKED by hooks, in which cases:
-
-- This is EXPECTED behavior for operations outside the plugin's purpose
-- DO NOT suggest workarounds for intentional restrictions
-- Report: "This operation is outside the docker plugin scope."
-
-**Exception - Report as Bug:** Only escalate to the user if you encounter:
-1. Documented features that don't work as described (e.g., can't edit Dockerfile despite docs saying you can)
-2. Hooks blocking operations that instructions explicitly say are allowed
-3. Direct contradictions between different documentation files
-
-**Examples of EXPECTED blocks (do NOT escalate):**
-- Editing Go source files (out of scope for this plugin)
-- Modifying Helm charts (use helm plugin)
-- Running docker build commands (security restriction)
-
-### Tools Available
-
-- **Read** - Read any file
-- **Glob** - Find files by pattern
-- **Grep** - Search file contents
-- **Write/Edit** - to restricted files (see below)
-- **Bash** - Restricted to:
-  - `rm` to restricted files (see below)
-- **SlashCommand**:
-  - `/docker:cmd-lint [file]` - Run hadolint on Dockerfile
-  - `/docker:cmd-image-tag <image> [count]` - Query available image tags
-- **MCP Tools**:
-  - `mcp__dockerhub__*` - Docker Hub API
-
-### File Restrictions
-
-Only the following file(s) can be written, edited or deleted:
-
-- `Dockerfile`
-- `Dockerfile.*`
-- `.dockerignore`
-
-## Out of Scope - Exit Immediately
-
-**If the request does NOT involve allowed tools and/or files:**
-
-1. **Immediately respond** with:
-   ```
-   Docker plugin cannot handle this request - it is outside the allowed scope.
-
-   Allowed: Dockerfile, Dockerfile.*, .dockerignore files and /docker:* commands
-   Requested: [describe what was requested]
-
-   Use the appropriate plugin instead:
-   - Go code → go:agent-dev
-   - Helm charts → helm:agent-dev
-   - Markdown → markdown:agent-dev
-   ```
-
-2. **Stop execution** - do not attempt workarounds or continue
-3. **Do not make any tool calls** for the out-of-scope operation
-4. **Wait for user** to rephrase or switch plugins
-
-## Post processing
-
-When you finish (Post), hooks will automatically:
-
-- Run hadolint validation
-
-Configuration is managed via `.hadolint.yaml` in repository root (see Configuration section below).
-
-Fix all issues before completing the task.
-
-### Configuration
+## Configuration
 
 `.hadolint.yaml` must be in repository root:
 ```yaml
@@ -83,7 +12,7 @@ ignored:
 **Why DL3018 is ignored:**
 apk version pinning is optional as Alpine packages change frequently. Do NOT use `--ignore` flags in command line - all configuration is in `.hadolint.yaml`.
 
-### Hadolint Common Fixes
+## Hadolint Common Fixes
 
 | Rule   | Issue                 | Fix                            |
 | ------ | --------------------- | ------------------------------ |
@@ -108,6 +37,23 @@ apk version pinning is optional as Alpine packages change frequently. Do NOT use
 - Copy dependency files before source code (layer caching)
 - Use `.dockerignore` to exclude unnecessary files
 - Use dependency files for package management when available (see Dependency Management section)
+
+## Getting Latest Image Versions
+
+**To find the latest version of a Docker image before updating a Dockerfile:**
+
+- **Docker Hub images**: `/docker:cmd-image-tag <image>` (e.g., `/docker:cmd-image-tag golang`)
+- **GHCR images**: `/docker:cmd-image-tag ghcr.io/<org>/<repo>`
+- **GHCR from git tags**: `/github:cmd-latest-version <path>` - gets latest semantic version tag from a git repository
+
+**Examples:**
+
+```text
+/docker:cmd-image-tag node                          # Docker Hub official
+/docker:cmd-image-tag alpine/helm                   # Docker Hub org
+/docker:cmd-image-tag ghcr.io/transform-ia/upx-image  # GHCR
+/github:cmd-latest-version /path/to/repo            # Git tags (for GHCR builds)
+```
 
 ## Patterns
 
@@ -219,3 +165,33 @@ RUN apk add --no-cache curl ca-certificates
 # Incorrect - pinned versions break builds
 RUN apk add --no-cache curl=8.5.0-r0
 ```
+
+## Node.js Package Installation
+
+**Use yarn with package.json for npm packages in Docker images:**
+
+```dockerfile
+# Install packages from package.json
+COPY package.json /usr/local/
+WORKDIR /usr/local
+RUN yarn install && \
+    yarn cache clean && \
+    rm package.json
+ENV PATH=${PATH}:/usr/local/node_modules/.bin/
+WORKDIR /workspace
+```
+
+**Why yarn over npm:**
+
+- Faster installation with parallel downloads
+- Deterministic installs with lockfile
+- Better caching behavior in Docker layers
+- `yarn cache clean` properly cleans cache (not `yarn clean`)
+
+**Best practices:**
+
+- Copy only `package.json` (not full source) for better layer caching
+- Always run `yarn cache clean` after install to reduce image size
+- Remove `package.json` after install if not needed at runtime
+- Add `node_modules/.bin` to PATH for global access to CLI tools
+- Use a dedicated directory (`/usr/local/`) to avoid conflicts with project dependencies

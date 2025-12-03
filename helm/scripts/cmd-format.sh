@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute prettier on helm chart yaml files
-# Usage: format-exec.sh <directory>
+# Usage: cmd-format.sh <directory>
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then

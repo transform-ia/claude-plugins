@@ -61,7 +61,6 @@ normalized_path=$(normalize_path "$FILE_PATH")
 allowed_files=(
     ".github/dependabot.yaml"
     ".github/workflows/ci.yaml"
-    ".github/workflows/build.yaml"
 )
 # Pattern: .github/PULL_REQUEST_TEMPLATE/*.md
 allowed_pattern=".github/PULL_REQUEST_TEMPLATE/*.md"

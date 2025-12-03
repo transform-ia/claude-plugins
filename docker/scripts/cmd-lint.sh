@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute hadolint on Dockerfile
-# Usage: lint-exec.sh <Dockerfile|directory>
+# Usage: cmd-lint.sh <Dockerfile|directory>
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then

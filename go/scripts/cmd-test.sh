@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute 'go test' in dev pod
-# Usage: test-exec.sh <directory> [package]
+# Usage: cmd-test.sh <directory> [package]
 # Package defaults to ./... if not specified
 #
 # Exit codes:

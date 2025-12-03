@@ -23,5 +23,5 @@ STOP. Do not proceed with any tool calls.
 Get logs for a GitHub Actions workflow run.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/logs-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-logs.sh $ARGUMENTS")
 ```

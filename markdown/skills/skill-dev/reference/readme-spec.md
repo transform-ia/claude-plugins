@@ -54,7 +54,7 @@ Root README.md files must follow this exact structure:
 
 ## Purpose
 
-CLAUDE.md is Claude Code's **working notebook** - how Claude should work in this repository.
+CLAUDE.md is Claude Code's **architecture reference** - describes project structure, conventions, and how to work in this repository.
 
 ## Required Sections
 
@@ -139,6 +139,9 @@ Brief notes on integrations, configs, external dependencies
 - Duplicate information from README.md
 - Information for humans (use README.md for that)
 - Explanations of why decisions were made (just state what to do)
+- Task lists or work items (use issue trackers or todo tools instead)
+- Scratch notes or temporary reminders
+- In-progress implementation details
 
 ## Validation
 

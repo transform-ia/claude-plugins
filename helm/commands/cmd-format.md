@@ -15,5 +15,5 @@ modified (contain Go template syntax).
 Run prettier on Chart.yaml and values.yaml.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/format-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-format.sh $ARGUMENTS")
 ```

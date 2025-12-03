@@ -14,5 +14,5 @@ This command modifies `/workspace/.mcp.json` (syncs golang-chart MCP servers). D
 Run the sync script using absolute path. Do NOT cd or change directory.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/sync-go-mcp.sh")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-mcp-sync.sh")
 ```

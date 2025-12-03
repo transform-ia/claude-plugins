@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute markdownlint
-# Usage: lint-exec.sh <path>
+# Usage: cmd-lint.sh <path>
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then

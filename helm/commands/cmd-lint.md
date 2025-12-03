@@ -28,7 +28,7 @@ Run helm lint + yamllint on the chart directory, then check for unused values.
 **Step 1**: Run linters:
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/lint-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-lint.sh $ARGUMENTS")
 ```
 
 The script will exit with code 1 if linting fails. Fix all issues before

@@ -63,7 +63,7 @@ echo "========================"
 backup_original_caller
 
 # Test: Scripts exist and are executable
-for script in enforce-md-files.sh block-bash.sh lint-exec.sh stop-lint-check.sh; do
+for script in enforce-md-files.sh block-bash.sh cmd-lint.sh stop-lint-check.sh; do
     if [[ -x "$SCRIPTS_DIR/$script" ]]; then
         pass "$script exists and is executable"
     else
@@ -177,7 +177,7 @@ cleanup_mock_caller
 
 # Test: Plugin scripts are allowed
 setup_mock_caller "/markdown:skill-dev"
-echo "{\"tool_input\":{\"command\":\"${CLAUDE_PLUGIN_ROOT}/scripts/lint-exec.sh README.md\"},\"transcript_path\":\"/tmp/transcript.json\",\"tool_use_id\":\"test-123\"}" | \
+echo "{\"tool_input\":{\"command\":\"${CLAUDE_PLUGIN_ROOT}/scripts/cmd-lint.sh README.md\"},\"transcript_path\":\"/tmp/transcript.json\",\"tool_use_id\":\"test-123\"}" | \
     "$SCRIPTS_DIR/block-bash.sh" && \
     pass "Allows plugin's own scripts" || \
     fail "Plugin scripts" "Should allow ${CLAUDE_PLUGIN_ROOT}/scripts/*"

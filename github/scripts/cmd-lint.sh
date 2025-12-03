@@ -1,6 +1,6 @@
 #!/bin/bash
 # Execute yamllint + prettier on .github directory
-# Usage: lint-exec.sh <directory>
+# Usage: cmd-lint.sh <directory>
 set -euo pipefail
 
 if [[ -z "${1:-}" ]]; then

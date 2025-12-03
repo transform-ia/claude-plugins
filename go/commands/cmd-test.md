@@ -29,5 +29,5 @@ any tool calls.
 Run the test script using absolute path. Do NOT cd or change directory.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/test-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-test.sh $ARGUMENTS")
 ```

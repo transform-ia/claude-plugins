@@ -15,7 +15,7 @@ Scan a repository and detect which frameworks/technologies are present. Returns
 the list of plugins that should be activated.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/detect-exec.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-detect.sh $ARGUMENTS")
 ```
 
 Detection rules:
