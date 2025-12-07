@@ -1,68 +1,134 @@
+---
 name: CI
 
-on:
+"on":
   push:
-    branches: [master, main]
+    branches: [master]
+    tags: ["v*"]
   pull_request:
-    branches: [master, main]
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
 
 jobs:
-  lint-markdown:
-    name: Lint Markdown
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Lint Markdown
+        if: hashFiles('**/*.md') != ''
+        uses: DavidAnson/markdownlint-cli2-action@v21
+
+      - name: Lint Dockerfile
+        if: hashFiles('Dockerfile') != ''
+        uses: hadolint/hadolint-action@v3.1.0
         with:
-          node-version: "20"
+          dockerfile: Dockerfile
 
-      - name: Install tools
-        run: |
-          npm install -g markdownlint-cli prettier
-
-      - name: Lint markdown files
-        run: |
-          find . -name "*.md" -not -path "./node_modules/*" -not -path "./.git/*" | while read -r file; do
-            echo "Linting: $file"
-            prettier --check "$file" --prose-wrap always || true
-            markdownlint "$file" -c markdown/scripts/markdownlint-config.yaml || true
-          done
-
-  lint-yaml:
-    name: Lint YAML
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Lint YAML
+        uses: ibiqlik/action-yamllint@v3
         with:
-          python-version: "3.x"
+          file_or_dir: .
 
-      - name: Install yamllint
-        run: pip install yamllint
+      - name: Lint Helm chart
+        if: hashFiles('**/Chart.yaml') != ''
+        run: helm lint chart
 
-      - name: Lint YAML files
-        run: |
-          yamllint -c .yamllint.yaml .
+      - uses: actions/setup-go@v5
+        if: hashFiles('go.mod') != ''
+        with:
+          go-version-file: go.mod
 
-  lint-shell:
-    name: Lint Shell Scripts
+      - name: Tidy Go modules
+        if: hashFiles('go.mod') != ''
+        run: go mod tidy
+
+      - name: Lint Go
+        if: hashFiles('go.mod') != ''
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: latest
+
+  test:
     runs-on: ubuntu-latest
+    needs: lint
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install shellcheck
-        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
 
-      - name: Lint shell scripts
+      - name: Tidy Go modules
+        run: go mod tidy
+
+      - name: Run Go tests
+        run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+  release:
+    needs: [lint, test]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+        if: hashFiles('Dockerfile') != ''
+
+      - uses: docker/login-action@v3
+        if: hashFiles('Dockerfile') != ''
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version
+        id: meta
         run: |
-          find . -type f -name "*.sh" -not -path "./.git/*" | while read -r file; do
-            echo "Checking: $file"
-            shellcheck "$file" || true
-          done
+          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          if [ -f chart/Chart.yaml ]; then
+            echo "chart=$(yq '.name' chart/Chart.yaml)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Chart version
+        if: hashFiles('**/Chart.yaml') != ''
+        run: yq -i ".version = \"${{ steps.meta.outputs.version }}\"" chart/Chart.yaml
+
+      - uses: docker/metadata-action@v5
+        if: hashFiles('Dockerfile') != ''
+        id: docker_meta
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - uses: docker/build-push-action@v6
+        if: hashFiles('Dockerfile') != ''
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - uses: azure/setup-helm@v4
+        if: hashFiles('**/Chart.yaml') != ''
+
+      - name: Package and push Helm chart
+        if: hashFiles('**/Chart.yaml') != ''
+        run: |
+          helm package chart
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+          helm push ${{ steps.meta.outputs.chart }}-${{ steps.meta.outputs.version }}.tgz oci://ghcr.io/${{ github.repository_owner }}
