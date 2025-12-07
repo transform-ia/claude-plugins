@@ -1,14 +1,7 @@
 ---
-# Disable rules that are too strict for plugin documentation
-
-# Allow emphasis as headings (common in structured docs)
-MD036: false
-
-# Allow code blocks without language (many are pseudo-code or output)
-MD040: false
-
-# Allow multiple top-level headings (multi-document files)
-MD025: false
-
-# Allow duplicate headings (common in structured docs)
-MD024: false
+config:
+  MD013: false
+  MD024: false
+  MD025: false
+  MD036: false
+  MD040: false
