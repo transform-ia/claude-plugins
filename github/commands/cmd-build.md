@@ -7,15 +7,17 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command performs git operations (push) and monitors GitHub Actions.
-It does NOT modify local files, only pushes existing commits.
+This command performs git operations (push) and monitors GitHub Actions. It does
+NOT modify local files, only pushes existing commits.
 
 ## Parameter Validation
 
 **Default values:**
+
 - `[owner/repo]`: Auto-detect from git remote if not provided
 
 **Validation**:
+
 - If auto-detection fails and no repo provided: Error message and stop
 - Check for uncommitted changes before pushing
 
@@ -43,6 +45,7 @@ Push code and monitor ALL workflow runs until completion.
 ### Phase 2: Push Code
 
 1. **Push to remote**:
+
    ```bash
    git push origin HEAD
    ```
@@ -52,6 +55,7 @@ Push code and monitor ALL workflow runs until completion.
 1. **Wait for GitHub Actions trigger** (10 second delay)
 
 2. **Find all workflow runs** for the pushed commit:
+
    ```bash
    gh run list --repo <repo> --commit <sha> --json databaseId,workflowName,status,conclusion
    ```

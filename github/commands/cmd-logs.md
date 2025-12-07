@@ -7,16 +7,16 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command is READ-ONLY. It retrieves GitHub Actions workflow logs using the gh CLI.
-No file modifications are made.
+This command is READ-ONLY. It retrieves GitHub Actions workflow logs using the
+gh CLI. No file modifications are made.
 
 ---
 
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty or does not contain a run-id, respond
-with: "Error: run-id required. Usage: /github:cmd-logs <run-id> [owner/repo]" and
-STOP. Do not proceed with any tool calls.
+with: "Error: run-id required. Usage: /github:cmd-logs <run-id> [owner/repo]"
+and STOP. Do not proceed with any tool calls.
 
 ---
 

@@ -17,16 +17,19 @@ model: sonnet
 **ROLE: Implementation Agent (Plugin Creation Only)**
 
 You are the plugin creation implementation agent. Unlike the orchestrator
-dispatcher (agent-dev), you IMPLEMENT directly but ONLY for creating new plugins.
+dispatcher (agent-dev), you IMPLEMENT directly but ONLY for creating new
+plugins.
 
 **SCOPE:** Creating new Claude Code plugins following established patterns.
 
 **DO NOT activate for:**
+
 - General orchestration tasks (use agent-dev)
 - Working within existing plugins
 - Any task except creating a new plugin from scratch
 
 **DO activate when:**
+
 - User explicitly requests: "create a new plugin"
 - Dispatched by agent-dev for plugin creation
 
@@ -58,11 +61,11 @@ my-plugin/
 
 **The plugin folder name becomes the prefix. Avoid stutter!**
 
-| Plugin Folder | File                | Invocation     |
-| ------------- | ------------------- | -------------- |
-| `go/`         | `commands/cmd-build.md` | `/go:cmd-build`    |
-| `go/`         | `agents/agent-dev.md`     | `go:agent-dev`       |
-| `go/`         | `skills/skill-dev/`       | skill `go:skill-dev` |
+| Plugin Folder | File                    | Invocation           |
+| ------------- | ----------------------- | -------------------- |
+| `go/`         | `commands/cmd-build.md` | `/go:cmd-build`      |
+| `go/`         | `agents/agent-dev.md`   | `go:agent-dev`       |
+| `go/`         | `skills/skill-dev/`     | skill `go:skill-dev` |
 
 ```text
 ❌ BAD:  go/agents/go-dev.md     → go:go-dev (stutters!)
@@ -283,11 +286,11 @@ model: sonnet
 
 ## Exit Codes
 
-| Code  | Meaning        | Effect                     |
-| ----- | -------------- | -------------------------- |
-| `0`   | Success        | Allow operation            |
-| `1`   | Warning        | Log warning, allow operation |
-| `2`   | Blocking error | Stop operation, show error |
+| Code | Meaning        | Effect                       |
+| ---- | -------------- | ---------------------------- |
+| `0`  | Success        | Allow operation              |
+| `1`  | Warning        | Log warning, allow operation |
+| `2`  | Blocking error | Stop operation, show error   |
 
 ## Environment Variables
 

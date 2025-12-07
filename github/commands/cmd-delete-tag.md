@@ -1,5 +1,6 @@
 ---
-description: "Delete tag and artifacts: /github:cmd-delete-tag <tag> [directory]"
+description:
+  "Delete tag and artifacts: /github:cmd-delete-tag <tag> [directory]"
 allowed-tools: [Bash]
 ---
 
@@ -8,6 +9,7 @@ allowed-tools: [Bash]
 ## Permissions
 
 This command can modify:
+
 - Local git repository (delete local tag)
 - Remote git repository (delete remote tag)
 - GitHub Container Registry (delete Docker images)
@@ -23,7 +25,8 @@ This is a DESTRUCTIVE operation that cannot be undone.
 
 ---
 
-Delete a git tag locally, remotely, and clean up associated artifacts (Docker images, Helm charts).
+Delete a git tag locally, remotely, and clean up associated artifacts (Docker
+images, Helm charts).
 
 **Usage**: `/github:cmd-delete-tag <tag> [directory]`
 
@@ -54,16 +57,19 @@ Delete a git tag locally, remotely, and clean up associated artifacts (Docker im
 ### Phase 3: Delete Tag
 
 1. **Delete remote tag first**:
+
    ```bash
    git push --delete origin <tag>
    ```
 
 2. **Delete local tag**:
+
    ```bash
    git tag -d <tag>
    ```
 
 3. **Delete GitHub release** (if exists):
+
    ```bash
    gh release delete <tag> --repo <owner>/<repo> --yes
    ```
@@ -87,8 +93,8 @@ Delete a git tag locally, remotely, and clean up associated artifacts (Docker im
 
 4. **Report results**:
    - ✅ Artifacts deleted successfully
-   - ⚠️  Artifacts not found (may have been already deleted)
-   - ℹ️  No artifacts (not a Docker/Helm project)
+   - ⚠️ Artifacts not found (may have been already deleted)
+   - ℹ️ No artifacts (not a Docker/Helm project)
 
 ## Error Handling
 

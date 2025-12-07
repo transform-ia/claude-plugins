@@ -29,5 +29,8 @@ description: |
   - Using MCP tools for semantic navigation (definition, references, callers, etc.)
 
   Use slash commands for build/test/lint operations. The skill auto-activates when modifying Go code.
-allowed-tools: Read, Write(*.go), Write(go.mod), Write(go.sum), Edit(*.go), Edit(go.mod), Edit(go.sum), Glob, Grep, Bash(rm *.go), Bash(rm go.mod), Bash(rm go.sum), SlashCommand(/go:*), mcp__context7__*, mcp__golang-*__*
+allowed-tools:
+  Read, Write(*.go), Write(go.mod), Write(go.sum), Edit(*.go), Edit(go.mod),
+  Edit(go.sum), Glob, Grep, Bash(rm *.go), Bash(rm go.mod), Bash(rm go.sum),
+  SlashCommand(/go:*), mcp__context7__*, mcp__golang-*__*
 ---

@@ -1,5 +1,7 @@
 ---
-description: "Get latest semantic version from local git: /github:cmd-latest-version <directory>"
+description:
+  "Get latest semantic version from local git: /github:cmd-latest-version
+  <directory>"
 allowed-tools: [Bash]
 ---
 
@@ -7,31 +9,33 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command is READ-ONLY. It queries git tags from a local repository on the filesystem.
-No file modifications are made.
+This command is READ-ONLY. It queries git tags from a local repository on the
+filesystem. No file modifications are made.
 
-**Important**: This command reads tags from a LOCAL git repository on the filesystem.
-It does NOT query GitHub directly. To get versions from a remote GitHub repository,
-clone it first or use `gh release list`.
+**Important**: This command reads tags from a LOCAL git repository on the
+filesystem. It does NOT query GitHub directly. To get versions from a remote
+GitHub repository, clone it first or use `gh release list`.
 
 ---
 
 ## Parameter Validation
 
 **Required argument:**
+
 - `<directory>`: Local filesystem path to a git repository (required)
 
 Examples of valid paths:
+
 - `/workspace/my-project`
 - `.` (current directory)
 - `../other-repo`
 
 **NOT valid** (these are GitHub repository paths, not filesystem paths):
+
 - `owner/repo`
 - `transform-ia/claude-image`
 
-If validation fails, respond with:
-"Error: Not a git repository: [directory]"
+If validation fails, respond with: "Error: Not a git repository: [directory]"
 
 DO NOT proceed with tool calls if directory is invalid.
 

@@ -25,6 +25,7 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/*
 **If the request does NOT involve allowed tools and/or files:**
 
 1. **Immediately respond** with:
+
    ```
    Markdown plugin cannot handle this request - it is outside the allowed scope.
 
@@ -61,7 +62,8 @@ This repository maintains two types of documentation:
 
 ### CLAUDE.md (For Claude Code)
 
-- **Purpose**: Architecture and documentation reference for Claude Code - describes project structure, conventions, and workflow rules
+- **Purpose**: Architecture and documentation reference for Claude Code -
+  describes project structure, conventions, and workflow rules
 - **Target Audience**: Claude Code (the AI assistant)
 - **Specification**: See `reference/readme-spec.md` (CLAUDE.md section)
 - **Length**: Typically 50-100 lines
@@ -72,17 +74,20 @@ This repository maintains two types of documentation:
   - Filesystem conventions
   - Tool-specific notes
   - Integration points
-- **NOT for**: Task tracking, scratch notes, temporary reminders, or in-progress work items
+- **NOT for**: Task tracking, scratch notes, temporary reminders, or in-progress
+  work items
 
 ### Key Principles
 
-**README.md** answers: "What is this repository?"
-**CLAUDE.md** answers: "How should I work in this repository?"
+**README.md** answers: "What is this repository?" **CLAUDE.md** answers: "How
+should I work in this repository?"
 
-**Avoid duplication**: Don't repeat content between the two files.
-**Stay current**: No historical notes or migration stories in CLAUDE.md.
-**Reference, don't duplicate**: Point to config files that change frequently rather than documenting their current state.
-**No tasks in CLAUDE.md**: Task tracking belongs in conversations, TodoWrite tool, or GitHub Issues - not in documentation files.
+**Avoid duplication**: Don't repeat content between the two files. **Stay
+current**: No historical notes or migration stories in CLAUDE.md. **Reference,
+don't duplicate**: Point to config files that change frequently rather than
+documenting their current state. **No tasks in CLAUDE.md**: Task tracking
+belongs in conversations, TodoWrite tool, or GitHub Issues - not in
+documentation files.
 
 ### Single Source of Truth
 
@@ -90,9 +95,11 @@ This repository maintains two types of documentation:
 
 - **Standards and conventions**: Belong in instructions.md
 - **Workflow templates and examples**: Belong in instructions.md
-- **Command behavior documentation**: Belongs ONLY in the command's `.md` file (e.g., `commands/cmd-release.md`)
+- **Command behavior documentation**: Belongs ONLY in the command's `.md` file
+  (e.g., `commands/cmd-release.md`)
 
-**Never duplicate command documentation in instructions.md.** Instead, reference the command:
+**Never duplicate command documentation in instructions.md.** Instead, reference
+the command:
 
 ```markdown
 ## Release Workflow
@@ -100,20 +107,24 @@ This repository maintains two types of documentation:
 Use `/github:cmd-release` for the full release cycle.
 ```
 
-This ensures the command file is the single source of truth for how that command works.
+This ensures the command file is the single source of truth for how that command
+works.
 
 ### When Creating/Updating Documentation
 
 1. **For new repositories**: Create both README.md and CLAUDE.md
 2. **For existing repositories**: Check if both exist and follow specifications
-3. **When updating**: Ensure no duplication and both files serve their distinct purposes
+3. **When updating**: Ensure no duplication and both files serve their distinct
+   purposes
 4. **Validation**: Use the checklists in `reference/readme-spec.md`
-5. **File existence check**: If a repository exists but an expected markdown file is NOT present, CREATE the missing file (do not assume it exists elsewhere). This applies to all markdown files, not just documentation files.
+5. **File existence check**: If a repository exists but an expected markdown
+   file is NOT present, CREATE the missing file (do not assume it exists
+   elsewhere). This applies to all markdown files, not just documentation files.
 
 ## Common Lint Fixes
 
 | Rule  | Issue                        | Fix                    |
-|-------|------------------------------|------------------------|
+| ----- | ---------------------------- | ---------------------- |
 | MD001 | Heading levels skip          | Use proper hierarchy   |
 | MD009 | Trailing spaces              | Remove whitespace      |
 | MD012 | Multiple blank lines         | Single blank lines     |

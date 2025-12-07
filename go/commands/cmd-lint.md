@@ -7,15 +7,16 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command modifies `*.go` files via auto-formatting (`golangci-lint fmt`) and auto-fixes (`golangci-lint run --fix`).
+This command modifies `*.go` files via auto-formatting (`golangci-lint fmt`) and
+auto-fixes (`golangci-lint run --fix`).
 
 ---
 
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /go:cmd-lint <directory>" and STOP. Do not proceed with any tool
-calls.
+required. Usage: /go:cmd-lint <directory>" and STOP. Do not proceed with any
+tool calls.
 
 ---
 

@@ -7,7 +7,9 @@ When you stop, hooks will automatically:
 - Run `golangci-lint fmt` to auto-format Go code
 - Run `golangci-lint run --fix` to apply auto-fixes and validate
 
-A Stop hook runs both formatting and linting after completion. The `fmt` command runs first for optimal results. If lint errors occur, address them in a follow-up iteration.
+A Stop hook runs both formatting and linting after completion. The `fmt` command
+runs first for optimal results. If lint errors occur, address them in a
+follow-up iteration.
 
 ## Standards
 
@@ -29,15 +31,25 @@ A Stop hook runs both formatting and linting after completion. The `fmt` command
 
 **Why go.mod and main.go must be at git root:**
 
-1. **golang-chart discovery**: The chart uses `workdir` value to set pod labels for discovery. All commands (build, test, lint) execute relative to this workdir, which must match the git root.
+1. **golang-chart discovery**: The chart uses `workdir` value to set pod labels
+   for discovery. All commands (build, test, lint) execute relative to this
+   workdir, which must match the git root.
 
-2. **ArgoCD deployment**: Applications are deployed per git repository. The golang-chart expects a single Go module at the repository root, not nested modules.
+2. **ArgoCD deployment**: Applications are deployed per git repository. The
+   golang-chart expects a single Go module at the repository root, not nested
+   modules.
 
-3. **Workspace mounting**: The `/workspace` PVC is mounted with git repositories as the organizational unit. Pod discovery via `golang.dev/workdir` label requires git root paths.
+3. **Workspace mounting**: The `/workspace` PVC is mounted with git repositories
+   as the organizational unit. Pod discovery via `golang.dev/workdir` label
+   requires git root paths.
 
-4. **Hook automation**: The stop-lint-check hook finds the git root to determine which pod to use for linting. Nested modules would require separate pods and separate ArgoCD applications.
+4. **Hook automation**: The stop-lint-check hook finds the git root to determine
+   which pod to use for linting. Nested modules would require separate pods and
+   separate ArgoCD applications.
 
-**Monorepo Support**: While this seems restrictive, the infrastructure supports ONE Go service per repository. If you need multiple services, use separate repositories with separate ArgoCD applications.
+**Monorepo Support**: While this seems restrictive, the infrastructure supports
+ONE Go service per repository. If you need multiple services, use separate
+repositories with separate ArgoCD applications.
 
 ## Required Libraries
 
@@ -68,18 +80,21 @@ mcp__golang-*__diagnostics  - Compiler errors
 ### Examples
 
 **Find where a function is defined:**
+
 ```
 mcp__golang-*__definition("mypackage.MyFunction")
 → Returns file path, line number, and full function definition
 ```
 
 **Find all uses of a type:**
+
 ```
 mcp__golang-*__references("MyType")
 → Returns every location where MyType is referenced
 ```
 
 **Understand a function's call graph:**
+
 ```
 mcp__golang-*__callers("mypackage.ProcessOrder")
 → Shows which functions call ProcessOrder
@@ -89,24 +104,28 @@ mcp__golang-*__callees("mypackage.ProcessOrder")
 ```
 
 **Get type information:**
+
 ```
 mcp__golang-*__hover(file_path, line, column)
 → Returns type signature and documentation
 ```
 
 **Check for compile errors:**
+
 ```
 mcp__golang-*__diagnostics(file_path)
 → Returns compilation errors, unused variables, etc.
 ```
 
 **When to use MCP tools:**
+
 - Renaming symbols across files → use `references`
 - Understanding code flow → use `callers` and `callees`
 - Finding implementations → use `definition`
 - Checking errors before lint → use `diagnostics`
 
 **When to use grep/glob:**
+
 - Searching string literals or comments
 - Finding file patterns
 - Searching across non-Go files
@@ -200,6 +219,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 ```
 
 **Common validation tags:**
+
 - `required` - field cannot be empty
 - `email` - valid email format
 - `url` - valid URL format
@@ -478,16 +498,19 @@ func NewGraphQLHandler(resolver *Resolver) http.Handler {
 **Cause**: golang-chart deployment not created or workdir label missing.
 
 **Fix**:
+
 1. Check ArgoCD application exists: `kubectl get application -n argocd`
 2. Verify deployment: `kubectl get pods -l app.kubernetes.io/name=golang-chart`
 3. Check pod has label: `kubectl get pods -l golang.dev/workdir --show-labels`
-4. If missing, update ArgoCD app to use golang-chart >= 0.0.21 with `workdir:` value
+4. If missing, update ArgoCD app to use golang-chart >= 0.0.21 with `workdir:`
+   value
 
 ### "BLOCKED: Bash not allowed in Go plugin context"
 
 **Cause**: Trying to run shell commands while in Go plugin scope.
 
 **Fix**: Use `/go:cmd-*` slash commands instead:
+
 - `go build` → `/go:cmd-build <dir>`
 - `go test` → `/go:cmd-test <dir>`
 - `golangci-lint` → `/go:cmd-lint <dir>`
@@ -496,19 +519,22 @@ func NewGraphQLHandler(resolver *Resolver) http.Handler {
 
 **Cause**: Attempting to edit `.golangci.yaml`.
 
-**Fix**: Linter config is intentionally read-only. Discuss lint rule changes with the user instead of modifying config.
+**Fix**: Linter config is intentionally read-only. Discuss lint rule changes
+with the user instead of modifying config.
 
 ### "Not inside a git repository"
 
 **Cause**: Working directory is not a git repository.
 
-**Fix**: Navigate to a git repository or initialize one with `git init` (outside plugin scope).
+**Fix**: Navigate to a git repository or initialize one with `git init` (outside
+plugin scope).
 
 ### "LINT ERRORS: Please fix the issues above"
 
 **Cause**: golangci-lint found errors during Stop hook validation.
 
 **Fix**:
+
 1. Review lint errors in the output
 2. Fix reported issues in the Go code
 3. The hook will auto-format and re-lint on next completion
@@ -519,6 +545,7 @@ func NewGraphQLHandler(resolver *Resolver) http.Handler {
 **Cause**: Pod not discovered or `/go:cmd-mcp-sync` not run.
 
 **Fix**:
+
 1. Verify pod exists: `kubectl get pods -l golang.dev/workdir`
 2. Run `/go:cmd-mcp-sync` to refresh MCP servers
 3. Check `.mcp.json` was updated

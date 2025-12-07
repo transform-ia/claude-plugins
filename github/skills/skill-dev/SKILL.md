@@ -12,5 +12,8 @@ description: |
   - Checking build status (use github:skill-builder skill)
   - General GitHub repository operations
   - User mentions "github" in general conversation
-allowed-tools: Read, Write(.github/*), Edit(.github/*), Glob, Grep, Bash, Task, TodoWrite, SlashCommand(/github:*), SlashCommand(/orchestrator:cmd-detect *), mcp__github__*, AskUserQuestion
+allowed-tools:
+  Read, Write(.github/*), Edit(.github/*), Glob, Grep, Bash, Task, TodoWrite,
+  SlashCommand(/github:*), SlashCommand(/orchestrator:cmd-detect *),
+  mcp__github__*, AskUserQuestion
 ---

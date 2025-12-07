@@ -11,5 +11,7 @@ description: |
   - User asks to READ .md files
   - User is working on code/configuration
 
-allowed-tools: Read, Write(*.md), Edit(*.md), Glob, Grep, Bash(rm *.md), SlashCommand(/markdown:*)
+allowed-tools:
+  Read, Write(*.md), Edit(*.md), Glob, Grep, Bash(rm *.md),
+  SlashCommand(/markdown:*)
 ---

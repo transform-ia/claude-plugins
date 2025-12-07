@@ -54,36 +54,44 @@ Root README.md files must follow this exact structure:
 
 ## Purpose
 
-CLAUDE.md is Claude Code's **architecture reference** - describes project structure, conventions, and how to work in this repository.
+CLAUDE.md is Claude Code's **architecture reference** - describes project
+structure, conventions, and how to work in this repository.
 
 ## Required Sections
 
 ### 1. Repository Purpose
+
 Brief statement of what this repository does.
 
 ### 2. Plugin Usage (if applicable)
+
 - When to use which plugins
 - Available plugins for this repository
 - Plugin-specific conventions
 
 ### 3. Workflow Rules
+
 Repository-specific workflow rules and conventions:
+
 - Git workflow (e.g., "Never push directly to main")
 - Deployment workflow (e.g., "Always use ArgoCD")
 - Testing requirements
 - Code review process
 
 ### 4. Filesystem Conventions
+
 - Directory structure and purposes
 - Where different types of files belong
 - Naming conventions
 
 ### 5. Tool-Specific Notes
+
 - Language-specific conventions (e.g., Go, Python, TypeScript)
 - Framework-specific patterns
 - Build system notes
 
 ### 6. Integration Points (if applicable)
+
 - External services (brief note, not full documentation)
 - Configuration files that change frequently
 - How to manage integrations
@@ -93,7 +101,8 @@ Repository-specific workflow rules and conventions:
 - **Concise**: ~50-100 lines typical
 - **Actionable**: Focus on "what should I do" not "what is this"
 - **Current**: No historical notes or migration stories
-- **Dynamic**: References to files that change (e.g., .mcp.json) rather than duplicating content
+- **Dynamic**: References to files that change (e.g., .mcp.json) rather than
+  duplicating content
 
 ## Example Structure
 
@@ -101,33 +110,42 @@ Repository-specific workflow rules and conventions:
 # Claude Code Working Notes
 
 ## Repository Purpose
+
 [One paragraph explaining what this repository does]
 
 ## Plugin Usage
+
 ### When to use plugins
+
 - List of when to use which plugins
 
 ### Available plugins
+
 - List of plugins relevant to this repository
 
 ## [Language/Framework] Conventions
+
 - Language-specific rules
 - Framework patterns
 - Testing requirements
 
 ## Workflow Rules
+
 **Rule:** [Critical rule here]
 
 **Workflow:**
+
 1. Step one
 2. Step two
 3. Step three
 
 ## Filesystem Conventions
+
 - `/src/` - Purpose
 - `/tests/` - Purpose
 
 ## [Integration/Tool] Notes
+
 Brief notes on integrations, configs, external dependencies
 ```
 

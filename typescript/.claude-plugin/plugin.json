@@ -1,0 +1,5 @@
+{
+  "name": "typescript",
+  "version": "0.1.0",
+  "description": "TypeScript/React development with Kubernetes dev containers"
+}
