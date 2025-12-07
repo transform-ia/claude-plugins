@@ -18,11 +18,13 @@ the work directly.**
 
 ## Container Image Tag Resolution
 
-**IMPORTANT:** Test pod manifests contain `${LATEST_TAG}` placeholders that MUST be resolved before creating pods.
+**IMPORTANT:** Test pod manifests contain `${LATEST_TAG}` placeholders that MUST
+be resolved before creating pods.
 
 **How to resolve image tags:**
 
 1. **Query for the latest tag** using the image reference:
+
    ```bash
    /docker:cmd-image-tag <image-reference>
    ```
@@ -32,6 +34,7 @@ the work directly.**
    - Docker Hub (no host): `alpine`, `nginx`, `postgres`
 
 2. **Examples:**
+
    ```bash
    # GHCR images (full path)
    /docker:cmd-image-tag ghcr.io/transform-ia/myapp
@@ -45,6 +48,7 @@ the work directly.**
 3. **Replace `${LATEST_TAG}`** in the manifest with the actual tag returned
 
 **Example:**
+
 ```yaml
 # TEMPLATE (DO NOT USE AS-IS):
 image: ghcr.io/transform-ia/myapp:${LATEST_TAG}
@@ -58,6 +62,7 @@ image: ghcr.io/transform-ia/myapp:v0.1.5
 ```
 
 **NEVER:**
+
 - Copy `${LATEST_TAG}` literally into pod manifests (invalid)
 - Use `latest` tag for testing (defeats tag tracking)
 
@@ -297,8 +302,10 @@ kubectl delete pod test-dockerhub-mcp -n claude
 
 - Test pods do NOT have identical network policies as production deployments
 - Test pods are ephemeral (no persistence beyond pod lifetime)
-- Kubernetes controllers (Deployments, StatefulSets, etc.) do NOT manage standalone pods
-- Service mesh sidecars do NOT inject into standalone pods created outside helm charts
+- Kubernetes controllers (Deployments, StatefulSets, etc.) do NOT manage
+  standalone pods
+- Service mesh sidecars do NOT inject into standalone pods created outside helm
+  charts
 
 ## Tips and Tricks
 

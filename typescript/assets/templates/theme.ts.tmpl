@@ -1,0 +1,90 @@
+// src/config/theme.ts
+// MUI Theme configuration
+import { createTheme } from '@mui/material/styles';
+
+export const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#4CAF50',
+      light: '#81C784',
+      dark: '#388E3C',
+    },
+    secondary: {
+      main: '#FF9800',
+      light: '#FFB74D',
+      dark: '#F57C00',
+    },
+    error: {
+      main: '#F44336',
+    },
+    warning: {
+      main: '#FFC107',
+    },
+    info: {
+      main: '#2196F3',
+    },
+    success: {
+      main: '#4CAF50',
+    },
+    background: {
+      default: '#F5F5F5',
+      paper: '#FFFFFF',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    h4: {
+      fontWeight: 600,
+      fontSize: '1.75rem',
+    },
+    h5: {
+      fontWeight: 600,
+      fontSize: '1.5rem',
+    },
+    h6: {
+      fontWeight: 600,
+      fontSize: '1.25rem',
+    },
+    body1: {
+      fontSize: '1rem',
+      lineHeight: 1.6,
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          textTransform: 'none',
+          fontWeight: 600,
+          padding: '8px 16px',
+        },
+        sizeLarge: {
+          padding: '12px 24px',
+          fontSize: '1rem',
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 6,
+        },
+      },
+    },
+    MuiTextField: {
+      defaultProps: {
+        variant: 'outlined',
+        size: 'small',
+      },
+    },
+  },
+});

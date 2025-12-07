@@ -15,8 +15,8 @@ This command can only modify: `.github/**/*.yaml`, `.github/**/*.md`
 
 **If $ARGUMENTS is empty, use current directory as default.**
 
-If the specified directory does not exist, respond:
-"Error: Directory not found. Usage: /github:cmd-lint [directory]"
+If the specified directory does not exist, respond: "Error: Directory not found.
+Usage: /github:cmd-lint [directory]"
 
 DO NOT proceed with tool calls.
 
@@ -27,6 +27,7 @@ Run yamllint + prettier on .github directory.
 ## Workflow
 
 **Step 1**: Run linters:
+
 ```text
 Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-lint.sh $ARGUMENTS")
 ```

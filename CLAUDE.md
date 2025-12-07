@@ -2,7 +2,9 @@
 
 ## Repository Purpose
 
-Claude Code plugin framework and collection of official plugins. Provides plugin infrastructure, development tools, and standard plugins (go, docker, helm, github, markdown, mcp, orchestrator).
+Claude Code plugin framework and collection of official plugins. Provides plugin
+infrastructure, development tools, and standard plugins (go, docker, helm,
+github, markdown, mcp, orchestrator).
 
 ## Plugin Usage
 
@@ -42,9 +44,9 @@ This repository contains: orchestrator, go, docker, helm, github, markdown, mcp
 
 - `/plugins/<name>/` - Individual plugin directories
 - `/plugins/<name>/plugin.yaml` - Plugin manifest
-- `/plugins/<name>/agents/` - Agent definitions (*.md files)
+- `/plugins/<name>/agents/` - Agent definitions (\*.md files)
 - `/plugins/<name>/skills/` - Skill definitions (directories)
-- `/plugins/<name>/commands/` - Slash commands (*.md files)
+- `/plugins/<name>/commands/` - Slash commands (\*.md files)
 - `/plugins/<name>/scripts/` - Executable scripts
 - `/plugins/<name>/README.md` - Plugin documentation
 - `/GLOSSARY.md` - Plugin terminology reference
@@ -99,4 +101,5 @@ Plugins integrate with:
 
 ## Deployment
 
-Plugins are loaded by Claude Code from plugin directories. No separate deployment needed - changes take effect when Claude Code reloads plugins.
+Plugins are loaded by Claude Code from plugin directories. No separate
+deployment needed - changes take effect when Claude Code reloads plugins.

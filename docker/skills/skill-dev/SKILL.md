@@ -10,5 +10,8 @@ description: |
   - Working with Docker Compose files (yaml)
   - User mentions "docker" in a general context
   - Building or running containers (not editing Dockerfiles)
-allowed-tools: Read, Write(Dockerfile*), Write(.dockerignore), Edit(Dockerfile*), Edit(.dockerignore), Glob, Grep, Bash(rm Dockerfile*), Bash(rm .dockerignore), SlashCommand(/docker:*), mcp__dockerhub__*
+allowed-tools:
+  Read, Write(Dockerfile*), Write(.dockerignore), Edit(Dockerfile*),
+  Edit(.dockerignore), Glob, Grep, Bash(rm Dockerfile*), Bash(rm .dockerignore),
+  SlashCommand(/docker:*), mcp__dockerhub__*
 ---

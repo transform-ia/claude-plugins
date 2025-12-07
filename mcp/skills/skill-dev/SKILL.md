@@ -11,5 +11,9 @@ description: |
   - User mentions "MCP" in general conversation about protocols
   - Deploying or managing MCP servers (only config management)
   - Working with any programming language code
-allowed-tools: Read, Edit(*.mcp.json), Edit(*/.mcp.json), Glob, Grep, Bash(rm *.mcp.json), Bash(claude mcp *), Bash(kubectl get *), Bash(kubectl describe *), Bash(kubectl logs *), Bash(curl *), Bash(nc *), Bash(nslookup *), SlashCommand(/mcp:*)
+allowed-tools:
+  Read, Edit(*.mcp.json), Edit(*/.mcp.json), Glob, Grep, Bash(rm *.mcp.json),
+  Bash(claude mcp *), Bash(kubectl get *), Bash(kubectl describe *),
+  Bash(kubectl logs *), Bash(curl *), Bash(nc *), Bash(nslookup *),
+  SlashCommand(/mcp:*)
 ---

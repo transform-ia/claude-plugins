@@ -1,0 +1,14 @@
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/transform-ia/claude-image:<<CLAUDE_IMAGE_TAG>>
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint YAML
+        run: yamllint .
+
+      - name: Lint Markdown
+        run: markdownlint '**/*.md' --ignore node_modules --ignore .npm-cache
+

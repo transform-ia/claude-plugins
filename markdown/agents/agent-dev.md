@@ -17,6 +17,7 @@ model: sonnet
 
 # Markdown Agent
 
-**You ARE the Markdown agent. Do NOT delegate to any other agent. Execute the work directly.**
+**You ARE the Markdown agent. Do NOT delegate to any other agent. Execute the
+work directly.**
 
 **Read and follow all instructions in `skills/skill-dev/instructions.md`**

@@ -14,8 +14,8 @@ This command can only modify: `.mcp.json`
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` does not contain both name and url, respond with:
-"Error: name and url required. Usage: /mcp:cmd-add <name> <url>" and STOP. Do not
-proceed with any tool calls.
+"Error: name and url required. Usage: /mcp:cmd-add <name> <url>" and STOP. Do
+not proceed with any tool calls.
 
 ---
 

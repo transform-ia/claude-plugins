@@ -22,24 +22,28 @@
 **Use specific version tags for all container images:**
 
 Query latest tag before creating workflows:
+
 ```bash
 /docker:cmd-image-tag ghcr.io/transform-ia/golang-image
 /docker:cmd-image-tag ghcr.io/transform-ia/claude-image
 ```
 
 Then use the returned tag in workflow files:
+
 ```yaml
 container:
-  image: ghcr.io/transform-ia/golang-image:v1.23.5  # Use specific version from query
+  image: ghcr.io/transform-ia/golang-image:v1.23.5 # Use specific version from query
 ```
 
 **NEVER:**
+
 - Use `latest` tag
 - Copy outdated versions from examples
 
 ### Linting Tools Available
 
 **claude-image** contains:
+
 - yamllint
 - hadolint
 - helm lint
@@ -47,6 +51,7 @@ container:
 - markdownlint
 
 **golang-image** contains:
+
 - golangci-lint (ONLY available here)
 - yamllint
 - hadolint
@@ -57,6 +62,7 @@ container:
 **Configuration files must be in repository root:**
 
 `.yamllint.yaml`:
+
 ```yaml
 ---
 extends: default
@@ -67,23 +73,25 @@ rules:
 
 ### Required Action Versions
 
-**CRITICAL: Use these specific rolling version tags. Do NOT use different major versions.**
+**CRITICAL: Use these specific rolling version tags. Do NOT use different major
+versions.**
 
-These are rolling major version tags (e.g., @v4 = latest v4.x release) maintained by
-action authors. They automatically receive patch and minor updates while maintaining
-backward compatibility within the major version. This balances security updates with
-stability.
+These are rolling major version tags (e.g., @v4 = latest v4.x release)
+maintained by action authors. They automatically receive patch and minor updates
+while maintaining backward compatibility within the major version. This balances
+security updates with stability.
 
-| Action | Rolling Version Tag |
-|--------|---------------------|
-| `actions/checkout` | `@v4` |
-| `docker/setup-qemu-action` | `@v3` |
-| `docker/setup-buildx-action` | `@v3` |
-| `docker/login-action` | `@v3` |
-| `docker/build-push-action` | `@v6` |
-| `azure/setup-helm` | `@v4` |
+| Action                       | Rolling Version Tag |
+| ---------------------------- | ------------------- |
+| `actions/checkout`           | `@v4`               |
+| `docker/setup-qemu-action`   | `@v3`               |
+| `docker/setup-buildx-action` | `@v3`               |
+| `docker/login-action`        | `@v3`               |
+| `docker/build-push-action`   | `@v6`               |
+| `azure/setup-helm`           | `@v4`               |
 
 **When copying workflow templates:**
+
 - Use these exact version tags
 - Do NOT downgrade to older major versions (e.g., @v3 when @v4 is specified)
 - Do NOT upgrade to newer major versions unless tested and approved
@@ -94,15 +102,18 @@ stability.
 **Single source of truth - only `ci.yaml` should exist.**
 
 All project types use a single combined workflow file with lint and build jobs.
-The build job depends on lint (`needs: lint`) ensuring builds only run after lint passes.
+The build job depends on lint (`needs: lint`) ensuring builds only run after
+lint passes.
 
 ### CRITICAL: Workflow Cleanup Procedure
 
-**Perform cleanup BEFORE creating or updating workflows IF non-canonical files exist.**
+**Perform cleanup BEFORE creating or updating workflows IF non-canonical files
+exist.**
 
 #### Step 1: Discovery
 
 Find ALL existing workflow files:
+
 ```bash
 Glob: .github/workflows/*.y*ml
 ```
@@ -112,11 +123,13 @@ Glob: .github/workflows/*.y*ml
 **KEEP:** `ci.yaml` only
 
 **DELETE (non-canonical files):**
+
 - Any file with `.yml` extension (wrong extension, must be `.yaml`)
 - `build.yaml` (should be combined into `ci.yaml`)
 - Any other `.yaml` file (non-canonical names)
 
 Examples to DELETE:
+
 - `build.yaml` ❌ (should be in ci.yaml)
 - `build-and-push.yml` ❌ (wrong extension)
 - `lint.yaml` ❌ (non-canonical name)
@@ -135,7 +148,8 @@ NO CONFIRMATION NEEDED - these are policy violations that must be cleaned up.
 
 #### Step 4: Create/Update ci.yaml
 
-Only after cleanup is complete, create or update `ci.yaml` with combined lint + build jobs.
+Only after cleanup is complete, create or update `ci.yaml` with combined lint +
+build jobs.
 
 ## Deleting Container Images
 
@@ -185,28 +199,34 @@ VERSION_ID=$(gh api /orgs/<org-name>/packages/container/<image-name>/versions --
 gh api --method DELETE /orgs/<org-name>/packages/container/<image-name>/versions/$VERSION_ID
 ```
 
-**Note:** Deleting container images requires `packages: write` permission. This is one of the few DELETE operations allowed through `gh api` in the github plugin.
+**Note:** Deleting container images requires `packages: write` permission. This
+is one of the few DELETE operations allowed through `gh api` in the github
+plugin.
 
 ## Release Workflow
 
-After updating workflows, use `/github:cmd-release` to handle the full release cycle:
+After updating workflows, use `/github:cmd-release` to handle the full release
+cycle:
 
 ### When to Use /github:cmd-release
 
 Use after:
+
 - Creating or updating workflow files
 - Any changes that require a new version/tag
 
 ### Release Procedure
 
 1. **Check current version** with `/github:cmd-latest-version <path>`
-2. **Commit all changes** (workflow files, etc.) - or let cmd-release auto-commit
+2. **Commit all changes** (workflow files, etc.) - or let cmd-release
+   auto-commit
 3. **Run `/github:cmd-release <version>`** which will:
    - Create and push the git tag
    - Push commits to remote
    - Wait for GitHub Actions build to complete
    - Report build success or failure
-4. **If build fails**: Check logs with `/github:cmd-logs <run-id>` and fix issues
+4. **If build fails**: Check logs with `/github:cmd-logs <run-id>` and fix
+   issues
 
 ### Version Formats
 
@@ -257,8 +277,8 @@ jobs:
 
 **Combined CI and Build workflow:**
 
-Docker projects use a single workflow file with `needs:` dependency to ensure linting
-passes before publishing.
+Docker projects use a single workflow file with `needs:` dependency to ensure
+linting passes before publishing.
 
 ```yaml
 ---
@@ -324,6 +344,7 @@ jobs:
 ```
 
 **Key differences from other project types:**
+
 - Single workflow file (no separate `build.yaml`)
 - `needs: lint` ensures build only runs after lint passes
 - `if: startsWith(github.ref, 'refs/tags/v')` limits build to tag pushes

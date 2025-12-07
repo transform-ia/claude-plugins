@@ -7,15 +7,16 @@ allowed-tools: [Bash, mcp__dockerhub__*]
 
 ## Permissions
 
-This command is READ-ONLY. It queries image tags from registries without modifying any files.
+This command is READ-ONLY. It queries image tags from registries without
+modifying any files.
 
 ---
 
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: image required.
-Usage: /docker:cmd-image-tag <image> [count]" and STOP. Do not proceed with any tool
-calls.
+Usage: /docker:cmd-image-tag <image> [count]" and STOP. Do not proceed with any
+tool calls.
 
 ---
 

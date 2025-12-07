@@ -7,15 +7,16 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command is read-only for source files (executes the Go program, does not modify files).
+This command is read-only for source files (executes the Go program, does not
+modify files).
 
 ---
 
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /go:cmd-run <directory> [args]" and STOP. Do not proceed with any
-tool calls.
+required. Usage: /go:cmd-run <directory> [args]" and STOP. Do not proceed with
+any tool calls.
 
 ---
 

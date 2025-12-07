@@ -7,19 +7,20 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command is READ-ONLY. It queries GitHub Actions workflow status using the gh CLI.
-No file modifications are made.
+This command is READ-ONLY. It queries GitHub Actions workflow status using the
+gh CLI. No file modifications are made.
 
 ---
 
 ## Parameter Validation
 
 **Default values:**
+
 - `[owner/repo]`: Auto-detect from git remote
 - `[limit]`: Default to 5 workflow runs
 
-If auto-detection fails and no owner/repo provided, respond:
-"Error: Cannot detect repository. Usage: /github:cmd-status [owner/repo] [limit]"
+If auto-detection fails and no owner/repo provided, respond: "Error: Cannot
+detect repository. Usage: /github:cmd-status [owner/repo] [limit]"
 
 DO NOT proceed with tool calls.
 

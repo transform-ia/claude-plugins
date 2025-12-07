@@ -1,0 +1,20 @@
+// src/config/apollo.ts
+// Apollo Client configuration for Hasura GraphQL
+import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
+
+const httpLink = new HttpLink({
+  uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:8080/v1/graphql',
+  headers: {
+    'x-hasura-admin-secret': import.meta.env.VITE_HASURA_ADMIN_SECRET || '',
+  },
+});
+
+export const apolloClient = new ApolloClient({
+  link: httpLink,
+  cache: new InMemoryCache(),
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: 'cache-and-network',
+    },
+  },
+});

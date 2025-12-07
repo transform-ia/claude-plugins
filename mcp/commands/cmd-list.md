@@ -7,7 +7,8 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command is READ-ONLY. It lists configured MCP servers without modifying files.
+This command is READ-ONLY. It lists configured MCP servers without modifying
+files.
 
 ---
 

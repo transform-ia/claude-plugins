@@ -7,7 +7,8 @@ allowed-tools: [Bash]
 
 ## Permissions
 
-This command modifies `/workspace/.mcp.json` (syncs golang-chart MCP servers). Does not modify Go source files.
+This command modifies `/workspace/.mcp.json` (syncs golang-chart MCP servers).
+Does not modify Go source files.
 
 ---
 

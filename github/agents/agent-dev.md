@@ -27,8 +27,8 @@ directly.**
 
 ## Permissions
 
-All operations not explicitly listed in "Tools Available" and "File Restrictions"
-below are BLOCKED by hooks. When blocked:
+All operations not explicitly listed in "Tools Available" and "File
+Restrictions" below are BLOCKED by hooks. When blocked:
 
 - This is EXPECTED behavior for operations outside the plugin's purpose
 - DO NOT suggest workarounds for intentional restrictions
@@ -36,7 +36,8 @@ below are BLOCKED by hooks. When blocked:
 
 ### Prohibited Tools
 
-- **Bash(find)** - NEVER use `find` command. Use **Glob** and **Grep** instead for file discovery and content search.
+- **Bash(find)** - NEVER use `find` command. Use **Glob** and **Grep** instead
+  for file discovery and content search.
 
 ### When Tools Are Unavailable
 
@@ -54,17 +55,18 @@ If you need access to a tool that is not in your allowed list:
 - **Write/Edit** - to restricted files (see below)
 - **Bash** - Restricted to:
   - `rm` to restricted files (see below)
-  - `gh` commands: ONLY read-only operations (`list`, `view`, `watch`, `status`, `diff`) - hooks block write operations (`create`, `delete`, `edit`, `merge`, etc.)
+  - `gh` commands: ONLY read-only operations (`list`, `view`, `watch`, `status`,
+    `diff`) - hooks block write operations (`create`, `delete`, `edit`, `merge`,
+    etc.)
   - `gh api`: ONLY GET requests - hooks block POST/PUT/PATCH/DELETE methods
-  - **Exception**: Deleting container registry images (see "Deleting Container Images" section in instructions.md)
-- **SlashCommand**:
-  | Command | Purpose |
-  |---------|---------|
-  | `/github:cmd-lint [dir]` | Run yamllint + prettier |
-  | `/github:cmd-status [repo]` | Check workflow status |
-  | `/github:cmd-logs <run-id>` | Get workflow logs |
-  | `/github:cmd-release <version>` | Full release workflow with build monitoring |
-  | `/orchestrator:cmd-detect [dir]` | Detect project type for CI config |
+  - **Exception**: Deleting container registry images (see "Deleting Container
+    Images" section in instructions.md)
+- **SlashCommand**: | Command | Purpose | |---------|---------| |
+  `/github:cmd-lint [dir]` | Run yamllint + prettier | |
+  `/github:cmd-status [repo]` | Check workflow status | |
+  `/github:cmd-logs <run-id>` | Get workflow logs | |
+  `/github:cmd-release <version>` | Full release workflow with build monitoring
+  | | `/orchestrator:cmd-detect [dir]` | Detect project type for CI config |
 - **MCP Tools**:
   - `mcp__github__*` - GitHub API
 
@@ -76,15 +78,18 @@ Only the following file(s) can be written, edited or deleted:
 - `.github/dependabot.yaml`
 - `.github/PULL_REQUEST_TEMPLATE/*.md`
 - `.github/workflows/*.yml` (delete only - wrong extension)
-- `.github/workflows/*.yaml` (delete only - non-canonical names, including build.yaml)
+- `.github/workflows/*.yaml` (delete only - non-canonical names, including
+  build.yaml)
 
-**Convention:** Use single `ci.yaml` with combined lint + build jobs. Delete any other workflow files.
+**Convention:** Use single `ci.yaml` with combined lint + build jobs. Delete any
+other workflow files.
 
 ## Out of Scope - Exit Immediately
 
 **If the request does NOT involve allowed tools and/or files:**
 
 1. **Immediately respond** with:
+
    ```
    GitHub plugin cannot handle this request - it is outside the allowed scope.
 

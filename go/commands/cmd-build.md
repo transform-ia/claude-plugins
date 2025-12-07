@@ -12,9 +12,11 @@ allowed-tools: [Bash]
 This command creates a binary artifact but does not modify source files.
 
 **Created artifacts**:
+
 - Compiled Go binary (in project directory)
 
 **Source files unchanged**:
+
 - `*.go` (not modified)
 - `go.mod` (not modified)
 - `go.sum` (not modified)
@@ -24,8 +26,8 @@ This command creates a binary artifact but does not modify source files.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /go:cmd-build <directory>" and STOP. Do not proceed with any tool
-calls.
+required. Usage: /go:cmd-build <directory>" and STOP. Do not proceed with any
+tool calls.
 
 ---
 

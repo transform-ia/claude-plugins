@@ -3,14 +3,16 @@
 ## Configuration
 
 `.hadolint.yaml` must be in repository root:
+
 ```yaml
 ---
 ignored:
   - DL3018
 ```
 
-**Why DL3018 is ignored:**
-apk version pinning is optional as Alpine packages change frequently. Do NOT use `--ignore` flags in command line - all configuration is in `.hadolint.yaml`.
+**Why DL3018 is ignored:** apk version pinning is optional as Alpine packages
+change frequently. Do NOT use `--ignore` flags in command line - all
+configuration is in `.hadolint.yaml`.
 
 ## Hadolint Common Fixes
 
@@ -28,7 +30,8 @@ apk version pinning is optional as Alpine packages change frequently. Do NOT use
 ### NEVER
 
 - Use `latest` tag - always pin to specific versions
-- Use ARG for base image versions - Dependabot cannot track ARG variables. Always use explicit version tags in FROM statements.
+- Use ARG for base image versions - Dependabot cannot track ARG variables.
+  Always use explicit version tags in FROM statements.
 
 ### ALWAYS
 
@@ -36,15 +39,18 @@ apk version pinning is optional as Alpine packages change frequently. Do NOT use
 - Run as non-root user (UID 1000)
 - Copy dependency files before source code (layer caching)
 - Use `.dockerignore` to exclude unnecessary files
-- Use dependency files for package management when available (see Dependency Management section)
+- Use dependency files for package management when available (see Dependency
+  Management section)
 
 ## Getting Latest Image Versions
 
 **To find the latest version of a Docker image before updating a Dockerfile:**
 
-- **Docker Hub images**: `/docker:cmd-image-tag <image>` (e.g., `/docker:cmd-image-tag golang`)
+- **Docker Hub images**: `/docker:cmd-image-tag <image>` (e.g.,
+  `/docker:cmd-image-tag golang`)
 - **GHCR images**: `/docker:cmd-image-tag ghcr.io/<org>/<repo>`
-- **GHCR from git tags**: `/github:cmd-latest-version <path>` - gets latest semantic version tag from a git repository
+- **GHCR from git tags**: `/github:cmd-latest-version <path>` - gets latest
+  semantic version tag from a git repository
 
 **Examples:**
 
@@ -89,7 +95,8 @@ LICENSE
 
 ## UPX Binary Compression
 
-**Use UPX (Ultimate Packer for eXecutables) to compress Go binaries for smaller images.**
+**Use UPX (Ultimate Packer for eXecutables) to compress Go binaries for smaller
+images.**
 
 **CRITICAL: Transform-IA provides an upx-image for multi-stage builds.**
 
@@ -156,7 +163,8 @@ With UPX --brute:    3.0 MB
 
 **Alpine apk: NO dependency file format exists**
 
-Do NOT pin apk package versions - they change frequently and cause build failures:
+Do NOT pin apk package versions - they change frequently and cause build
+failures:
 
 ```dockerfile
 # Correct - unpinned (DL3018 ignored for apk)
@@ -194,4 +202,5 @@ WORKDIR /workspace
 - Always run `yarn cache clean` after install to reduce image size
 - Remove `package.json` after install if not needed at runtime
 - Add `node_modules/.bin` to PATH for global access to CLI tools
-- Use a dedicated directory (`/usr/local/`) to avoid conflicts with project dependencies
+- Use a dedicated directory (`/usr/local/`) to avoid conflicts with project
+  dependencies

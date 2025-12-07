@@ -7,15 +7,16 @@ allowed-tools: [Bash, Read]
 
 ## Permissions
 
-This command is READ-ONLY. It tests MCP server connectivity without modifying files.
+This command is READ-ONLY. It tests MCP server connectivity without modifying
+files.
 
 ---
 
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: name or url
-required. Usage: /mcp:cmd-test <name-or-url>" and STOP. Do not proceed with any tool
-calls.
+required. Usage: /mcp:cmd-test <name-or-url>" and STOP. Do not proceed with any
+tool calls.
 
 ---
 

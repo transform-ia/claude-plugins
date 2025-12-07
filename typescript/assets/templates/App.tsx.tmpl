@@ -1,0 +1,36 @@
+// src/App.tsx
+// Root application component with providers and routing
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ApolloProvider } from '@apollo/client';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+
+import { apolloClient } from './config/apollo';
+import { theme } from './config/theme';
+import { Layout } from './components';
+import { Dashboard } from './pages';
+// Import additional pages as needed
+
+function App() {
+  return (
+    <ApolloProvider client={apolloClient}>
+      <ThemeProvider theme={theme}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <CssBaseline />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                {/* Add additional routes here */}
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </LocalizationProvider>
+      </ThemeProvider>
+    </ApolloProvider>
+  );
+}
+
+export default App;

@@ -9,11 +9,14 @@ Unless specified, everything else is BLOCKED by hooks, in which cases:
 - Report: "This operation is outside the mcp plugin scope."
 
 **Exception - Report as Bug:** Only escalate to the user if you encounter:
-1. Documented features that don't work as described (e.g., can't edit .mcp.json despite docs saying you can)
+
+1. Documented features that don't work as described (e.g., can't edit .mcp.json
+   despite docs saying you can)
 2. Hooks blocking operations that instructions explicitly say are allowed
 3. Direct contradictions between different documentation files
 
 **Examples of EXPECTED blocks (do NOT escalate):**
+
 - Editing Go source files (out of scope for this plugin)
 - Modifying configuration files other than .mcp.json
 - Running kubectl create/apply commands (read-only access only)
@@ -30,8 +33,8 @@ Unless specified, everything else is BLOCKED by hooks, in which cases:
   - `kubectl get/describe/logs` - Read-only cluster info
   - `curl`, `nc`, `nslookup` - Connectivity testing
 - **SlashCommand**: | Command | Purpose | |---------|---------| |
-  `/mcp:cmd-add <name> <url>` | Add MCP server | | `/mcp:cmd-remove <name>` | Remove MCP
-  server | | `/mcp:cmd-list` | List servers with status | |
+  `/mcp:cmd-add <name> <url>` | Add MCP server | | `/mcp:cmd-remove <name>` |
+  Remove MCP server | | `/mcp:cmd-list` | List servers with status | |
   `/mcp:cmd-test <name-or-url>` | Test connectivity |
 
 ### File Restrictions
@@ -46,6 +49,7 @@ Only the following file(s) can be written, edited or deleted:
 **If the request does NOT involve allowed tools and/or files:**
 
 1. **Immediately respond** with:
+
    ```
    MCP plugin cannot handle this request - it is outside the allowed scope.
 
@@ -86,6 +90,7 @@ Only the following file(s) can be written, edited or deleted:
 ### In-Cluster
 
 **golang-chart services (fixed port 81):**
+
 ```text
 http://<service>.<namespace>.svc.cluster.local:81/mcp
 ```
@@ -93,6 +98,7 @@ http://<service>.<namespace>.svc.cluster.local:81/mcp
 Example: `http://my-go-service.default.svc.cluster.local:81/mcp`
 
 **Custom services (variable port):**
+
 ```text
 http://<service>.<namespace>.svc.cluster.local:<port>/mcp
 ```
