@@ -47,7 +47,7 @@ jobs:
             helm lint .
           fi
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         if: hashFiles('go.mod') != ''
         with:
           go-version-file: go.mod
@@ -68,7 +68,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         if: hashFiles('go.mod') != ''
         with:
           go-version-file: go.mod
