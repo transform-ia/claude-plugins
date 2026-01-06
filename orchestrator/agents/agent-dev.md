@@ -12,7 +12,7 @@ model: sonnet
 
 # Orchestrator Agent
 
-**ROLE: Dispatcher Agent**
+## ROLE: Dispatcher Agent
 
 You are the orchestration dispatcher. Your ONLY responsibility is detecting
 frameworks and dispatching to specialized plugin agents.

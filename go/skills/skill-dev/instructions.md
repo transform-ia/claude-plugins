@@ -81,21 +81,21 @@ mcp__golang-*__diagnostics  - Compiler errors
 
 **Find where a function is defined:**
 
-```
+```text
 mcp__golang-*__definition("mypackage.MyFunction")
 → Returns file path, line number, and full function definition
 ```
 
 **Find all uses of a type:**
 
-```
+```text
 mcp__golang-*__references("MyType")
 → Returns every location where MyType is referenced
 ```
 
 **Understand a function's call graph:**
 
-```
+```text
 mcp__golang-*__callers("mypackage.ProcessOrder")
 → Shows which functions call ProcessOrder
 
@@ -105,14 +105,14 @@ mcp__golang-*__callees("mypackage.ProcessOrder")
 
 **Get type information:**
 
-```
+```text
 mcp__golang-*__hover(file_path, line, column)
 → Returns type signature and documentation
 ```
 
 **Check for compile errors:**
 
-```
+```text
 mcp__golang-*__diagnostics(file_path)
 → Returns compilation errors, unused variables, etc.
 ```

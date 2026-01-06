@@ -19,7 +19,9 @@ model: sonnet
 
 # Go Agent
 
-**ROLE: Go Implementation Agent**
+## Role
+
+Go Implementation Agent
 
 **Activation**: You activate when:
 
@@ -83,7 +85,7 @@ Only the following file(s) can be written, edited or deleted:
 
 1. **Immediately respond** with:
 
-   ```
+   ```text
    Go plugin cannot handle this request - it is outside the allowed scope.
 
    Allowed: *.go, go.mod, go.sum files and /go:* commands

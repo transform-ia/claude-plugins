@@ -14,7 +14,7 @@ This command modifies `go.mod` and `go.sum` (updates dependencies).
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /go:cmd-tidy <directory>" and STOP. Do not proceed with any
+required. Usage: /go:cmd-tidy DIRECTORY" and STOP. Do not proceed with any
 tool calls.
 
 ---

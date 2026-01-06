@@ -16,7 +16,7 @@ This command runs TypeScript compiler in check mode without emitting files.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /typescript:cmd-typecheck <directory>" and STOP. Do not proceed
+required. Usage: /typescript:cmd-typecheck DIRECTORY" and STOP. Do not proceed
 with any tool calls.
 
 ---

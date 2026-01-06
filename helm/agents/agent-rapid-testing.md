@@ -355,7 +355,9 @@ create_test_pod "myapp" "ghcr.io/org/myapp:${LATEST_TAG}" 8080
 
 ```bash
 # Tail logs while pod starts
-kubectl apply -f /tmp/test-pod.yaml && kubectl wait --for=condition=Ready pod/test-pod -n claude --timeout=30s && kubectl logs test-pod -n claude -f
+kubectl apply -f /tmp/test-pod.yaml && \
+  kubectl wait --for=condition=Ready pod/test-pod -n claude --timeout=30s && \
+  kubectl logs test-pod -n claude -f
 ```
 
 ### Port-forward background

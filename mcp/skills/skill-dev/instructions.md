@@ -50,7 +50,7 @@ Only the following file(s) can be written, edited or deleted:
 
 1. **Immediately respond** with:
 
-   ```
+   ```text
    MCP plugin cannot handle this request - it is outside the allowed scope.
 
    Allowed: .mcp.json files and /mcp:* commands

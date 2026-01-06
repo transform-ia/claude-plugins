@@ -15,7 +15,7 @@ This command creates `go.mod` (initializes Go module).
 
 **REQUIRED**: If `$ARGUMENTS` does not contain both directory and package-name,
 respond with: "Error: directory and package-name required. Usage: /go:cmd-init
-<directory> <package-name>" and STOP. Do not proceed with any tool calls.
+DIRECTORY PACKAGE-NAME" and STOP. Do not proceed with any tool calls.
 
 ---
 

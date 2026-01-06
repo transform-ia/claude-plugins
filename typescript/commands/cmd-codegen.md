@@ -25,7 +25,7 @@ This command generates TypeScript types from GraphQL schema.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /typescript:cmd-codegen <directory>" and STOP. Do not proceed
+required. Usage: /typescript:cmd-codegen DIRECTORY" and STOP. Do not proceed
 with any tool calls.
 
 ---

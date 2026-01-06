@@ -375,7 +375,7 @@ After applying upgrades:
 
 After completion, provide summary:
 
-```
+```text
 ## Helm Chart Upgrade Summary
 
 ### Charts Scanned

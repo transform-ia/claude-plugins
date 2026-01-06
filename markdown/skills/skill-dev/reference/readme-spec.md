@@ -1,12 +1,14 @@
-# README.md Formal Specification
+# Documentation Specifications
 
-## Purpose
+## README.md Specification
+
+### Purpose
 
 README.md is for **humans** - minimal explanation of what the repository is.
 
 Root README.md files must follow this exact structure:
 
-## Required Structure
+### Required Structure
 
 ```markdown
 # <project-name>
@@ -29,13 +31,13 @@ Root README.md files must follow this exact structure:
    - Live service URL (if deployed)
    - Related documentation (API docs, wiki)
 
-## Validation
+### Validation
 
 - Line count (excluding trailing newlines): 5 lines minimum
 - H1 count: Exactly 1
 - Description: 1 sentence, max 120 chars
 
-## Forbidden Elements
+### Forbidden Elements
 
 - Installation instructions
 - Usage examples
@@ -50,14 +52,14 @@ Root README.md files must follow this exact structure:
 
 ---
 
-# CLAUDE.md Specification
+## CLAUDE.md Specification
 
-## Purpose
+### Target Audience
 
 CLAUDE.md is Claude Code's **architecture reference** - describes project
 structure, conventions, and how to work in this repository.
 
-## Required Sections
+### Required Sections
 
 ### 1. Repository Purpose
 
@@ -161,7 +163,7 @@ Brief notes on integrations, configs, external dependencies
 - Scratch notes or temporary reminders
 - In-progress implementation details
 
-## Validation
+### CLAUDE.md Checklist
 
 - [ ] Focused on "how to work here" not "what is this"
 - [ ] References dynamic content instead of duplicating it

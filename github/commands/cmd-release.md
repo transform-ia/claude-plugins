@@ -24,7 +24,7 @@ This is the ONLY command that can execute git operations in the GitHub plugin.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty or does not contain a version, respond
-with: "Error: version required. Usage: /github:cmd-release <version>" and STOP.
+with: "Error: version required. Usage: /github:cmd-release `<version>`" and STOP.
 Do not proceed with any tool calls.
 
 ---

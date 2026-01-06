@@ -247,7 +247,7 @@ spec:
 
 After completion, provide summary:
 
-```
+```text
 ## Docker Image Upgrade Summary
 
 ### Files Scanned

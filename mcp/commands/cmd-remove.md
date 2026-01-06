@@ -14,7 +14,7 @@ This command can only modify: `.mcp.json`
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: name required.
-Usage: /mcp:cmd-remove <name>" and STOP. Do not proceed with any tool calls.
+Usage: /mcp:cmd-remove NAME" and STOP. Do not proceed with any tool calls.
 
 ---
 

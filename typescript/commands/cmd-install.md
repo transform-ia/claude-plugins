@@ -21,7 +21,7 @@ This command installs dependencies from package.json.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /typescript:cmd-install <directory>" and STOP. Do not proceed
+required. Usage: /typescript:cmd-install DIRECTORY" and STOP. Do not proceed
 with any tool calls.
 
 ---

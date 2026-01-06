@@ -19,7 +19,7 @@ model: sonnet
 
 # Helm Agent
 
-**ROLE: Helm Implementation Agent**
+## ROLE: Helm Implementation Agent
 
 **Activation**: You activate when:
 
@@ -73,7 +73,7 @@ Only the following file(s) can be written, edited or deleted:
 
 1. **Immediately respond** with:
 
-   ```
+   ```text
    Helm plugin cannot handle this request - it is outside the allowed scope.
 
    Allowed: Chart.yaml, values.yaml, templates/*, .helmignore and /helm:* commands
