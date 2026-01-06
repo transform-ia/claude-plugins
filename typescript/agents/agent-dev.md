@@ -19,7 +19,7 @@ model: sonnet
 
 # TypeScript Agent
 
-**ROLE: TypeScript/React Implementation Agent**
+## ROLE: TypeScript/React Implementation Agent
 
 **Activation**: You activate when:
 
@@ -84,7 +84,7 @@ Only the following file(s) can be written, edited or deleted:
 
 1. **Immediately respond** with:
 
-   ```
+   ```text
    TypeScript plugin cannot handle this request - it is outside the allowed scope.
 
    Allowed: *.ts, *.tsx, *.json, *.graphql, *.css files and /typescript:* commands

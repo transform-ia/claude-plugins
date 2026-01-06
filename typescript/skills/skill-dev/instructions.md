@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-**CRITICAL: Branch Verification**
+### CRITICAL: Branch Verification
 
 Before starting ANY task:
 
@@ -53,7 +53,7 @@ Before starting ANY task:
 
 ## Project Structure
 
-```
+```text
 src/
 ├── config/           # Configuration (Apollo, theme, etc.)
 ├── generated/        # Auto-generated files (GraphQL types)

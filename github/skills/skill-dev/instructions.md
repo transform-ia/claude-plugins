@@ -195,7 +195,8 @@ git push --delete origin <tag>
 git tag -d <tag>
 
 # 4. Find and delete the Docker image
-VERSION_ID=$(gh api /orgs/<org-name>/packages/container/<image-name>/versions --jq '.[] | select(.metadata.container.tags[]? == "<version>") | .id')
+VERSION_ID=$(gh api /orgs/<org-name>/packages/container/<image-name>/versions \
+  --jq '.[] | select(.metadata.container.tags[]? == "<version>") | .id')
 gh api --method DELETE /orgs/<org-name>/packages/container/<image-name>/versions/$VERSION_ID
 ```
 

@@ -81,7 +81,7 @@ done | sort -u
 
 Output:
 
-```
+```text
 Scanning repositories for dependabot PRs...
 Found N repositories to process
 ```
@@ -94,7 +94,7 @@ For each repository in the list:
 
 Output:
 
-```
+```text
 ============================================
 Repository: owner/repo
 ============================================
@@ -104,7 +104,7 @@ Repository: owner/repo
 
 Use MCP tool:
 
-```
+```javascript
 mcp__github__list_pull_requests(
   owner: owner,
   repo: repo,
@@ -142,7 +142,7 @@ For each dependabot PR:
 
 Use MCP tool:
 
-```
+```javascript
 mcp__github__pull_request_read(
   method: "get_status",
   owner: owner,
@@ -169,7 +169,7 @@ Parse the status response:
 
 1. Use MCP tool:
 
-   ```
+   ```javascript
    mcp__github__merge_pull_request(
      owner: owner,
      repo: repo,
@@ -196,7 +196,7 @@ Parse the status response:
 
 1. Use MCP tool:
 
-   ```
+   ```javascript
    mcp__github__update_pull_request_branch(
      owner: owner,
      repo: repo,
@@ -225,13 +225,13 @@ If there are other (non-dependabot) PRs:
 
 Output section header:
 
-```
+```text
 Other Open PRs:
 ```
 
 For each non-dependabot PR:
 
-```
+```text
   → #NNN - <PR title> (@<author>)
     <PR URL>
 ```
@@ -240,7 +240,7 @@ For each non-dependabot PR:
 
 Output:
 
-```
+```text
 Summary: N PRs (X dependabot, Y other) | A merged, B rebased, C pending
 ```
 
@@ -259,7 +259,7 @@ Where:
 
 Output:
 
-```
+```text
 ============================================
 SCAN COMPLETE
 ============================================
@@ -272,7 +272,7 @@ Actions: A merged, B rebased, C pending
 
 If any actions were taken (merged or rebased):
 
-```
+```text
 Dependabot PRs have been automatically managed.
 - Merged PRs will appear in your repository shortly
 - Rebased PRs will trigger new builds
@@ -280,7 +280,7 @@ Dependabot PRs have been automatically managed.
 
 If no actions taken:
 
-```
+```text
 No dependabot PRs required action at this time.
 ```
 

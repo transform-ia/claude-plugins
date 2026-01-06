@@ -118,7 +118,7 @@ gh repo list --limit 50 --json nameWithOwner --jq '.[].nameWithOwner'
 
 Output:
 
-```
+```text
 Scope: <original scope>
 Discovered N repositories:
   - owner/repo1
@@ -136,7 +136,7 @@ For each repository in the list:
 
 Output:
 
-```
+```text
 ============================================
 Repository: owner/repo
 ============================================
@@ -216,7 +216,7 @@ For each branch in "branches to delete" list:
 
 Output:
 
-```
+```text
 Branches: N total, X protected (default + PRs), Y deleted, Z failed
 ```
 
@@ -226,7 +226,7 @@ Branches: N total, X protected (default + PRs), Y deleted, Z failed
 
 Output:
 
-```
+```text
 ============================================
 CLEANUP COMPLETE
 ============================================
@@ -241,7 +241,7 @@ Branches failed: Y
 
 Output:
 
-```
+```text
 Note: Some deletions may have been blocked. To delete manually, run:
 gh api -X DELETE "repos/OWNER/REPO/git/refs/heads/BRANCH"
 ```

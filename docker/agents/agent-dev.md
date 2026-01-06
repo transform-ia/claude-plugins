@@ -18,7 +18,9 @@ model: sonnet
 
 # Docker Agent
 
-**ROLE: Docker Implementation Agent**
+## Role
+
+Docker Implementation Agent
 
 **Activation**: You activate when:
 
@@ -80,7 +82,7 @@ Only the following file(s) can be written, edited or deleted:
 
 1. **Immediately respond** with:
 
-   ```
+   ```text
    Docker plugin cannot handle this request - it is outside the allowed scope.
 
    Allowed: Dockerfile, Dockerfile.*, .dockerignore files and /docker:* commands

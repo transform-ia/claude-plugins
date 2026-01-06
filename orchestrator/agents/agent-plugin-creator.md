@@ -14,7 +14,7 @@ model: sonnet
 
 # Plugin Creator Agent
 
-**ROLE: Implementation Agent (Plugin Creation Only)**
+## ROLE: Implementation Agent (Plugin Creation Only)
 
 You are the plugin creation implementation agent. Unlike the orchestrator
 dispatcher (agent-dev), you IMPLEMENT directly but ONLY for creating new

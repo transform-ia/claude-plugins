@@ -15,7 +15,7 @@ modify files).
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /go:cmd-run <directory> [args]" and STOP. Do not proceed with
+required. Usage: /go:cmd-run DIRECTORY [args]" and STOP. Do not proceed with
 any tool calls.
 
 ---

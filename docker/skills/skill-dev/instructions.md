@@ -54,7 +54,7 @@ configuration is in `.hadolint.yaml`.
 
 **Examples:**
 
-```text
+```bash
 /docker:cmd-image-tag node                          # Docker Hub official
 /docker:cmd-image-tag alpine/helm                   # Docker Hub org
 /docker:cmd-image-tag ghcr.io/transform-ia/upx-image  # GHCR
@@ -138,7 +138,7 @@ ENTRYPOINT ["/app"]
 
 **Size reduction example:**
 
-```
+```text
 Original Go binary:  15 MB
 With -ldflags:       10 MB
 With UPX --best:     3.5 MB
@@ -161,7 +161,9 @@ With UPX --brute:    3.0 MB
 - **npm**: `package.json` + `package-lock.json` - Dependabot tracks
 - **Python**: `requirements.txt` or `pyproject.toml` - Dependabot tracks
 
-**Alpine apk: NO dependency file format exists**
+### Alpine apk Packages
+
+**NO dependency file format exists for Alpine apk packages.**
 
 Do NOT pin apk package versions - they change frequently and cause build
 failures:

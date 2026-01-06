@@ -90,7 +90,7 @@ other workflow files.
 
 1. **Immediately respond** with:
 
-   ```
+   ```text
    GitHub plugin cannot handle this request - it is outside the allowed scope.
 
    Allowed: .github/workflows/*.yaml, .github/dependabot.yaml and /github:* commands

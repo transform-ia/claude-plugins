@@ -26,7 +26,7 @@ This command creates build artifacts but does not modify source files.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /typescript:cmd-build <directory>" and STOP. Do not proceed
+required. Usage: /typescript:cmd-build DIRECTORY" and STOP. Do not proceed
 with any tool calls.
 
 ---

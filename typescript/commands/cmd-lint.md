@@ -16,7 +16,7 @@ This command runs ESLint to check code quality without modifying files.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /typescript:cmd-lint <directory>" and STOP. Do not proceed with
+required. Usage: /typescript:cmd-lint DIRECTORY" and STOP. Do not proceed with
 any tool calls.
 
 ---

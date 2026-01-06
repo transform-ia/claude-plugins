@@ -68,8 +68,8 @@ A bash script that validates operations BEFORE they execute. Hooks enforce:
 - `1` - Warning (log but allow operation)
 - `2` - Blocking error (stop operation, show error)
 
-**Location**: `<plugin>/hooks/hooks.json` (config) and `<plugin>/scripts/*.sh`
-(scripts)
+**Location**: `<plugin>/hooks/hooks.json` (config) and
+`<plugin>/scripts/*.sh` (scripts)
 
 ### Command (Slash Command)
 
@@ -88,7 +88,7 @@ A user-invocable shortcut that runs a plugin script. Format:
 
 Commands are classified by their modification scope:
 
-**Level 0: Read-Only**
+#### Level 0: Read-Only
 
 - **Definition**: No files modified, no artifacts created
 - **Examples**: `/go:cmd-test` (runs tests), `/docker:cmd-image-tag` (queries
@@ -96,7 +96,7 @@ Commands are classified by their modification scope:
 - **Standard Wording**: "This command is read-only. It does not modify any files
   or create artifacts."
 
-**Level 1: Artifact Creation**
+#### Level 1: Artifact Creation
 
 - **Definition**: Creates artifacts (binaries, reports) but does NOT modify
   source files
@@ -105,7 +105,7 @@ Commands are classified by their modification scope:
 - **Standard Wording**: "This command creates artifacts but does not modify
   source files (\*.go, go.mod, go.sum)."
 
-**Level 2: Auto-Formatting**
+#### Level 2: Auto-Formatting
 
 - **Definition**: Modifies files with automated formatting only (reversible, no
   logic changes)
@@ -114,7 +114,7 @@ Commands are classified by their modification scope:
 - **Standard Wording**: "This command auto-formats files ({file list}) using
   {tool}. {Other files} are not modified."
 
-**Level 3: Source Modification**
+#### Level 3: Source Modification
 
 - **Definition**: Modifies source code logic or content
 - **Examples**: Edit tool, Write tool
@@ -163,7 +163,7 @@ Plugins focused on a single domain:
 The currently active agent determines which plugin's hooks are enforced.
 Example:
 
-```
+```text
 User → orchestrator:agent-dev (detects Go project) → go:agent-dev (can edit *.go)
 ```
 
@@ -245,12 +245,12 @@ matching.
 
 ### Glob Patterns Used in Hooks
 
-| Pattern       | Matches                                                 | Does NOT Match               | Notes                                     |
-| ------------- | ------------------------------------------------------- | ---------------------------- | ----------------------------------------- |
-| `*.go`        | `/any/path/file.go`, `./file.go`, `file.go`             | `file.go.txt`, `go.txt`      | Matches any path ending in `.go`          |
-| `*/go.mod`    | `/dir/go.mod`, `./dir/go.mod`                           | `go.mod`, `/go.mod`          | Requires at least one directory component |
-| `Dockerfile*` | `Dockerfile`, `Dockerfile.dev`, `/path/Dockerfile.prod` | `MyDockerfile`, `dockerfile` | Prefix match, case-sensitive              |
-| `.mcp.json`   | Only literal `.mcp.json` (basename match in code)       | `/path/.mcp.json`            | Matched via basename, not full path       |
+| Pattern       | Matches                                        | Does NOT Match               | Notes                           |
+| ------------- | ---------------------------------------------- | ---------------------------- | ------------------------------- |
+| `*.go`        | `/any/path/file.go`, `./file.go`, `file.go`    | `file.go.txt`, `go.txt`      | Matches any path ending in `.go`|
+| `*/go.mod`    | `/dir/go.mod`, `./dir/go.mod`                  | `go.mod`, `/go.mod`          | Requires at least one dir       |
+| `Dockerfile*` | `Dockerfile`, `Dockerfile.dev`, `/path/...`    | `MyDockerfile`, `dockerfile` | Prefix match, case-sensitive    |
+| `.mcp.json`   | Only literal `.mcp.json` (basename match)      | `/path/.mcp.json`            | Matched via basename only       |
 
 ### Pattern Matching in Hooks
 
@@ -279,7 +279,7 @@ esac
 
 Orchestrator detects frameworks and dispatches to specialized agents:
 
-```
+```text
 1. User: "Set up this repository"
 2. Orchestrator: /orchestrator:cmd-detect
 3. Orchestrator: Dispatch to go:agent-dev (found go.mod)
@@ -292,7 +292,7 @@ Orchestrator detects frameworks and dispatches to specialized agents:
 
 Specialized agent activates directly for plugin-specific requests:
 
-```
+```text
 1. User: "Fix the Dockerfile linting errors"
 2. docker:agent-dev: Activates (user message explicitly mentions Dockerfile, Docker, or container images)
 3. docker:agent-dev: /docker:cmd-lint
@@ -523,7 +523,7 @@ When an agent receives a request outside its allowed files/tools:
 
 Example message:
 
-```
+```text
 Go plugin cannot handle this request - it is outside the allowed scope.
 
 Allowed: *.go, go.mod, go.sum files and /go:* commands

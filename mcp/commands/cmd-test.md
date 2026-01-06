@@ -15,7 +15,7 @@ files.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: name or url
-required. Usage: /mcp:cmd-test <name-or-url>" and STOP. Do not proceed with any
+required. Usage: /mcp:cmd-test NAME-OR-URL" and STOP. Do not proceed with any
 tool calls.
 
 ---

@@ -26,7 +26,7 @@ This command creates a binary artifact but does not modify source files.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /go:cmd-build <directory>" and STOP. Do not proceed with any
+required. Usage: /go:cmd-build DIRECTORY" and STOP. Do not proceed with any
 tool calls.
 
 ---

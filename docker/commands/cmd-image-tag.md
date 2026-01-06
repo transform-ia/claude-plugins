@@ -15,7 +15,7 @@ modifying any files.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: image required.
-Usage: /docker:cmd-image-tag <image> [count]" and STOP. Do not proceed with any
+Usage: /docker:cmd-image-tag `<image>` [count]" and STOP. Do not proceed with any
 tool calls.
 
 ---

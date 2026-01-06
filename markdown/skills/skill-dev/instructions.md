@@ -12,7 +12,7 @@ You are operating within the markdown plugin scope.
 
 ## Allowed Bash Commands
 
-```
+```text
 rm *.md
 rm **/*.md
 rm -f *.md
@@ -26,7 +26,7 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/*
 
 1. **Immediately respond** with:
 
-   ```
+   ```text
    Markdown plugin cannot handle this request - it is outside the allowed scope.
 
    Allowed: *.md files and /markdown:* commands

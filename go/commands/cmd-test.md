@@ -23,7 +23,7 @@ artifacts.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /go:cmd-test <directory> [package]" and STOP. Do not proceed
+required. Usage: /go:cmd-test DIRECTORY [package]" and STOP. Do not proceed
 with any tool calls.
 
 ---

@@ -17,7 +17,7 @@ migrating dependencies, or standardizing project structure.
 ## Parameter Validation
 
 **REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
-required. Usage: /go:cmd-refactor <directory>" and STOP. Do not proceed with any
+required. Usage: /go:cmd-refactor DIRECTORY" and STOP. Do not proceed with any
 tool calls.
 
 ---
@@ -67,7 +67,7 @@ tool calls.
 
 **Import path update pattern:**
 
-```
+```text
 OLD: github.com/org/project/internal/mypackage
 NEW: github.com/org/project/pkg/mypackage
 ```
@@ -177,7 +177,7 @@ rm -rf $DIRECTORY/internal
 
 Search for bare error returns:
 
-```
+```text
 pattern: return err$
 ```
 
