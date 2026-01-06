@@ -1,0 +1,177 @@
+{
+  "name": "javascript",
+  "version": "1.0.0",
+  "description": "JavaScript development tools and language server integration for Claude Code",
+  "author": "Transform IA",
+  "homepage": "https://github.com/transform-ia/claude-plugins/javascript",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/transform-ia/claude-plugins/javascript.git"
+  },
+  "keywords": [
+    "javascript",
+    "react",
+    "nodejs",
+    "development",
+    "eslint",
+    "prettier",
+    "testing",
+    "build"
+  ],
+  "license": "MIT",
+  "engines": {
+    "claude-code": ">=0.1.0"
+  },
+  "claude": {
+    "capabilities": [
+      "code-analysis",
+      "code-generation",
+      "refactoring",
+      "testing",
+      "linting",
+      "formatting",
+      "build"
+    ],
+    "languages": [
+      "javascript",
+      "jsx",
+      "typescript",
+      "tsx"
+    ],
+    "frameworks": [
+      "react",
+      "vue",
+      "angular",
+      "node"
+    ],
+    "tools": [
+      "eslint",
+      "prettier",
+      "jest",
+      "vitest",
+      "mocha",
+      "webpack",
+      "vite",
+      "rollup",
+      "babel"
+    ]
+  },
+  "commands": {
+    "lint": {
+      "script": "scripts/cmd-lint.sh",
+      "description": "Run ESLint on JavaScript files",
+      "examples": [
+        "javascript:cmd-lint",
+        "javascript:cmd-lint src/components/Button.jsx",
+        "javascript:cmd-lint --fix",
+        "javascript:cmd-lint --quiet"
+      ]
+    },
+    "build": {
+      "script": "scripts/cmd-build.sh",
+      "description": "Build JavaScript applications",
+      "examples": [
+        "javascript:cmd-build",
+        "javascript:cmd-build --mode development",
+        "javascript:cmd-build --analyze",
+        "javascript:cmd-build --clean"
+      ]
+    },
+    "test": {
+      "script": "scripts/cmd-test.sh",
+      "description": "Run JavaScript tests",
+      "examples": [
+        "javascript:cmd-test",
+        "javascript:cmd-test --coverage",
+        "javascript:cmd-test --watch",
+        "javascript:cmd-test src/components/*.test.js"
+      ]
+    }
+  },
+  "skills": {
+    "javascript-dev": {
+      "description": "JavaScript development environment with language server support",
+      "file": "skill-dev/SKILL.md",
+      "capabilities": [
+        "semantic-code-understanding",
+        "intelligent-autocomplete",
+        "definition-navigation",
+        "reference-finding",
+        "error-detection",
+        "refactoring-support",
+        "type-inference",
+        "jsx-support",
+        "modern-javascript-features"
+      ]
+    }
+  },
+  "mcp": {
+    "server": "javascript-dev",
+    "endpoint": "http://javascript-dev.claude.svc.cluster.local:81/mcp",
+    "tools": [
+      "definition",
+      "content",
+      "references",
+      "diagnostics",
+      "hover",
+      "rename_symbol",
+      "edit_file",
+      "completion",
+      "signature_help"
+    ]
+  },
+  "dependencies": {
+    "mcp-server": "javascript-dev",
+    "runtime": "node:20",
+    "workspace": "/workspace"
+  },
+  "configuration": {
+    "eslint": {
+      "configFile": ".eslintrc.js",
+      "extensions": ["js", "jsx", "ts", "tsx"],
+      "maxWarnings": 10
+    },
+    "prettier": {
+      "configFile": ".prettierrc",
+      "extensions": ["js", "jsx", "ts", "tsx", "json", "md"]
+    },
+    "build": {
+      "modes": ["development", "production"],
+      "outputDirectory": "dist",
+      "frameworks": ["react", "vue", "angular", "vanilla"]
+    },
+    "testing": {
+      "frameworks": ["jest", "vitest", "mocha"],
+      "coverage": {
+        "enabled": false,
+        "reporters": ["text", "html"]
+      }
+    }
+  },
+  "installation": {
+    "requirements": [
+      "Node.js 20+",
+      "npm or yarn",
+      "JavaScript project with package.json"
+    ],
+    "setup": [
+      "Install dependencies: npm install",
+      "Configure ESLint: npm install --save-dev eslint",
+      "Configure Prettier: npm install --save-dev prettier",
+      "Set up testing: npm install --save-dev jest"
+    ]
+  },
+  "usage": {
+    "development": [
+      "Use semantic code understanding with MCP tools",
+      "Run linting with javascript:cmd-lint",
+      "Build applications with javascript:cmd-build",
+      "Run tests with javascript:cmd-test"
+    ],
+    "integration": [
+      "Works with javascript-dev pod via ArgoCD",
+      "MCP server provides language server capabilities",
+      "Scripts provide command-line tool access"
+    ]
+  }
+}
