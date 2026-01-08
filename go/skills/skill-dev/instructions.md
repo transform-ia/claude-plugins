@@ -35,21 +35,17 @@ follow-up iteration.
    for discovery. All commands (build, test, lint) execute relative to this
    workdir, which must match the git root.
 
-2. **ArgoCD deployment**: Applications are deployed per git repository. The
-   golang-chart expects a single Go module at the repository root, not nested
-   modules.
-
-3. **Workspace mounting**: The `/workspace` PVC is mounted with git repositories
+2. **Workspace mounting**: The `/workspace` PVC is mounted with git repositories
    as the organizational unit. Pod discovery via `golang.dev/workdir` label
    requires git root paths.
 
-4. **Hook automation**: The stop-lint-check hook finds the git root to determine
+3. **Hook automation**: The stop-lint-check hook finds the git root to determine
    which pod to use for linting. Nested modules would require separate pods and
-   separate ArgoCD applications.
+   separate Helm chart installations.
 
 **Monorepo Support**: While this seems restrictive, the infrastructure supports
 ONE Go service per repository. If you need multiple services, use separate
-repositories with separate ArgoCD applications.
+repositories with separate Helm chart installations.
 
 ## Required Libraries
 
@@ -495,15 +491,17 @@ func NewGraphQLHandler(resolver *Resolver) http.Handler {
 
 ### "No Go development pod found"
 
-**Cause**: golang-chart deployment not created or workdir label missing.
+**Cause**: golang-chart not installed or workdir label missing.
 
 **Fix**:
 
-1. Check ArgoCD application exists: `kubectl get application -n argocd`
+1. Install golang-chart:
+   ```bash
+   gh auth token | helm registry login ghcr.io -u $(gh api user -q .login) --password-stdin
+   helm install golang-dev oci://ghcr.io/transform-ia/charts/golang-chart
+   ```
 2. Verify deployment: `kubectl get pods -l app.kubernetes.io/name=golang-chart`
 3. Check pod has label: `kubectl get pods -l golang.dev/workdir --show-labels`
-4. If missing, update ArgoCD app to use golang-chart >= 0.0.21 with `workdir:`
-   value
 
 ### "BLOCKED: Bash not allowed in Go plugin context"
 
@@ -540,13 +538,13 @@ plugin scope).
 3. The hook will auto-format and re-lint on next completion
 4. Some auto-fixes may have been applied already
 
-### MCP server not appearing in .mcp.json
+### MCP server not accessible
 
-**Cause**: Pod not discovered or `/go:cmd-mcp-sync` not run.
+**Cause**: golang-chart not installed or MCP server not running.
 
 **Fix**:
 
-1. Verify pod exists: `kubectl get pods -l golang.dev/workdir`
-2. Run `/go:cmd-mcp-sync` to refresh MCP servers
-3. Check `.mcp.json` was updated
-4. Verify service name matches pod instance name
+1. Verify golang-chart installed: `kubectl get pods -l app.kubernetes.io/name=golang-chart`
+2. Check MCP service: `kubectl get svc | grep golang`
+3. Check MCP server logs: `kubectl logs deployment/golang-chart`
+4. MCP servers are automatically configured when golang-chart is detected

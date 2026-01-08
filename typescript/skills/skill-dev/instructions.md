@@ -533,13 +533,17 @@ All environment variables used in client code must be prefixed with `VITE_`.
 
 ### "No TypeScript development pod found"
 
-**Cause**: typescript-chart deployment not created or workdir label missing.
+**Cause**: typescript-chart not installed or workdir label missing.
 
 **Fix**:
 
-1. Check ArgoCD application exists
-2. Verify deployment with proper labels
-3. Update to typescript-chart with `workdir:` value
+1. Install typescript-chart:
+   ```bash
+   gh auth token | helm registry login ghcr.io -u $(gh api user -q .login) --password-stdin
+   helm install typescript-dev oci://ghcr.io/transform-ia/charts/typescript-chart
+   ```
+2. Verify deployment: `kubectl get pods -l app.kubernetes.io/name=typescript-chart`
+3. Check pod has label: `kubectl get pods -l typescript.dev/workdir --show-labels`
 
 ### Type errors from GraphQL Codegen
 

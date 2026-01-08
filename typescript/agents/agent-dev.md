@@ -105,23 +105,42 @@ Only the following file(s) can be written, edited or deleted:
 ### Why K8s for TypeScript Development
 
 TypeScript development relies on tools (Node.js, npm, ESLint, TypeScript
-compiler) that benefit from containerized environments. Kubernetes provides:
+compiler) that are not installed in the Claude Code pod. These tools are
+provided via Helm charts in Kubernetes to ensure consistent environments.
 
-- Isolated development environments per project
-- Consistent Node.js versions across projects
-- Access to cluster-internal services (GraphQL APIs, databases)
+Claude Code follows a **blank slate** approach - no development tools are
+pre-installed. Instead, environments are dynamically created on-demand using
+Helm charts.
+
+### Dynamic Environment Setup
+
+**Installing typescript-chart:**
+
+When TypeScript development is needed, install the typescript-chart from OCI registry:
+
+```bash
+# Authenticate to Helm registry
+gh auth token | helm registry login ghcr.io \
+  -u $(gh api user -q .login) --password-stdin
+
+# Install typescript-chart
+helm install typescript-dev oci://ghcr.io/transform-ia/charts/typescript-chart
+```
+
+**What typescript-chart provides:**
+- Node.js runtime and npm package manager
+- TypeScript language server with IntelliSense
+- ESLint, Prettier, and other dev tools
+- MCP server (automatically configured in Claude Code)
+- Shared `/workspace` PVC for seamless file access
 - Hot-reload development with port forwarding
 
 ### Infrastructure Details
 
-- **Helm Chart**: All TypeScript development environments use the
-  `typescript-chart` Helm chart for deployments
-- **Deployment Management**: Managed via ArgoCD applications in
-  `/workspace/applications`
+- **Helm Chart**: `oci://ghcr.io/transform-ia/charts/typescript-chart`
 - **Pod Discovery**: Pods are labeled with `typescript.dev/workdir` pointing to
   the project directory
-- **MCP Server Standard**: All typescript-chart MCP servers listen on port 81 at
-  `/mcp` endpoint
+- **MCP Server**: Automatically configured, accessible via `mcp__typescript-*__*` tools
 - **Workspace Mounting**: The shared `/workspace` PVC is mounted to provide
   access to all projects
 

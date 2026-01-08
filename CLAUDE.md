@@ -1,40 +1,75 @@
-# Claude Code Working Notes
+# Claude Code Plugin Framework
 
 ## Repository Purpose
 
 Claude Code plugin framework and collection of official plugins. Provides plugin
-infrastructure, development tools, and standard plugins (go, docker, helm,
-github, markdown, mcp, orchestrator).
+infrastructure, development tools, and standard plugins (go, typescript, docker,
+helm, github, markdown, mcp, orchestrator).
+
+## Claude Code Pod Architecture
+
+Claude Code runs in a Kubernetes pod designed as a **blank slate** with
+task-driven environment setup to maintain GitOps workflow integrity.
+
+### Environment Model
+
+**Initial State:**
+- Minimal pod with CLI tools (git, kubectl, helm, gh, argocd)
+- `$NAMESPACE` environment variable (e.g., `claude-04`)
+- Full admin access within namespace
+- Shared workspace PVC at `/workspace`
+- **No pre-installed development environments**
+
+**Dynamic Setup:**
+Plugins guide Claude Code to install specialized environments on-demand using
+Helm charts from OCI registry:
+
+```bash
+helm install <name> oci://ghcr.io/transform-ia/charts/<chart-name>
+```
+
+### Available Environment Charts
+
+- **typescript-chart** - Node.js, TypeScript language server, MCP server
+- **golang-chart** - Go toolchain, gopls language server, MCP server
+- **ansible-chart** - Ansible automation, SSH integration
+- **graphql-chart** - Hasura GraphQL Engine, PostGIS database
+
+All charts share the workspace PVC, providing seamless file access across
+environments.
 
 ## Plugin Usage
 
 ### When to use plugins
 
 - `/orchestrator:detect` - Auto-detect appropriate plugin for current task
-- `/markdown:cmd-lint` - Lint markdown files in plugin documentation
+- `/go:cmd-build` - Build Go binaries in golang-chart environment
+- `/typescript:cmd-dev` - Start TypeScript dev server
+- `/helm:cmd-install` - Install Helm charts from OCI registry
+- `/markdown:cmd-lint` - Lint markdown files
 - `/github:cmd-status` - Check GitHub workflow status
-- Refer to individual plugin README files for specific capabilities
 
 ### Available plugins
 
-This repository contains: orchestrator, go, docker, helm, github, markdown, mcp
+This repository contains: orchestrator, go, typescript, javascript, docker,
+helm, github, markdown, mcp
 
 ## Plugin Development Workflow
 
 **Creating new plugin:**
 
-1. Create plugin directory: `plugins/<plugin-name>/`
-2. Add plugin manifest: `plugins/<plugin-name>/plugin.yaml`
-3. Create agents: `plugins/<plugin-name>/agents/`
-4. Create skills: `plugins/<plugin-name>/skills/`
-5. Create commands: `plugins/<plugin-name>/commands/`
-6. Add scripts: `plugins/<plugin-name>/scripts/`
-7. Document in `plugins/<plugin-name>/README.md`
+1. Create plugin directory: `<plugin-name>/`
+2. Add plugin manifest: `<plugin-name>/.claude-plugin/plugin.json`
+3. Create agents: `<plugin-name>/agents/`
+4. Create skills: `<plugin-name>/skills/`
+5. Create commands: `<plugin-name>/commands/`
+6. Add scripts: `<plugin-name>/scripts/`
+7. Document in `<plugin-name>/README.md`
 8. Test plugin activation and tools
 
 **Modifying existing plugin:**
 
-1. Navigate to `plugins/<plugin-name>/`
+1. Navigate to `<plugin-name>/`
 2. Edit agent definitions, skills, or scripts
 3. Update documentation
 4. Test changes
@@ -42,13 +77,13 @@ This repository contains: orchestrator, go, docker, helm, github, markdown, mcp
 
 ## Filesystem Conventions
 
-- `/plugins/<name>/` - Individual plugin directories
-- `/plugins/<name>/plugin.yaml` - Plugin manifest
-- `/plugins/<name>/agents/` - Agent definitions (\*.md files)
-- `/plugins/<name>/skills/` - Skill definitions (directories)
-- `/plugins/<name>/commands/` - Slash commands (\*.md files)
-- `/plugins/<name>/scripts/` - Executable scripts
-- `/plugins/<name>/README.md` - Plugin documentation
+- `/<plugin-name>/` - Individual plugin directories
+- `/<plugin-name>/.claude-plugin/plugin.json` - Plugin manifest
+- `/<plugin-name>/agents/` - Agent definitions (\*.md files)
+- `/<plugin-name>/skills/` - Skill definitions (directories)
+- `/<plugin-name>/commands/` - Slash commands (\*.md files)
+- `/<plugin-name>/scripts/` - Executable scripts
+- `/<plugin-name>/README.md` - Plugin documentation
 - `/GLOSSARY.md` - Plugin terminology reference
 - `/scripts/` - Shared utility scripts
 
@@ -57,23 +92,19 @@ This repository contains: orchestrator, go, docker, helm, github, markdown, mcp
 **Components:**
 
 - **Agents**: Autonomous entities with specific capabilities
-- **Skills**: User-invocable capabilities with instructions
+- **Skills**: User-invokable capabilities with instructions
 - **Commands**: Slash commands that expand to prompts
 - **Scripts**: Executable bash/python scripts for operations
 - **Hooks**: Pre/post execution event handlers
 
-**Plugin Manifest (plugin.yaml):**
+**Plugin Manifest (plugin.json):**
 
-```yaml
-name: plugin-name
-description: Plugin description
-version: 1.0.0
-agents:
-  - agent-dev
-skills:
-  - skill-dev
-commands:
-  - cmd-lint
+```json
+{
+  "name": "plugin-name",
+  "version": "0.1.0",
+  "description": "Plugin description"
+}
 ```
 
 ## Testing Plugins
@@ -83,14 +114,6 @@ commands:
 - Test scripts: Execute directly or via Bash tool
 - Verify agent activation: Check transcript for agent loading
 
-## Integration
-
-Plugins integrate with:
-
-- Claude Code core
-- Hook system in `/workspace/sandbox/transform-ia/hooks`
-- Agent runtime in `/workspace/sandbox/transform-ia/agents`
-
 ## Documentation Standards
 
 - Each plugin must have README.md
@@ -98,6 +121,15 @@ Plugins integrate with:
 - Include usage examples
 - Specify tool permissions and allowed operations
 - Reference GLOSSARY.md for terminology
+
+## Task-Driven Workflow
+
+Plugins follow a task-driven model:
+
+1. **Analyze Task** - Determine requirements and dependencies
+2. **Dynamic Setup** - Install Helm charts for specialized environments
+3. **Execute Work** - Use language servers via MCP for code intelligence
+4. **GitOps Compliance** - All changes via Pull Requests
 
 ## Deployment
 
