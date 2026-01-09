@@ -63,7 +63,6 @@ When operations are blocked:
   | `/go:cmd-test <dir> [args]` | Run tests          |
   | `/go:cmd-lint <dir>`        | Run linter         |
   | `/go:cmd-run <dir> [args]`  | Run binary         |
-  | `/go:cmd-mcp-sync`          | Sync MCP servers   |
 
 - **MCP Tools**:
   - `mcp__context7__*` - Library documentation
@@ -106,27 +105,43 @@ Only the following file(s) can be written, edited or deleted:
 ### Why K8s for Go Development
 
 Go development relies on many tools (golangci-lint, gopls, etc.) that are not
-installed in the Claude container. These tools are kept as containers in
+installed in the Claude Code pod. These tools are provided via Helm charts in
 Kubernetes to avoid version and configuration mismatches between development
 environments.
 
-Go projects often depend on external services like Redis, PostgreSQL, or other
-daemons that are better isolated and bundled in a containerized environment.
-Kubernetes deployments provide namespace-level isolation for development
-environments and guarantee consistent tool versions across projects.
+Claude Code follows a **blank slate** approach - no development tools are
+pre-installed. Instead, environments are dynamically created on-demand using
+Helm charts.
+
+### Dynamic Environment Setup
+
+**Installing golang-chart:**
+
+When Go development is needed, install the golang-chart from OCI registry:
+
+```bash
+# Authenticate to Helm registry
+gh auth token | helm registry login ghcr.io \
+  -u $(gh api user -q .login) --password-stdin
+
+# Install golang-chart
+helm install golang-dev oci://ghcr.io/transform-ia/charts/golang-chart
+```
+
+**What golang-chart provides:**
+
+- Go toolchain and build tools
+- gopls language server with Go IntelliSense
+- golangci-lint for code quality
+- MCP server (automatically configured in Claude Code)
+- Shared `/workspace` PVC for seamless file access
 
 ### Infrastructure Details
 
-- **Helm Chart**: All Go development environments use the `golang-chart` Helm
-  chart for deployments
-- **Deployment Management**: Managed via ArgoCD applications in
-  `/workspace/applications`
+- **Helm Chart**: `oci://ghcr.io/transform-ia/charts/golang-chart`
 - **Pod Discovery**: Pods are labeled with `golang.dev/workdir` pointing to the
   project directory
-- **MCP Server Standard**: All golang-chart MCP servers MUST listen on port 81
-  at `/mcp` endpoint. This is a golang-chart standard and is NOT configurable.
-  The port number and path are hardcoded in the chart. External services may use
-  different ports.
+- **MCP Server**: Automatically configured, accessible via `mcp__golang-*__*` tools
 - **Workspace Mounting**: The shared `/workspace` PVC is mounted to provide
   access to all projects
 
