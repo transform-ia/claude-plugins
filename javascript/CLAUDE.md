@@ -15,6 +15,7 @@ This plugin provides comprehensive JavaScript development capabilities within Cl
 ## Features
 
 ### Semantic Code Understanding
+
 - **TypeScript Language Server**: Excellent JavaScript and JSX support
 - **Code Completion**: Intelligent autocomplete for modern JavaScript
 - **Definition & References**: Navigate codebase semantically
@@ -22,6 +23,7 @@ This plugin provides comprehensive JavaScript development capabilities within Cl
 - **Error Detection**: Real-time syntax and type error detection
 
 ### Development Tools
+
 - **ESLint Integration**: Code quality and style enforcement
 - **Prettier Formatting**: Consistent code formatting
 - **Build Tools**: Support for Webpack, Vite, Rollup, Babel
@@ -29,6 +31,7 @@ This plugin provides comprehensive JavaScript development capabilities within Cl
 - **Package Management**: npm/yarn support
 
 ### Framework Support
+
 - **React**: JSX, hooks, component patterns
 - **Vue.js**: Single-file components, reactivity
 - **Angular**: TypeScript, decorators, modules
@@ -38,6 +41,7 @@ This plugin provides comprehensive JavaScript development capabilities within Cl
 ## Commands
 
 ### Linting
+
 ```bash
 # Lint all JavaScript files
 /javascript:cmd-lint
@@ -53,6 +57,7 @@ This plugin provides comprehensive JavaScript development capabilities within Cl
 ```
 
 ### Building
+
 ```bash
 # Production build
 /javascript:cmd-build
@@ -68,6 +73,7 @@ This plugin provides comprehensive JavaScript development capabilities within Cl
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 /javascript:cmd-test
@@ -99,11 +105,13 @@ The plugin integrates with the javascript-dev MCP server providing:
 ## Setup Requirements
 
 ### Environment
+
 - Node.js 20+ installed
 - JavaScript project with package.json
 - MCP server running (javascript-dev pod)
 
 ### Dependencies
+
 ```bash
 # Core development tools
 npm install --save-dev eslint prettier
@@ -118,6 +126,7 @@ npm install --save-dev webpack  # or vite, rollup
 ### Configuration Files
 
 #### ESLint Configuration
+
 ```javascript
 // .eslintrc.js
 module.exports = {
@@ -143,6 +152,7 @@ module.exports = {
 ```
 
 #### Prettier Configuration
+
 ```json
 // .prettierrc
 {
@@ -254,24 +264,28 @@ const data = await api.request('/users');
 ## Best Practices
 
 ### Code Organization
+
 - Use clear file and directory structure
 - Implement proper module boundaries
 - Follow consistent naming conventions
 - Separate concerns (UI, logic, data)
 
 ### Performance
+
 - Implement lazy loading where appropriate
 - Optimize bundle size
 - Use React.memo/useMemo for expensive operations
 - Monitor and optimize rendering performance
 
 ### Security
+
 - Validate user inputs
 - Sanitize data from external sources
 - Use HTTPS for API calls
 - Implement proper authentication
 
-### Testing
+### Testing Best Practices
+
 - Write unit tests for business logic
 - Test component behavior and edge cases
 - Implement integration tests
@@ -282,21 +296,25 @@ const data = await api.request('/users');
 ### Common Issues
 
 **Language Server Not Responding**:
+
 - Check javascript-dev pod status: `kubectl get pods -n claude`
 - Verify MCP server connectivity
 - Check workspace mounting
 
 **ESLint Configuration Errors**:
+
 - Verify .eslintrc.js syntax
 - Check for missing dependencies
 - Ensure compatible plugin versions
 
 **Build Failures**:
+
 - Check package.json scripts
 - Verify all dependencies installed
 - Review build tool configuration
 
 **Test Failures**:
+
 - Check test environment setup
 - Verify test configuration
 - Review test dependencies
@@ -304,11 +322,13 @@ const data = await api.request('/users');
 ### Performance Issues
 
 **Slow Language Server**:
+
 - Use .gitignore to exclude large directories
 - Limit workspace size
 - Optimize file watching patterns
 
 **Memory Usage**:
+
 - Monitor container resources
 - Optimize build configuration
 - Use incremental builds
@@ -316,6 +336,7 @@ const data = await api.request('/users');
 ## Advanced Configuration
 
 ### Custom ESLint Rules
+
 ```javascript
 module.exports = {
   extends: [
@@ -333,6 +354,7 @@ module.exports = {
 ```
 
 ### Custom Prettier Rules
+
 ```json
 {
   "semi": false,
@@ -345,6 +367,7 @@ module.exports = {
 ```
 
 ### Testing Configuration
+
 ```javascript
 // jest.config.js
 module.exports = {
@@ -363,6 +386,7 @@ module.exports = {
 ## Integration Examples
 
 ### With Claude Code MCP Tools
+
 ```javascript
 // Claude can use MCP tools for precise operations
 const userService = {
@@ -382,6 +406,7 @@ const userService = {
 ```
 
 ### With Development Workflow
+
 ```bash
 # Development workflow example
 cd /workspace/my-react-app
@@ -397,4 +422,6 @@ javascript:cmd-test --coverage
 javascript:cmd-build --analyze
 ```
 
-This plugin provides a complete JavaScript development experience within Claude Code, enabling intelligent code understanding, modern tooling integration, and comprehensive support for JavaScript and React development.
+This plugin provides a complete JavaScript development experience within Claude
+Code, enabling intelligent code understanding, modern tooling integration, and
+comprehensive support for JavaScript and React development.
