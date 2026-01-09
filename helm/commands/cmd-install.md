@@ -38,6 +38,7 @@ Extract chart name and release name from `$ARGUMENTS`:
 - Release name: Optional (defaults to chart name without `-chart` suffix)
 
 **Examples:**
+
 - `/helm:cmd-install golang-chart` → installs as `golang-dev`
 - `/helm:cmd-install typescript-chart ts-dev` → installs as `ts-dev`
 - `/helm:cmd-install graphql-chart` → installs as `graphql-dev`
@@ -51,6 +52,7 @@ helm show chart oci://ghcr.io/transform-ia/charts/<chart-name>
 ```
 
 Display:
+
 - Chart version
 - App version
 - Description

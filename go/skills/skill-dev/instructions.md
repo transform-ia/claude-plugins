@@ -496,10 +496,12 @@ func NewGraphQLHandler(resolver *Resolver) http.Handler {
 **Fix**:
 
 1. Install golang-chart:
+
    ```bash
    gh auth token | helm registry login ghcr.io -u $(gh api user -q .login) --password-stdin
    helm install golang-dev oci://ghcr.io/transform-ia/charts/golang-chart
    ```
+
 2. Verify deployment: `kubectl get pods -l app.kubernetes.io/name=golang-chart`
 3. Check pod has label: `kubectl get pods -l golang.dev/workdir --show-labels`
 

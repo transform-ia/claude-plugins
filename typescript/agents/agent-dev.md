@@ -128,6 +128,7 @@ helm install typescript-dev oci://ghcr.io/transform-ia/charts/typescript-chart
 ```
 
 **What typescript-chart provides:**
+
 - Node.js runtime and npm package manager
 - TypeScript language server with IntelliSense
 - ESLint, Prettier, and other dev tools

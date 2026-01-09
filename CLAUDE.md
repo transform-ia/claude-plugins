@@ -14,6 +14,7 @@ task-driven environment setup to maintain GitOps workflow integrity.
 ### Environment Model
 
 **Initial State:**
+
 - Minimal pod with CLI tools (git, kubectl, helm, gh, argocd)
 - `$NAMESPACE` environment variable (e.g., `claude-04`)
 - Full admin access within namespace

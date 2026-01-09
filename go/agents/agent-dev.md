@@ -129,6 +129,7 @@ helm install golang-dev oci://ghcr.io/transform-ia/charts/golang-chart
 ```
 
 **What golang-chart provides:**
+
 - Go toolchain and build tools
 - gopls language server with Go IntelliSense
 - golangci-lint for code quality

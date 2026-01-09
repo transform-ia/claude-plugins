@@ -538,10 +538,12 @@ All environment variables used in client code must be prefixed with `VITE_`.
 **Fix**:
 
 1. Install typescript-chart:
+
    ```bash
    gh auth token | helm registry login ghcr.io -u $(gh api user -q .login) --password-stdin
    helm install typescript-dev oci://ghcr.io/transform-ia/charts/typescript-chart
    ```
+
 2. Verify deployment: `kubectl get pods -l app.kubernetes.io/name=typescript-chart`
 3. Check pod has label: `kubectl get pods -l typescript.dev/workdir --show-labels`
 
