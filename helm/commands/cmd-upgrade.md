@@ -401,7 +401,7 @@ After completion, provide summary:
 2. Run `helm dependency update` for charts with updated dependencies
 3. Test with `/helm:cmd-template` to verify rendering
 4. Commit changes to git
-5. Monitor ArgoCD sync for deployed charts
+5. Use `helm upgrade` to apply changes to deployed releases
 ```
 
 ---
