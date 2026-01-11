@@ -32,6 +32,39 @@ NOT delegate to other agents. Execute work directly.
 
 **Scope**: \*.ts, \*.tsx, \*.json, \*.graphql, \*.css files only.
 
+## CRITICAL: Environment Setup
+
+Before starting ANY TypeScript/React development task:
+
+1. **Verify typescript-chart is installed**
+   ```bash
+   kubectl get pods -l app.kubernetes.io/name=typescript-chart
+   ```
+2. **If NOT installed or no pods found:**
+   - STOP immediately
+   - Install typescript-chart using commands below
+   - Verify deployment is ready before proceeding
+3. **Only proceed with development after chart is running**
+
+**Installation commands:**
+
+```bash
+# Authenticate to Helm registry
+gh auth token | helm registry login ghcr.io \
+  -u $(gh api user -q .login) --password-stdin
+
+# Install typescript-chart
+helm install typescript-dev oci://ghcr.io/transform-ia/charts/typescript-chart
+
+# Verify installation (wait for pod to be Running)
+kubectl get pods -l app.kubernetes.io/name=typescript-chart -w
+```
+
+**Why this is critical:** TypeScript development tools (Node.js, npm, TypeScript
+compiler, ESLint) are NOT installed in the Claude Code pod. The typescript-chart
+provides these tools and the MCP server for code intelligence. Without it, you
+cannot build, run, or lint TypeScript/React projects.
+
 ## Permissions
 
 Only Bash, Write, and Edit tools are restricted by hooks. Read-only tools Read,
