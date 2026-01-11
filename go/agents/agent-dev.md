@@ -34,6 +34,38 @@ delegate to other agents. Execute work directly.
 
 **Scope**: \*.go, go.mod, go.sum files only.
 
+## CRITICAL: Environment Setup
+
+Before starting ANY Go development task:
+
+1. **Verify golang-chart is installed**
+   ```bash
+   kubectl get pods -l app.kubernetes.io/name=golang-chart
+   ```
+2. **If NOT installed or no pods found:**
+   - STOP immediately
+   - Install golang-chart using commands below
+   - Verify deployment is ready before proceeding
+3. **Only proceed with development after chart is running**
+
+**Installation commands:**
+
+```bash
+# Authenticate to Helm registry
+gh auth token | helm registry login ghcr.io \
+  -u $(gh api user -q .login) --password-stdin
+
+# Install golang-chart
+helm install golang-dev oci://ghcr.io/transform-ia/charts/golang-chart
+
+# Verify installation (wait for pod to be Running)
+kubectl get pods -l app.kubernetes.io/name=golang-chart -w
+```
+
+**Why this is critical:** Go development tools (go, gopls, golangci-lint) are NOT
+installed in the Claude Code pod. The golang-chart provides these tools and the
+MCP server for code intelligence. Without it, you cannot build, test, or lint Go code.
+
 ## Permissions
 
 Only Bash, Write, and Edit tools are restricted by hooks. Read-only tools Read,
