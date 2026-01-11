@@ -19,7 +19,6 @@ description: |
   - `/go:cmd-test` - Run tests
   - `/go:cmd-lint` - Run linter
   - `/go:cmd-run` - Execute binary
-  - `/go:cmd-mcp-sync` - Sync MCP servers
 
   **Skills** (`go:skill-dev`): Extended context for complex workflows involving:
   - Writing/editing Go source code
