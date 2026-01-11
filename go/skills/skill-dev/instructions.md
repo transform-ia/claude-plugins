@@ -499,7 +499,7 @@ func NewGraphQLHandler(resolver *Resolver) http.Handler {
 
    ```bash
    gh auth token | helm registry login ghcr.io -u $(gh api user -q .login) --password-stdin
-   helm install golang-dev oci://ghcr.io/transform-ia/charts/golang-chart
+   helm install golang-dev oci://ghcr.io/transform-ia/golang-chart
    ```
 
 2. Verify deployment: `kubectl get pods -l app.kubernetes.io/name=golang-chart`

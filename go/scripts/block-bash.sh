@@ -67,7 +67,6 @@ if [[ "$COMMAND" =~ ^go[[:space:]] ]]; then
     echo "  /go:cmd-test <dir>        - go test" >&2
     echo "  /go:cmd-lint <dir>        - golangci-lint" >&2
     echo "  /go:cmd-run <dir>         - go run ." >&2
-    echo "  /go:cmd-mcp-sync          - sync MCP servers to .mcp.json" >&2
     exit 2
 fi
 
@@ -86,7 +85,6 @@ echo "  /go:cmd-build <dir>       - go build" >&2
 echo "  /go:cmd-test <dir>        - go test" >&2
 echo "  /go:cmd-lint <dir>        - golangci-lint" >&2
 echo "  /go:cmd-run <dir>         - go run ." >&2
-echo "  /go:cmd-mcp-sync          - sync MCP servers to .mcp.json" >&2
 echo "" >&2
 echo "For other operations, exit the plugin context first." >&2
 exit 2

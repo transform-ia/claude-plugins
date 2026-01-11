@@ -56,7 +56,7 @@ gh auth token | helm registry login ghcr.io \
   -u $(gh api user -q .login) --password-stdin
 
 # Install golang-chart
-helm install golang-dev oci://ghcr.io/transform-ia/charts/golang-chart
+helm install golang-dev oci://ghcr.io/transform-ia/golang-chart
 
 # Verify installation (wait for pod to be Running)
 kubectl get pods -l app.kubernetes.io/name=golang-chart -w
@@ -157,7 +157,7 @@ gh auth token | helm registry login ghcr.io \
   -u $(gh api user -q .login) --password-stdin
 
 # Install golang-chart
-helm install golang-dev oci://ghcr.io/transform-ia/charts/golang-chart
+helm install golang-dev oci://ghcr.io/transform-ia/golang-chart
 ```
 
 **What golang-chart provides:**
@@ -170,7 +170,7 @@ helm install golang-dev oci://ghcr.io/transform-ia/charts/golang-chart
 
 ### Infrastructure Details
 
-- **Helm Chart**: `oci://ghcr.io/transform-ia/charts/golang-chart`
+- **Helm Chart**: `oci://ghcr.io/transform-ia/golang-chart`
 - **Pod Discovery**: Pods are labeled with `golang.dev/workdir` pointing to the
   project directory
 - **MCP Server**: Automatically configured, accessible via `mcp__golang-*__*` tools
