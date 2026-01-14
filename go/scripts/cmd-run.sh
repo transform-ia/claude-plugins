@@ -23,12 +23,12 @@ deployment=$(kubectl get deployment -l app.kubernetes.io/name=golang-chart -o js
 
 # Build the command with args properly escaped
 if [[ $# -eq 0 ]]; then
-    kubectl exec "deployment/$deployment" -- bash -c "cd '$root' && go run ." || exit 2
+    kubectl exec "deployment/$deployment" -- sh -c "cd '$root' && go run ." || exit 2
 else
-    # Properly escape arguments for passing through bash -c
+    # Properly escape arguments for passing through sh -c
     args=""
     for arg in "$@"; do
         args="$args $(printf '%q' "$arg")"
     done
-    kubectl exec "deployment/$deployment" -- bash -c "cd '$root' && go run .$args" || exit 2
+    kubectl exec "deployment/$deployment" -- sh -c "cd '$root' && go run .$args" || exit 2
 fi
