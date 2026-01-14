@@ -22,4 +22,4 @@ deployment=$(kubectl get deployment -l app.kubernetes.io/name=golang-chart -o js
     exit 2
 }
 
-kubectl exec "deployment/$deployment" -- bash -c "cd '$root' && go mod init '$pkg'" || exit 2
+kubectl exec "deployment/$deployment" -- sh -c "cd '$root' && go mod init '$pkg'" || exit 2
