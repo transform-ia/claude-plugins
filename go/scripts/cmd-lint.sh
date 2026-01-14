@@ -20,4 +20,4 @@ deployment=$(kubectl get deployment -l app.kubernetes.io/name=golang-chart -o js
     exit 2
 }
 
-kubectl exec "deployment/$deployment" -- bash -c "cd '$root' && golangci-lint run --fix ./..." || exit 2
+kubectl exec "deployment/$deployment" -- sh -c "cd '$root' && golangci-lint run --fix ./..." || exit 2
