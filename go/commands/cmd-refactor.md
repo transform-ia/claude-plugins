@@ -40,9 +40,12 @@ tool calls.
    | No manual validation | Missing validator/v10 tags        |
    | No `cmd/` for main   | `main.go` in `cmd/` subdirectory  |
    | Error wrapping       | `return err` without `fmt.Errorf` |
+   | No `pkg/errors`      | Using `github.com/pkg/errors`     |
 
 3. **Check for dependency issues**
    - Outdated major versions with breaking changes
+   - **Legacy error package**: Using `github.com/pkg/errors` (superseded by
+     stdlib since Go 1.13)
    - Missing required libraries (cobra, envconfig, validator/v10, testify,
      otelzap)
    - Unused or vendored dependencies
@@ -114,15 +117,40 @@ NEW: github.com/org/project/pkg/mypackage
    }
    ```
 
-3. **Error wrapping**: Ensure all errors have context
+3. **Error wrapping**: Migrate from `pkg/errors` to standard library
+
+   Since Go 1.13, the standard library provides native error wrapping with
+   `fmt.Errorf` and the `%w` verb. The `github.com/pkg/errors` package is now
+   superseded and should be replaced.
+
+   **Migration patterns:**
 
    ```go
-   // Before
-   return err
+   // Before (pkg/errors)
+   import "github.com/pkg/errors"
 
-   // After
-   return fmt.Errorf("failed to process item: %w", err)
+   return errors.Wrap(err, "failed to process")
+   return errors.Wrapf(err, "failed to process %s", item)
+   return errors.New("something failed")
+   return errors.Errorf("invalid value: %s", val)
+
+   // After (standard library)
+   import "fmt"
+
+   return fmt.Errorf("failed to process: %w", err)
+   return fmt.Errorf("failed to process %s: %w", item, err)
+   return fmt.Errorf("something failed")
+   return fmt.Errorf("invalid value: %s", val)
    ```
+
+   **Steps:**
+   1. Search for all `github.com/pkg/errors` imports
+   2. Replace `errors.Wrap(err, "msg")` → `fmt.Errorf("msg: %w", err)`
+   3. Replace `errors.Wrapf(err, "fmt", args)` → `fmt.Errorf("fmt: %w", args, err)`
+   4. Replace `errors.New("msg")` → `fmt.Errorf("msg")`
+   5. Replace `errors.Errorf(...)` → `fmt.Errorf(...)`
+   6. Remove `pkg/errors` from imports and `go.mod`
+   7. Run `go mod tidy` to clean up
 
 4. **Logging**: Migrate to otelzap
 
@@ -173,7 +201,33 @@ grep -r "internal/" $DIRECTORY --include="*.go"
 rm -rf $DIRECTORY/internal
 ```
 
-### Task: Migrate error handling
+### Task: Migrate from `pkg/errors` to standard library
+
+Replace `github.com/pkg/errors` with standard library `fmt.Errorf`:
+
+```bash
+# 1. Find all files using pkg/errors
+grep -r "github.com/pkg/errors" $DIRECTORY --include="*.go"
+
+# 2. Find all error wrapping calls
+grep -r "errors\.Wrap\|errors\.Wrapf" $DIRECTORY --include="*.go"
+
+# 3. Replace each file using Edit tool:
+# - Remove: import "github.com/pkg/errors"
+# - Add (if not present): import "fmt"
+# - Replace: errors.Wrap(err, "msg") → fmt.Errorf("msg: %w", err)
+# - Replace: errors.Wrapf(err, "fmt", args) → fmt.Errorf("fmt: %w", args, err)
+# - Replace: errors.New("msg") → fmt.Errorf("msg")
+# - Replace: errors.Errorf(...) → fmt.Errorf(...)
+
+# 4. Clean up dependencies
+go mod tidy
+
+# 5. Verify no pkg/errors remains
+grep -r "pkg/errors" $DIRECTORY --include="*.go"
+```
+
+### Task: Add error wrapping context
 
 Search for bare error returns:
 
