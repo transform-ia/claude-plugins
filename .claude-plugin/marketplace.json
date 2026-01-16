@@ -56,6 +56,20 @@
       "author": { "name": "Transform IA" }
     },
     {
+      "name": "typescript",
+      "source": "./typescript",
+      "description": "TypeScript/React development with Kubernetes dev containers",
+      "version": "0.1.0",
+      "author": { "name": "Transform IA" }
+    },
+    {
+      "name": "javascript",
+      "source": "./javascript",
+      "description": "JavaScript development tools and language server integration",
+      "version": "0.1.0",
+      "author": { "name": "Transform IA" }
+    },
+    {
       "name": "debug",
       "source": "./debug",
       "description": "Debug plugin to capture hook context for caller analysis",
