@@ -44,22 +44,9 @@ configuration is in `.hadolint.yaml`.
 
 ## Getting Latest Image Versions
 
-**To find the latest version of a Docker image before updating a Dockerfile:**
-
-- **Docker Hub images**: `/docker:cmd-image-tag <image>` (e.g.,
-  `/docker:cmd-image-tag golang`)
+- **Docker Hub images**: `/docker:cmd-image-tag <image>`
 - **GHCR images**: `/docker:cmd-image-tag ghcr.io/<org>/<repo>`
-- **GHCR from git tags**: `/github:cmd-latest-version <path>` - gets latest
-  semantic version tag from a git repository
-
-**Examples:**
-
-```bash
-/docker:cmd-image-tag node                          # Docker Hub official
-/docker:cmd-image-tag alpine/helm                   # Docker Hub org
-/docker:cmd-image-tag ghcr.io/transform-ia/upx-image  # GHCR
-/github:cmd-latest-version /path/to/repo            # Git tags (for GHCR builds)
-```
+- **GHCR from git tags**: `/github:cmd-latest-version <path>`
 
 ## Patterns
 
@@ -95,16 +82,12 @@ LICENSE
 
 ## UPX Binary Compression
 
-**Use UPX (Ultimate Packer for eXecutables) to compress Go binaries for smaller
-images.**
-
-**CRITICAL: Transform-IA provides an upx-image for multi-stage builds.**
-
-**Example with UPX compression:**
+Transform-IA provides an upx-image for multi-stage builds to compress static
+binaries (Go, Rust).
 
 ```dockerfile
 # Build stage
-FROM golang:<version>-alpine AS builder  # e.g., golang:1.23.4-alpine
+FROM golang:<version>-alpine AS builder
 WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
@@ -112,46 +95,23 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o app .
 
 # UPX compression stage
-# NOTE: upx-image currently only provides 'latest' tag (non-compliant with standards)
 FROM ghcr.io/transform-ia/upx-image:latest AS upx
 COPY --from=builder /build/app /app
 RUN upx --best --lzma /app
 
-# Runtime stage - minimal image
+# Runtime stage
 FROM scratch
 COPY --from=upx /app /app
 ENTRYPOINT ["/app"]
 ```
 
-**Build flags for optimal compression:**
+**Build flags**: `-ldflags="-s -w"` (strip debug), `CGO_ENABLED=0` (static
+binary), `GOOS=linux` (container target).
 
-- `-ldflags="-s -w"`: Strip debug info and symbol table
-- `CGO_ENABLED=0`: Disable CGO for static binary
-- `GOOS=linux`: Target Linux (for containers)
+**UPX options**: `--best` (best compression), `--lzma` (smaller output),
+`--brute` (maximum, very slow).
 
-**UPX options:**
-
-- `--best`: Best compression (slower build)
-- `--lzma`: LZMA compression (smaller output)
-- `--brute`: Maximum compression (very slow)
-- `-1` to `-9`: Compression level (9 = best)
-
-**Size reduction example:**
-
-```text
-Original Go binary:  15 MB
-With -ldflags:       10 MB
-With UPX --best:     3.5 MB
-With UPX --brute:    3.0 MB
-```
-
-**When to use UPX:**
-
-- ✅ Go binaries (static linking)
-- ✅ Rust binaries (static linking)
-- ✅ Single-binary applications
-- ❌ Dynamically linked binaries (may break)
-- ❌ When startup time is critical (UPX adds decompression overhead)
+Do NOT use UPX on dynamically linked binaries or when startup time is critical.
 
 ## Dependency Management
 
@@ -178,10 +138,9 @@ RUN apk add --no-cache curl=8.5.0-r0
 
 ## Node.js Package Installation
 
-**Use yarn with package.json for npm packages in Docker images:**
+Use yarn with package.json for npm packages in Docker images:
 
 ```dockerfile
-# Install packages from package.json
 COPY package.json /usr/local/
 WORKDIR /usr/local
 RUN yarn install && \
@@ -191,18 +150,6 @@ ENV PATH=${PATH}:/usr/local/node_modules/.bin/
 WORKDIR /workspace
 ```
 
-**Why yarn over npm:**
-
-- Faster installation with parallel downloads
-- Deterministic installs with lockfile
-- Better caching behavior in Docker layers
-- `yarn cache clean` properly cleans cache (not `yarn clean`)
-
-**Best practices:**
-
-- Copy only `package.json` (not full source) for better layer caching
-- Always run `yarn cache clean` after install to reduce image size
-- Remove `package.json` after install if not needed at runtime
-- Add `node_modules/.bin` to PATH for global access to CLI tools
-- Use a dedicated directory (`/usr/local/`) to avoid conflicts with project
-  dependencies
+- Copy only `package.json` for layer caching, not full source
+- Always `yarn cache clean` after install to reduce image size
+- Use a dedicated directory (`/usr/local/`) to avoid conflicts
