@@ -70,6 +70,13 @@
       "author": { "name": "Transform IA" }
     },
     {
+      "name": "infrastructure",
+      "source": "./infrastructure",
+      "description": "Infrastructure operations via Ansible and container troubleshooting",
+      "version": "0.1.0",
+      "author": { "name": "Transform IA" }
+    },
+    {
       "name": "javascript",
       "source": "./javascript",
       "description": "JavaScript development tools and language server integration",
