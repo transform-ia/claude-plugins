@@ -17,8 +17,8 @@ allowed-tools:
 
 ## Purpose
 
-Bootstrap a new GitHub repository with CI/CD infrastructure. This is a **pure
-orchestrator** that dispatches specialized work to other agents.
+Bootstrap a new GitHub repository with CI/CD infrastructure. This command
+dispatches specialized work to domain agents via the Task tool.
 
 ## Usage
 
@@ -196,7 +196,7 @@ After completion, verify:
 
 ## Notes
 
-- This command is a **pure orchestrator** - delegates all work to agents
+- This command delegates all domain work to specialized agents via Task tool
 - Never implement Go/Docker/Helm logic directly
 - All generated files must pass their respective linters
 - Initial v0.0.0 release triggers first CI build

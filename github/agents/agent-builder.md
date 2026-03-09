@@ -2,7 +2,7 @@
 name: agent-builder
 description: |
   GitHub Actions build monitoring agent.
-  Spawned by orchestrators for build status and CI/CD monitoring.
+  Monitors build status and CI/CD workflow runs.
 
 tools:
   - Read(.github/*)

@@ -125,7 +125,7 @@ complete.**
 
 - **Helm chart updates**: Use `/helm:cmd-release` in chart repository
 - **Deployment**: Use standard deployment workflow
-- **Multi-repo orchestration**: Use orchestrator plugin workflows
+- **Multi-repo orchestration**: Coordinate manually across repositories
 
 This keeps each plugin focused on its domain and prevents coupling.
 

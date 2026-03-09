@@ -28,8 +28,7 @@ Agents have:
 
 - `go:agent-dev` - Go development agent
 - `docker:agent-dev` - Docker development agent
-- `orchestrator:agent-dev` - Dispatcher agent (detects frameworks, delegates to
-  other agents)
+- `helm:agent-dev` - Helm chart development agent
 
 **Location**: `<plugin>/agents/agent-*.md`
 
@@ -131,30 +130,20 @@ determine plugin context.
 
 ## Plugin Architecture
 
-### Orchestrator Plugin
+### Plugins
 
-Special plugin that:
-
-- Detects frameworks in repositories (Go, Docker, Helm, etc.)
-- Dispatches work to specialized plugin agents
-- Coordinates multi-plugin workflows
-- Does NOT implement code directly (dispatcher role)
-
-**Contains TWO agents**:
-
-1. `orchestrator:agent-dev` - Dispatcher (framework detection, delegation)
-2. `orchestrator:agent-plugin-creator` - Implementer (creates new plugins only)
-
-### Specialized Plugins
-
-Plugins focused on a single domain:
+Each plugin is focused on a single domain:
 
 - **go** - Go development (\*.go, go.mod, go.sum)
+- **typescript** - TypeScript/React development (\*.ts, \*.tsx)
+- **javascript** - JavaScript development (\*.js, \*.jsx)
 - **docker** - Dockerfiles and images
 - **helm** - Helm charts (Chart.yaml, values.yaml, templates/\*)
 - **github** - CI/CD workflows (.github/workflows/\*)
 - **markdown** - Documentation (\*.md)
 - **mcp** - MCP server configuration (.mcp.json)
+- **graphql** - GraphQL API development (\*.graphql, \*.gql, hasura/\*)
+- **postgresql** - PostgreSQL schema and migrations (\*.sql, \*.pgsql)
 
 ## Hook Scoping
 
@@ -164,7 +153,7 @@ The currently active agent determines which plugin's hooks are enforced.
 Example:
 
 ```text
-User → orchestrator:agent-dev (detects Go project) → go:agent-dev (can edit *.go)
+User → go:agent-dev (can edit *.go)
 ```
 
 In this context:
@@ -275,22 +264,9 @@ esac
 
 ## Workflow Patterns
 
-### Dispatch Pattern
+### Activation Pattern
 
-Orchestrator detects frameworks and dispatches to specialized agents:
-
-```text
-1. User: "Set up this repository"
-2. Orchestrator: /orchestrator:cmd-detect
-3. Orchestrator: Dispatch to go:agent-dev (found go.mod)
-4. Orchestrator: Dispatch to docker:agent-dev (found Dockerfile)
-5. Both agents work in parallel
-6. Orchestrator: Report results
-```
-
-### Self-Activation Pattern
-
-Specialized agent activates directly for plugin-specific requests:
+Agents activate directly for plugin-specific requests:
 
 ```text
 1. User: "Fix the Dockerfile linting errors"

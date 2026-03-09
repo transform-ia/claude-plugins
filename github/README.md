@@ -346,7 +346,6 @@ cd github/tests
 
 - **helm**: `/helm:cmd-release` for chart releases after GitHub release
 - **docker**: Docker image builds triggered by GitHub workflows
-- **orchestrator**: Multi-repo orchestration using GitHub plugin
 
 ### With GitHub
 

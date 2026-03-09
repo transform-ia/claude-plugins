@@ -14,7 +14,7 @@
 - Use `.yaml` extension (not `.yml`)
 - Add `---` document start marker
 - Request minimal permissions
-- Run `/orchestrator:cmd-detect` first to know what CI needs
+- Detect project type by globbing for `go.mod`, `Dockerfile`, `Chart.yaml`, `package.json` before creating workflows
 - Use claude-image or golang-image containers with raw commands
 
 ### Container Images

@@ -99,7 +99,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o app .
 
 # UPX compression stage
-FROM ghcr.io/transform-ia/upx-image:latest AS upx
+FROM ghcr.io/transform-ia/upx-image:<<QUERY_LATEST_TAG>> AS upx
 COPY --from=builder /build/app /app
 RUN upx --best --lzma /app
 

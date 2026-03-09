@@ -22,7 +22,6 @@ tools:
   - Task
   - TodoWrite
   - SlashCommand(/github:*)
-  - SlashCommand(/orchestrator:cmd-detect *)
   - AskUserQuestion
 ---
 
@@ -60,7 +59,6 @@ any other workflow files (wrong extension, non-canonical names).
 | `/github:cmd-status [repo]`         | Check workflow status           |
 | `/github:cmd-logs <run-id>`         | Get workflow logs               |
 | `/github:cmd-release <version>`     | Full release with build monitor |
-| `/orchestrator:cmd-detect [dir]`    | Detect project type for CI      |
 
 **Out of Scope**: If the request involves files or operations outside your scope,
 immediately state what was requested, what is allowed, and which plugin to use

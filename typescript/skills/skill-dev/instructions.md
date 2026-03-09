@@ -214,7 +214,7 @@ incomplete. Target minimum **90% code coverage**.
 - Use `@testing-library/react` for component tests
 - Test user interactions, not implementation details
 - Co-locate test files: `Component.test.tsx` next to `Component.tsx`
-- Run tests with `/typescript:cmd-test` or `npx vitest`
+- Run tests with `npx vitest` or `npx vitest run` (for CI)
 
 ```typescript
 // src/components/MyComponent/MyComponent.test.tsx

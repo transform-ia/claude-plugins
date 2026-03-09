@@ -3,7 +3,6 @@ name: agent-ops
 description: |
   Local Helm operations agent for release management.
   Handles local helm install, upgrade, uninstall, and status checks.
-  Spawned by orchestrators for local Helm release tasks.
 
 tools:
   - Read

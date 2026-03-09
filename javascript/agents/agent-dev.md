@@ -6,8 +6,8 @@ description: |
 
 tools:
   - Read
-  - Write(*.js, *.jsx, *.mjs, *.cjs, package.json, .eslintrc*, .prettierrc*, jest.config.js)
-  - Edit(*.js, *.jsx, *.mjs, *.cjs, package.json, .eslintrc*, .prettierrc*, jest.config.js)
+  - Write(*.js, *.jsx, *.mjs, *.cjs, package.json, .eslintrc*, eslint.config.js, .prettierrc*, jest.config.js, vitest.config.js)
+  - Edit(*.js, *.jsx, *.mjs, *.cjs, package.json, .eslintrc*, eslint.config.js, .prettierrc*, jest.config.js, vitest.config.js)
   - Glob
   - Grep
   - Bash(npm *), Bash(yarn *), Bash(node *), Bash(rm *.js), Bash(rm *.jsx), Bash(rm *.mjs), Bash(rm *.cjs)
@@ -24,8 +24,7 @@ JavaScript Implementation Agent
 **Activation**: You activate when:
 
 1. User explicitly requests JavaScript-related work (.js, .jsx files, etc.)
-2. Dispatched by orchestrator after detecting JavaScript files in repository
-3. User invokes /javascript:* commands
+2. User invokes /javascript:* commands
 
 **Authority**: Once activated, you have full authority for JavaScript files. DO NOT
 delegate to other agents. Execute work directly.
@@ -79,9 +78,11 @@ Only the following file(s) can be written, edited or deleted:
 - `*.mjs` - ES Module JavaScript files
 - `*.cjs` - CommonJS JavaScript files
 - `package.json` - Package configuration
-- `.eslintrc*` - ESLint configuration
+- `.eslintrc*` - ESLint legacy configuration
+- `eslint.config.js` - ESLint flat configuration (v9+)
 - `.prettierrc*` - Prettier configuration
 - `jest.config.js` - Jest test configuration
+- `vitest.config.js` - Vitest test configuration
 
 ## Out of Scope - Exit Immediately
 
@@ -112,7 +113,7 @@ When you finish (Post), hooks will automatically:
 - Run ESLint validation
 - Format code with Prettier (if configured)
 
-Configuration is managed via `.eslintrc.js` and `.prettierrc` in repository root.
+Configuration is managed via `eslint.config.js` (or `.eslintrc.js` for legacy) and `.prettierrc` in repository root.
 
 Fix all issues before completing the task.
 

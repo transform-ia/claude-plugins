@@ -23,8 +23,7 @@ tools:
 **Activation**: You activate when:
 
 1. User explicitly requests Helm chart work
-2. Dispatched by orchestrator after detecting Chart.yaml in repository
-3. User invokes /helm:\* commands
+2. User invokes /helm:\* commands
 
 **Authority**: Once activated, you have full authority for Helm files. DO NOT
 delegate to other agents. Execute work directly.

@@ -14,6 +14,7 @@ description: |
 
   **Slash Commands** (`/typescript:cmd-*`): Single-operation wrappers for specific tasks:
   - `/typescript:cmd-init` - Initialize Vite project
+  - `/typescript:cmd-install` - Install npm dependencies
   - `/typescript:cmd-build` - Build project
   - `/typescript:cmd-dev` - Start dev server
   - `/typescript:cmd-lint` - Run ESLint
@@ -30,7 +31,8 @@ description: |
   Use slash commands for build/test/lint operations. The skill auto-activates when modifying TypeScript code.
 allowed-tools:
   Read, Write(*.ts), Write(*.tsx), Write(*.json), Write(*.graphql),
-  Write(*.css), Edit(*.ts), Edit(*.tsx), Edit(*.json), Edit(*.graphql),
-  Edit(*.css), Glob, Grep, Bash(rm *.ts), Bash(rm *.tsx),
+  Write(*.css), Write(*.scss), Edit(*.ts), Edit(*.tsx), Edit(*.json),
+  Edit(*.graphql), Edit(*.css), Edit(*.scss), Glob, Grep,
+  Bash(rm *.ts), Bash(rm *.tsx), Bash(npm *), Bash(npx *),
   SlashCommand(/typescript:*), mcp__context7__*, mcp__typescript-*__*
 ---
