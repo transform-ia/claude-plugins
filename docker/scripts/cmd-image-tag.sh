@@ -62,13 +62,27 @@ elif [[ "$IMAGE" == quay.io/* ]]; then
     echo "$RESULT"
 
 else
-    # Docker Hub - bash can't call MCP tools, return error
-    echo "Error: Docker Hub queries must use MCP tools directly." >&2
-    echo "" >&2
-    echo "This script only handles GHCR (ghcr.io/*) and Quay.io (quay.io/*) images." >&2
-    echo "For Docker Hub, use mcp__dockerhub__listRepositoryTags tool:" >&2
-    echo "  namespace: library (or org/user)" >&2
-    echo "  repository: <image-name>" >&2
-    echo "  page_size: 10" >&2
-    exit 1
+    # Docker Hub image
+    if [[ "$IMAGE" == */* ]]; then
+        NAMESPACE=$(echo "$IMAGE" | cut -d'/' -f1)
+        REPO=$(echo "$IMAGE" | cut -d'/' -f2)
+    else
+        NAMESPACE="library"
+        REPO="$IMAGE"
+    fi
+
+    echo "Querying Docker Hub: $NAMESPACE/$REPO"
+    echo "---"
+
+    # Get auth token
+    TOKEN=$(curl -sf "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${NAMESPACE}/${REPO}:pull" \
+        | jq -r '.token' 2>/dev/null) || \
+    { echo "Error: Could not authenticate with Docker Hub for $NAMESPACE/$REPO" >&2; exit 1; }
+
+    # Query tags via Docker Hub API v2
+    RESULT=$(curl -sf "https://registry.hub.docker.com/v2/repositories/${NAMESPACE}/${REPO}/tags?page_size=${COUNT}&ordering=last_updated" \
+        | jq -r '.results[].name' 2>/dev/null) || \
+    { echo "Error: Could not query Docker Hub for $NAMESPACE/$REPO" >&2; exit 1; }
+
+    echo "$RESULT"
 fi
