@@ -1,6 +1,6 @@
 ---
 description: "Build JavaScript project: /javascript:cmd-build [options]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-build.sh *)]
 ---
 
 # JavaScript Build

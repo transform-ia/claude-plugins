@@ -1,6 +1,6 @@
 ---
 description: "Run ESLint: /javascript:cmd-lint [file] [options]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-lint.sh *)]
 ---
 
 # JavaScript Lint

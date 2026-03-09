@@ -1,6 +1,6 @@
 # Orchestrator Plugin
 
-**See**: `/workspace/sandbox/transform-ia/claude-plugins/GLOSSARY.md` for
+**See**: `GLOSSARY.md` (in the claude-plugins root directory) for
 terminology definitions (agent, skill, plugin, hook, command, etc.)
 
 ## Commands

@@ -1,6 +1,6 @@
 ---
 description: "Run JavaScript tests: /javascript:cmd-test [options]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-test.sh *)]
 ---
 
 # JavaScript Test

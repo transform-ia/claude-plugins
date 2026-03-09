@@ -1,7 +1,7 @@
 ---
 description:
   "Delete tag and artifacts: /github:cmd-delete-tag <tag> [directory]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-delete-tag.sh *)]
 ---
 
 # GitHub Delete Tag

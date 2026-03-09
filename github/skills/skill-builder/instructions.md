@@ -4,8 +4,8 @@
 
 - **Read** - `.github/**/*` files
 - **Glob/Grep** - File search
-- **Bash** - `gh run/workflow` (list, view, watch), `gh api` (GET only)
-- **mcp**github**\*** - GitHub MCP tools
+- **Bash** - `gh run/workflow` (list, view, watch), `gh pr` (view, list,
+  checks), `gh api` (GET only)
 
 ## Not Available
 
@@ -47,19 +47,6 @@ gh run view RUN_ID --repo OWNER/REPO --log-failed
 # Watch running workflow
 gh run watch RUN_ID --repo OWNER/REPO
 ```
-
-## MCP GitHub Tools
-
-Use MCP tools when available:
-
-```text
-mcp__github__list_pull_requests
-mcp__github__pull_request_read
-mcp__github__search_issues
-```
-
-Note: MCP GitHub doesn't currently support Actions API, so use gh CLI for
-workflow queries.
 
 ## Output Format
 
@@ -105,7 +92,7 @@ Latest Workflow Runs:
 When user doesn't specify a repository, detect from git remote:
 
 ```bash
-cd /workspace/sandbox/transform-ia/hooks
+cd ~/sandbox/transform-ia/hooks
 git remote get-url origin
 # https://github.com/transform-ia/hooks
 # → Use transform-ia/hooks

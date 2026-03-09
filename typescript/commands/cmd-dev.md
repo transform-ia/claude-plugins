@@ -1,6 +1,6 @@
 ---
 description: "Start Vite dev server: /typescript:cmd-dev <directory>"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-dev.sh *)]
 ---
 
 # TypeScript Development Server

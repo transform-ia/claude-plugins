@@ -1,5 +1,5 @@
 {
   "name": "helm",
   "version": "0.1.0",
-  "description": "Helm chart development, linting, and Kubernetes operations"
+  "description": "Helm chart development and linting"
 }

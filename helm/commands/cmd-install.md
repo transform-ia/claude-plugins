@@ -1,6 +1,6 @@
 ---
 description: "Install Helm charts from OCI registry: /helm:cmd-install <chart-name> [release-name]"
-allowed-tools: [Bash, Read, AskUserQuestion]
+allowed-tools: [Bash(helm *), Bash(gh auth token *), Read, AskUserQuestion]
 ---
 
 # Helm Chart Install
@@ -106,7 +106,7 @@ helm install <release-name> oci://ghcr.io/transform-ia/charts/<chart-name>
 
 ```bash
 helm install <release-name> oci://ghcr.io/transform-ia/charts/<chart-name> \
-  -f /workspace/<path-to-values.yaml>
+  -f <path-to-values.yaml>
 ```
 
 **With inline values:**
@@ -118,17 +118,11 @@ helm install <release-name> oci://ghcr.io/transform-ia/charts/<chart-name> \
 
 ### Phase 6: Verify Installation
 
-After installation, verify the deployment:
+After installation, verify the release:
 
 ```bash
-# Check Helm release
-helm list
-
-# Check pods
-kubectl get pods -l app.kubernetes.io/instance=<release-name>
-
-# Check services
-kubectl get svc -l app.kubernetes.io/instance=<release-name>
+# Check Helm release status
+helm status <release-name>
 ```
 
 ---
@@ -158,23 +152,12 @@ After installation, provide summary:
 - Namespace: <namespace>
 
 ### Installation Status
-✓ Chart pulled from OCI registry
-✓ Release installed successfully
-✓ Pods are running
-
-### Resources Created
-- Deployment: <release-name>
-- Service: <release-name>
-- ConfigMap: <release-name>-config (if applicable)
-
-### Access Information
-- Pod: kubectl exec -it deployment/<release-name> -- /bin/sh
-- Logs: kubectl logs deployment/<release-name>
-- Port-forward: kubectl port-forward deployment/<release-name> <port>:<port>
+- Chart pulled from OCI registry
+- Release installed successfully
 
 ### Next Steps
-1. Verify pod is running: kubectl get pods -l app.kubernetes.io/instance=<release-name>
-2. Check logs for errors: kubectl logs deployment/<release-name>
+1. Verify release status: helm status <release-name>
+2. View release values: helm get values <release-name>
 3. For MCP servers: They are automatically configured in Claude Code
 ```
 

@@ -14,7 +14,7 @@ set -euo pipefail
 trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in enforce-github-files.sh" >&2; exit 2' ERR
 
 # Source shared hook library
-source "/workspace/sandbox/transform-ia/claude-plugins/scripts/lib/hook-common.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/lib/hook-common.sh"
 
 # Parse hook input
 parse_hook_input

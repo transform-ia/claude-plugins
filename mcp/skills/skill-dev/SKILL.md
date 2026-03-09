@@ -13,7 +13,6 @@ description: |
   - Working with any programming language code
 allowed-tools:
   Read, Edit(*.mcp.json), Edit(*/.mcp.json), Glob, Grep, Bash(rm *.mcp.json),
-  Bash(claude mcp *), Bash(kubectl get *), Bash(kubectl describe *),
-  Bash(kubectl logs *), Bash(curl *), Bash(nc *), Bash(nslookup *),
+  Bash(claude mcp *), Bash(curl *), Bash(nc *),
   SlashCommand(/mcp:*)
 ---

@@ -1,6 +1,6 @@
 ---
 description: "Get workflow logs: /github:cmd-logs <run-id> [owner/repo]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-logs.sh *)]
 ---
 
 # GitHub Logs

@@ -1,6 +1,6 @@
 ---
 description: "Test MCP connectivity: /mcp:cmd-test <name-or-url>"
-allowed-tools: [Bash, Read]
+allowed-tools: [Bash(curl *), Bash(nc *), Bash(ss *), Bash(lsof *), Read]
 ---
 
 # MCP Test
@@ -28,7 +28,7 @@ Test connectivity to an MCP server with detailed diagnostics.
 
 ```text
 /mcp:cmd-test context7
-/mcp:cmd-test http://context7-mcp.claude.svc.cluster.local:3000/mcp
+/mcp:cmd-test http://localhost:3000/mcp
 ```
 
 ## Steps
@@ -37,40 +37,27 @@ Test connectivity to an MCP server with detailed diagnostics.
 
 ```bash
 # Read configuration
-cat /workspace/.mcp.json | jq -r '."<server-name>".url'
+cat .mcp.json | jq -r '."<server-name>".url'
 ```
 
-### 2. For In-Cluster Services (\*.svc.cluster.local)
+### 2. For Local HTTP Services
 
 ```bash
 # Parse URL components
 URL="<server-url>"
-SERVICE=$(echo "$URL" | sed 's|.*://\([^.]*\)\..*|\1|')
-NAMESPACE=$(echo "$URL" | sed 's|.*://[^.]*\.\([^.]*\)\..*|\1|')
+HOST=$(echo "$URL" | sed 's|.*://\([^:/]*\).*|\1|')
+PORT=$(echo "$URL" | sed 's|.*://[^:]*:\([0-9]*\).*|\1|')
 
-# Check service exists
-kubectl get svc "$SERVICE" -n "$NAMESPACE"
-
-# Check pods are running
-kubectl get pods -n "$NAMESPACE" -l "app.kubernetes.io/name=$SERVICE"
-
-# Test DNS resolution
-nslookup "$SERVICE.$NAMESPACE.svc.cluster.local"
+# Check if the port is listening
+ss -tlnp | grep ":$PORT" || lsof -i :"$PORT"
 
 # Test HTTP connectivity
 curl -v --max-time 5 "$URL"
-
-# Check network policies
-kubectl get networkpolicies -n "$NAMESPACE"
-kubectl get networkpolicies -n claude
 ```
 
 ### 3. For External Services (https://\*)
 
 ```bash
-# Test DNS resolution
-nslookup <hostname>
-
 # Test HTTPS connectivity
 curl -v --max-time 10 "$URL"
 ```
@@ -84,9 +71,9 @@ claude mcp list | grep "<server-name>"
 
 ## Common Issues
 
-| Issue                | Cause                     | Solution                      |
-| -------------------- | ------------------------- | ----------------------------- |
-| DNS failure          | Service doesn't exist     | Check service name/namespace  |
-| Connection refused   | Pod not running           | Check pod status              |
-| Timeout              | Network policy blocking   | Check ingress/egress policies |
-| MCP handshake failed | Server not MCP-compatible | Verify server implementation  |
+| Issue                | Cause                    | Solution                     |
+| -------------------- | ------------------------ | ---------------------------- |
+| Connection refused   | Service not running      | Check if process is running  |
+| Port not listening   | Wrong port or not started| Verify port with ss or lsof  |
+| Timeout              | Firewall or routing      | Check host and port access   |
+| MCP handshake failed | Server not MCP-compatible| Verify server implementation |

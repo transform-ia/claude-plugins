@@ -1,6 +1,6 @@
 #!/bin/bash
 # PreToolUse: Block most Bash commands when in MCP plugin context
-# Allow only: claude mcp, kubectl (for testing), curl, nc (for connectivity)
+# Allow only: claude mcp, curl, nc, ss, lsof (for connectivity)
 #
 # Exit codes (per Claude Code docs):
 #   0 = Allow (success)
@@ -11,7 +11,7 @@ set -euo pipefail
 trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in block-bash.sh" >&2; exit 2' ERR
 
 # Source shared hook library
-source "/workspace/sandbox/transform-ia/claude-plugins/scripts/lib/hook-common.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/lib/hook-common.sh"
 
 # Parse hook input
 parse_hook_input
@@ -49,23 +49,6 @@ if [[ "$COMMAND" =~ ^rm[[:space:]] ]]; then
     exit 0
 fi
 
-# Allow ONLY read-only kubectl commands for connectivity testing
-# BLOCKED: create, apply, delete, patch, edit, replace, run, exec (security risk)
-if [[ "$COMMAND" =~ ^kubectl[[:space:]] ]]; then
-    # Block dangerous kubectl operations
-    if [[ "$COMMAND" =~ kubectl[[:space:]]+(create|apply|delete|patch|edit|replace|run|exec|cp|attach|port-forward) ]]; then
-        echo "BLOCKED: kubectl write operations not allowed in MCP plugin." >&2
-        echo "Only read operations allowed: get, describe, logs" >&2
-        exit 2
-    fi
-    # Allow only read operations
-    if [[ "$COMMAND" =~ kubectl[[:space:]]+(get|describe|logs)[[:space:]] ]]; then
-        exit 0
-    fi
-    echo "BLOCKED: Only 'kubectl get', 'kubectl describe', 'kubectl logs' allowed." >&2
-    exit 2
-fi
-
 # Allow curl for endpoint testing
 if [[ "$COMMAND" =~ ^curl[[:space:]] ]]; then
     exit 0
@@ -76,8 +59,13 @@ if [[ "$COMMAND" =~ ^nc[[:space:]] ]] || [[ "$COMMAND" =~ ^timeout[[:space:]].*n
     exit 0
 fi
 
-# Allow nslookup for DNS testing
-if [[ "$COMMAND" =~ ^nslookup[[:space:]] ]]; then
+# Allow ss for port checking
+if [[ "$COMMAND" =~ ^ss[[:space:]] ]]; then
+    exit 0
+fi
+
+# Allow lsof for port checking
+if [[ "$COMMAND" =~ ^lsof[[:space:]] ]]; then
     exit 0
 fi
 
@@ -99,8 +87,8 @@ echo "Allowed bash for testing:" >&2
 echo "  - cat .mcp.json (read config)" >&2
 echo "  - rm .mcp.json (remove config)" >&2
 echo "  - curl (endpoint testing)" >&2
-echo "  - kubectl get/describe/logs (connectivity testing)" >&2
-echo "  - nc, nslookup (network testing)" >&2
+echo "  - nc (network testing)" >&2
+echo "  - ss, lsof (port checking)" >&2
 echo "" >&2
 echo "For other operations, exit the MCP plugin scope first." >&2
 exit 2

@@ -1,7 +1,7 @@
 ---
 description:
   "Initialize Vite+React+TypeScript project: /typescript:cmd-init <directory>"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-init.sh *)]
 ---
 
 # TypeScript Project Initialization

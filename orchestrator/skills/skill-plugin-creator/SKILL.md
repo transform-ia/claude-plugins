@@ -9,5 +9,5 @@ description: |
   - Working within an existing plugin
   - Using other plugin commands
   - General development work
-allowed-tools: Read, Write, Bash, Glob
+allowed-tools: Read, Write(*.md), Write(*.sh), Write(*.json), Bash(mkdir *), Bash(chmod *), Glob
 ---

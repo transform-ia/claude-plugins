@@ -6,47 +6,37 @@ Claude Code plugin framework and collection of official plugins. Provides plugin
 infrastructure, development tools, and standard plugins (go, typescript, docker,
 helm, github, markdown, mcp, orchestrator).
 
-## Claude Code Pod Architecture
+## Local Development Environment
 
-Claude Code runs in a Kubernetes pod designed as a **blank slate** with
-task-driven environment setup to maintain GitOps workflow integrity.
+Claude Code runs on the **local host** with development tools installed directly
+on the machine.
 
 ### Environment Model
 
-**Initial State:**
+**Local Toolchain:**
 
-- Minimal pod with CLI tools (git, kubectl, helm, gh, argocd)
-- `$NAMESPACE` environment variable (e.g., `claude-04`)
-- Full admin access within namespace
-- Shared workspace PVC at `/workspace`
-- **No pre-installed development environments**
+- Development tools installed locally (go, node, npm, golangci-lint, helm, etc.)
+- Git, gh CLI, and standard Unix tools available
+- Projects stored in local filesystem directories
+- MCP servers run as local processes (stdio or localhost HTTP)
 
-**Dynamic Setup:**
-Plugins guide Claude Code to install specialized environments on-demand using
-Helm charts from OCI registry:
+### Available Development Tools
 
-```bash
-helm install <name> oci://ghcr.io/transform-ia/charts/<chart-name>
-```
+- **Go** - Go toolchain, gopls language server, golangci-lint
+- **TypeScript/Node.js** - Node.js runtime, npm, TypeScript compiler, ESLint
+- **Helm** - Helm CLI for chart development and linting
+- **Docker** - Docker CLI for building and managing images
 
-### Available Environment Charts
-
-- **typescript-chart** - Node.js, TypeScript language server, MCP server
-- **golang-chart** - Go toolchain, gopls language server, MCP server
-- **ansible-chart** - Ansible automation, SSH integration
-- **graphql-chart** - Hasura GraphQL Engine, PostGIS database
-
-All charts share the workspace PVC, providing seamless file access across
-environments.
+All tools operate directly on the local filesystem.
 
 ## Plugin Usage
 
 ### When to use plugins
 
 - `/orchestrator:detect` - Auto-detect appropriate plugin for current task
-- `/go:cmd-build` - Build Go binaries in golang-chart environment
+- `/go:cmd-build` - Build Go binaries locally
 - `/typescript:cmd-dev` - Start TypeScript dev server
-- `/helm:cmd-install` - Install Helm charts from OCI registry
+- `/helm:cmd-lint` - Lint Helm charts
 - `/markdown:cmd-lint` - Lint markdown files
 - `/github:cmd-status` - Check GitHub workflow status
 
@@ -128,8 +118,8 @@ helm, github, markdown, mcp
 Plugins follow a task-driven model:
 
 1. **Analyze Task** - Determine requirements and dependencies
-2. **Dynamic Setup** - Install Helm charts for specialized environments
-3. **Execute Work** - Use language servers via MCP for code intelligence
+2. **Local Setup** - Verify required tools are installed locally
+3. **Execute Work** - Use local tools and MCP servers for code intelligence
 4. **GitOps Compliance** - All changes via Pull Requests
 
 ## Deployment

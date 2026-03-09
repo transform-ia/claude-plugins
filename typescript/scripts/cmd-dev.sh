@@ -18,7 +18,7 @@ fi
 cd "$DIR"
 
 # Set npm cache to writable location
-export npm_config_cache=/workspace/.npm-cache
+export npm_config_cache="${HOME}/.npm-cache"
 
 echo "Starting development server in $DIR..."
 echo "Note: Server will run on http://localhost:5173 by default"

@@ -4,7 +4,7 @@
 set -e
 
 # Default values
-WORKSPACE="${WORKSPACE:-/workspace}"
+WORKSPACE="${WORKSPACE:-.}"
 ENV_FILE="${ENV_FILE:-/.env}"
 
 # Colors for output
@@ -37,7 +37,7 @@ Arguments:
   FILES                 JavaScript files to lint (default: all JS/JSX files)
 
 Options:
-  -w, --workspace DIR    Workspace directory (default: /workspace)
+  -w, --workspace DIR    Workspace directory (default: current directory)
   -f, --fix             Automatically fix fixable issues
   -q, --quiet           Only show errors, no warnings
   -c, --config FILE     Custom ESLint configuration file

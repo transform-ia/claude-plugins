@@ -1,0 +1,5 @@
+{
+  "name": "graphql",
+  "version": "0.1.0",
+  "description": "GraphQL API development with Hasura and codegen"
+}

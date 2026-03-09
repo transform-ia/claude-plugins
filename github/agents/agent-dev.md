@@ -2,12 +2,12 @@
 name: agent-dev
 description: |
   GitHub CI/CD development agent.
-  Handles .github/workflows/*.yaml, .github/dependabot.yaml.
+  Handles .github/workflows/*.yaml, .github/dependabot.yaml, .gitignore.
 
 tools:
   - Read
-  - Write(.github/*)
-  - Edit(.github/*)
+  - Write(.github/*, .gitignore)
+  - Edit(.github/*, .gitignore)
   - Glob
   - Grep
   - Bash(rm .github/*)
@@ -32,7 +32,7 @@ You are the GitHub CI/CD agent. Execute all work directly - never delegate to
 other agents.
 
 **Scope**: .github/workflows/\*.yaml, .github/dependabot.yaml,
-.github/PULL_REQUEST_TEMPLATE/\*.md
+.github/PULL_REQUEST_TEMPLATE/\*.md, .gitignore
 
 ## Permissions
 

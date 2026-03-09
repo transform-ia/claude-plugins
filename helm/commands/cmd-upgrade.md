@@ -2,16 +2,18 @@
 description: "Upgrade Helm charts: /helm:cmd-upgrade [directory]"
 allowed-tools:
   [
-    Bash,
+    Bash(helm *),
+    Bash(${CLAUDE_PLUGIN_ROOT}/../docker/scripts/cmd-image-tag.sh *),
     Read,
-    Edit,
+    Edit(Chart.yaml),
+    Edit(values.yaml),
+    Edit(values-*.yaml),
     Glob,
     Grep,
     Task,
     TodoWrite,
     AskUserQuestion,
     mcp__dockerhub__*,
-    mcp__github__*,
   ]
 ---
 
@@ -28,7 +30,7 @@ This command can modify:
 
 ## Parameter Handling
 
-- `$ARGUMENTS` specifies the directory to scan (default: `/workspace/sandbox`)
+- `$ARGUMENTS` specifies the directory to scan (default: `.`)
 - Scan recursively for all Helm chart directories
 
 ---
@@ -102,12 +104,8 @@ Bash("${CLAUDE_PLUGIN_ROOT}/../docker/scripts/cmd-image-tag.sh ghcr.io/<org>/<re
 
 **GitHub releases (for chart dependencies):**
 
-```javascript
-mcp__github__list_tags({
-  owner: "<org>",
-  repo: "<repo>",
-  perPage: 5,
-});
+```bash
+gh release list --repo <org>/<repo> --limit 5
 ```
 
 **Helm repository charts:**

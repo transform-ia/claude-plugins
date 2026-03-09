@@ -4,7 +4,7 @@
 set -e
 
 # Default values
-WORKSPACE="${WORKSPACE:-/workspace}"
+WORKSPACE="${WORKSPACE:-.}"
 TEST_PATTERN="${TEST_PATTERN:-}"
 COVERAGE="${COVERAGE:-false}"
 WATCH="${WATCH:-false}"
@@ -45,7 +45,7 @@ Arguments:
   PATTERN               Test file pattern (e.g., src/**/*.test.js)
 
 Options:
-  -w, --workspace DIR    Workspace directory (default: /workspace)
+  -w, --workspace DIR    Workspace directory (default: current directory)
   -c, --coverage         Generate coverage report
   -w, --watch            Watch mode for continuous testing
   -e, --env FILE         Environment file to load

@@ -9,7 +9,7 @@ description: |
 
   DO NOT activate when:
   - Reading helm chart files without modification
-  - Working with ArgoCD Application manifests (use helm:skill-ops)
+  - Managing Helm releases (use helm:skill-ops)
   - User mentions "helm" in general conversation
   - Deploying or managing applications (use helm:skill-ops)
 allowed-tools:

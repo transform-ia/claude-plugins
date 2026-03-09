@@ -1,6 +1,6 @@
 ---
 description: "Run hadolint: /docker:cmd-lint [Dockerfile]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-lint.sh *)]
 ---
 
 # Docker Lint

@@ -2,7 +2,7 @@
 # Stop hook: Auto-lint helm chart before completion
 set -euo pipefail
 
-PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/helm"
+PLUGIN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PLUGIN_PATH" ]]; then
     exit 0
 fi

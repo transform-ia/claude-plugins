@@ -12,14 +12,9 @@ tools:
   - Grep
   - Bash(rm *.mcp.json)
   - Bash(claude mcp *)
-  - Bash(kubectl get *)
-  - Bash(kubectl describe *)
-  - Bash(kubectl logs *)
   - Bash(curl *)
   - Bash(nc *)
-  - Bash(nslookup *)
   - SlashCommand(/mcp:*)
-model: sonnet
 ---
 
 # MCP Agent

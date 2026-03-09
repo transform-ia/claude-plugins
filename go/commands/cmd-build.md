@@ -1,6 +1,6 @@
 ---
 description: "Build Go project: /go:cmd-build <directory>"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-build.sh *)]
 ---
 
 # Go Build

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Stop hook: Auto-lint Go files after completion
-# Uses kubectl to run golangci-lint in the dev pod
+# Runs golangci-lint locally
 #
 # Exit codes (per Claude Code docs):
 #   0 = Success - linting passed or not applicable
@@ -9,13 +9,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+DETECT_CALLER="$(cd "$PLUGIN_ROOT/../scripts" && pwd)/detect-caller.py"
 
 # Read hook input from stdin
 input=$(cat)
 transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
 tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
 cwd=$(echo "$input" | jq -r '.cwd // empty')
-DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
 
 # Detect caller from transcript - only run for /go:* commands
 # Test mode: use TEST_CALLER env var
@@ -48,7 +49,7 @@ fi
 
 # Find git root from cwd
 if [[ -z "$cwd" ]]; then
-    cwd="/workspace"
+    cwd="."
 fi
 
 root=$("$SCRIPT_DIR/find-git-root.sh" "$cwd" 2>/dev/null) || {
@@ -70,25 +71,27 @@ if [[ -z "$MODIFIED_FILES" ]]; then
     exit 0
 fi
 
-# Find the dev pod for this project
-pod=$("$SCRIPT_DIR/find-dev-pod.sh" "$root" 2>/dev/null) || {
-    echo "No Go dev pod found for $root, skipping lint."
-    echo "Deploy a golang-chart for this project to enable auto-linting."
+# Verify golangci-lint is available locally
+command -v golangci-lint >/dev/null 2>&1 || {
+    echo "golangci-lint not found locally, skipping lint."
+    echo "Install: https://golangci-lint.run/welcome/install/"
     exit 0
 }
 
-echo "Linting Go files in $root using pod $pod..."
+echo "Linting Go files in $root..."
 
 ERRORS=0
 
+cd "$root"
+
 # Format first
 echo "=== golangci-lint fmt ==="
-kubectl exec "$pod" -- golangci-lint fmt ./... 2>&1 || true
+golangci-lint fmt ./... 2>&1 || true
 
 # Lint with fixes
 echo ""
 echo "=== golangci-lint run --fix ==="
-kubectl exec "$pod" -- golangci-lint run --fix ./... || ERRORS=1
+golangci-lint run --fix ./... || ERRORS=1
 
 if [[ $ERRORS -ne 0 ]]; then
     echo ""

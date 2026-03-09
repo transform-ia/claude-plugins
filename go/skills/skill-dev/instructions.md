@@ -8,6 +8,11 @@
 - Use manual struct validation - use validator/v10 struct tags
 - Use `internal/` packages - all packages must be importable
 - Put `main.go` in `cmd/` - keep at repository root
+- Ship code without tests - every package MUST have `_test.go` files
+- Depend on concrete implementations for external resources (databases, APIs,
+  message queues) - always depend on interfaces
+- Ship a long-running application without OTel metrics - see
+  `assets/directives/prometheus.md`
 
 ### ALWAYS
 
@@ -16,6 +21,13 @@
 - Put `go.mod` and `main.go` at git root (required for tool discovery, hook
   automation, and single-module consistency)
 - Single HTTP port with all handlers on one `http.ServeMux`
+- **Expose OTel metrics** for every long-running application (servers, workers,
+  consumers, daemons) via `/metrics` on the shared HTTP port - if the app has no
+  HTTP server, create one for `/health` and `/metrics`. See
+  `assets/directives/prometheus.md`
+- **Ship tests with every change** - no PR is complete without tests
+- Define interfaces for external dependencies (database, HTTP clients, APIs,
+  message brokers) and accept them as constructor parameters
 
 ## Required Libraries
 
@@ -75,6 +87,66 @@ For domain-specific patterns, see `assets/directives/`:
 - `mcp-server.md` - MCP server with mcp-go
 - `prometheus.md` - Prometheus metrics
 - `testing.md` - Testing patterns
+
+## Testing Requirements
+
+**Every package MUST have tests.** Code without tests is incomplete code.
+
+- Write table-driven tests using `testify/assert` and `testify/require`
+- Test both success and error paths
+- Use `testify/mock` or hand-written fakes for external dependencies
+
+### Interface-Driven Design for Testability
+
+All components that connect to external resources (databases, APIs, message
+queues, file systems, caches) MUST be accessed through interfaces. This enables
+testing with mocks/fakes without real infrastructure.
+
+```go
+// Define the interface where it is USED (consumer package), not where
+// it is implemented.
+type UserRepository interface {
+    GetByID(ctx context.Context, id string) (*User, error)
+    Create(ctx context.Context, user *User) error
+}
+
+// Service depends on the interface, not the concrete implementation.
+type UserService struct {
+    repo UserRepository
+}
+
+func NewUserService(repo UserRepository) *UserService {
+    return &UserService{repo: repo}
+}
+```
+
+```go
+// In tests, use a mock or fake implementation.
+type mockUserRepo struct {
+    mock.Mock
+}
+
+func (m *mockUserRepo) GetByID(ctx context.Context, id string) (*User, error) {
+    args := m.Called(ctx, id)
+    return args.Get(0).(*User), args.Error(1)
+}
+
+func TestUserService_GetByID(t *testing.T) {
+    repo := new(mockUserRepo)
+    repo.On("GetByID", mock.Anything, "123").
+        Return(&User{ID: "123", Name: "Alice"}, nil)
+
+    svc := NewUserService(repo)
+    user, err := svc.GetByID(context.Background(), "123")
+
+    require.NoError(t, err)
+    assert.Equal(t, "Alice", user.Name)
+    repo.AssertExpectations(t)
+}
+```
+
+**Rule of thumb:** If `NewXxx()` takes a concrete struct that talks to the
+network or disk, refactor it to accept an interface instead.
 
 ### Key Patterns (Quick Reference)
 

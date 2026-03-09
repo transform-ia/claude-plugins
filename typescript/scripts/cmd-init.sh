@@ -16,7 +16,7 @@ mkdir -p "$DIR"
 cd "$DIR"
 
 # Set npm cache to writable location
-export npm_config_cache=/workspace/.npm-cache
+export npm_config_cache="${HOME}/.npm-cache"
 
 # Check if already initialized
 if [[ -f "package.json" ]]; then

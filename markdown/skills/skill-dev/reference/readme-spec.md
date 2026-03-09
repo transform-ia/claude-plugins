@@ -76,7 +76,7 @@ Brief statement of what this repository does.
 Repository-specific workflow rules and conventions:
 
 - Git workflow (e.g., "Never push directly to main")
-- Deployment workflow (e.g., "Always use ArgoCD")
+- Deployment workflow (e.g., "Always use CI/CD pipeline")
 - Testing requirements
 - Code review process
 

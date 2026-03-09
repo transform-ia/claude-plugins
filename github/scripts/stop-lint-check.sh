@@ -2,12 +2,12 @@
 # Stop hook: Auto-lint .github files before completion
 set -euo pipefail
 
-PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/github"
+PLUGIN_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PLUGIN_PATH" ]]; then
     exit 0
 fi
 
-GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "/workspace")
+GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
 
 # Check for .github directory
 if [[ ! -d "$GIT_ROOT/.github" ]]; then

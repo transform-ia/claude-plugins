@@ -18,7 +18,7 @@ fi
 cd "$DIR"
 
 # Set npm cache to writable location
-export npm_config_cache=/workspace/.npm-cache
+export npm_config_cache="${HOME}/.npm-cache"
 
 echo "Running ESLint in $DIR..."
 npm run lint || {

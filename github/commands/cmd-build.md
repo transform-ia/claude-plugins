@@ -1,6 +1,6 @@
 ---
 description: "Push and wait for builds: /github:cmd-build [owner/repo]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-build.sh *)]
 ---
 
 # GitHub Build

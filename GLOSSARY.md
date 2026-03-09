@@ -13,7 +13,7 @@ domain (Go, Docker, Helm, GitHub, etc.). Each plugin contains:
 - Hooks (validation scripts)
 - Scripts (utilities)
 
-**Location**: `/workspace/sandbox/transform-ia/claude-plugins/<plugin-name>/`
+**Location**: `<plugin-name>/` within the plugins repository
 
 ### Agent
 
@@ -317,14 +317,6 @@ has no dependency file format, so packages are unpinned to avoid build failures.
 
 ## Version Management
 
-### golang-chart
-
-Helm chart standard for Go development environments. All Go projects use:
-
-- **Port**: 81 (fixed, NOT configurable)
-- **Endpoint**: `/mcp` (fixed, NOT configurable)
-- **Workdir label**: `golang.dev/workdir=<git-root-path>`
-
 ### Image Tags
 
 Docker images and Helm chart versions:
@@ -334,30 +326,6 @@ Docker images and Helm chart versions:
 - **DO NOT** use ARG for base image versions (Dependabot cannot track)
 - **USE** `<<QUERY_LATEST_TAG>>` placeholder in templates (Claude queries actual
   latest tag)
-
-## ArgoCD Integration
-
-### Application
-
-An ArgoCD resource that deploys a Helm chart to Kubernetes. For Go projects,
-applications use `golang-chart` with:
-
-- `workdir` value pointing to git repository root
-- `storage.workspace.existingClaim` mounting shared workspace PVC
-- Labels for discovery (`project`, `environment`)
-
-**Location**: `/workspace/applications/<app-name>.yaml`
-
-### Sync Policy
-
-ArgoCD configuration for automatic deployment:
-
-```yaml
-syncPolicy:
-  automated:
-    prune: true # Remove deleted resources
-    selfHeal: true # Auto-sync on drift
-```
 
 ## MCP (Model Context Protocol)
 
@@ -371,43 +339,41 @@ A service that provides tools and resources to Claude Code. Examples:
 
 ### MCP Configuration
 
-`.mcp.json` file mapping server names to URLs.
+`.mcp.json` file mapping server names to connection details.
 
-**MCP Server Standards by Type**:
+**MCP Server Types**:
 
-1. **golang-chart servers** (Go development environments):
-   - Port: `81` (FIXED, not configurable)
-   - Endpoint: `/mcp` (FIXED, not configurable)
-   - Discovery: Auto-discovered via `golang.dev/workdir` label
-   - Example: `http://myapp-dev.claude.svc.cluster.local:81/mcp`
-   - Rationale: Standardization across all Go dev pods for consistency
+1. **stdio servers** (local process):
+   - Runs as a child process on the local machine
+   - Example: gopls language server, context7
+   - Configured with command and args
 
-2. **External/custom services** (application-specific):
-   - Port: ANY (configurable per service)
-   - Endpoint: ANY (configurable per service)
-   - Discovery: Manual configuration in `.mcp.json`
-   - Example: `http://myapi.prod.svc.cluster.local:8080/api/mcp`
+2. **HTTP servers** (localhost or remote):
+   - Port: configurable per service
+   - Endpoint: configurable per service
+   - Example: `http://localhost:8080/mcp`
 
 **Example `.mcp.json`**:
 
 ```json
 {
-  "agents-dev": {
-    "type": "http",
-    "url": "http://agents-dev.claude.svc.cluster.local:81/mcp"
+  "golang-dev": {
+    "type": "stdio",
+    "command": "gopls",
+    "args": ["serve"]
   },
   "custom-service": {
     "type": "http",
-    "url": "http://my-service.prod.svc.cluster.local:3000/mcp"
+    "url": "http://localhost:3000/mcp"
   }
 }
 ```
 
 **Connection Types**:
 
+- `stdio` - Command-line tool (local process)
 - `http` - Standard HTTP server
 - `sse` - Server-Sent Events
-- `stdio` - Command-line tool
 
 ## Exit Codes
 

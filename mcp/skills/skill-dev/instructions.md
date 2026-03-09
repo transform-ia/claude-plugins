@@ -19,7 +19,7 @@ Unless specified, everything else is BLOCKED by hooks, in which cases:
 
 - Editing Go source files (out of scope for this plugin)
 - Modifying configuration files other than .mcp.json
-- Running kubectl create/apply commands (read-only access only)
+- Running infrastructure commands (not available in local dev)
 
 ### Tools Available
 
@@ -30,8 +30,7 @@ Unless specified, everything else is BLOCKED by hooks, in which cases:
 - **Bash** - Restricted to:
   - `rm` to restricted files (see below)
   - `claude mcp *` - Claude MCP commands
-  - `kubectl get/describe/logs` - Read-only cluster info
-  - `curl`, `nc`, `nslookup` - Connectivity testing
+  - `curl`, `nc` - Connectivity testing
 - **SlashCommand**: | Command | Purpose | |---------|---------| |
   `/mcp:cmd-add <name> <url>` | Add MCP server | | `/mcp:cmd-remove <name>` |
   Remove MCP server | | `/mcp:cmd-list` | List servers with status | |
@@ -72,7 +71,7 @@ Only the following file(s) can be written, edited or deleted:
 {
   "server-name": {
     "type": "http",
-    "url": "http://service.namespace.svc.cluster.local:port/mcp"
+    "url": "http://localhost:port/mcp"
   }
 }
 ```
@@ -87,67 +86,64 @@ Only the following file(s) can be written, edited or deleted:
 
 ## URL Patterns
 
-### In-Cluster
-
-**golang-chart services (fixed port 81):**
+### Local Servers
 
 ```text
-http://<service>.<namespace>.svc.cluster.local:81/mcp
+http://localhost:<port>/mcp
 ```
 
-Example: `http://my-go-service.default.svc.cluster.local:81/mcp`
+Example: `http://localhost:3000/mcp`
 
-**Custom services (variable port):**
-
-```text
-http://<service>.<namespace>.svc.cluster.local:<port>/mcp
-```
-
-Example: `http://context7-mcp.claude.svc.cluster.local:3000/mcp`
-
-### External
+### HTTP Servers
 
 ```text
 https://api.example.com/mcp
 ```
 
+### stdio Servers
+
+```json
+{
+  "server-name": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "@example/mcp-server"]
+  }
+}
+```
+
 ## Connectivity Requirements
 
-### In-Cluster Services
+### Local Services
 
-1. Service must exist in target namespace
-2. Network policies must allow egress/ingress
-3. DNS resolution must work (kube-dns)
+1. Process must be running on the expected port
+2. Correct port number in URL
 
 ### External Services
 
-1. Egress network policy for HTTPS (port 443)
-2. DNS resolution for external domains
-3. Valid SSL certificates
+1. DNS resolution for external domains
+2. Valid SSL certificates
 
 ## Troubleshooting
 
-| Issue              | Check                   |
-| ------------------ | ----------------------- |
-| Service not found  | `kubectl get svc`       |
-| Connection refused | Pod not running         |
-| Timeout            | Network policy blocking |
-| DNS failure        | Service name/namespace  |
+| Issue              | Check                      |
+| ------------------ | -------------------------- |
+| Service not found  | Check process is running   |
+| Connection refused | Check URL/port             |
+| Timeout            | Check firewall/process     |
+| DNS failure        | Check URL/port             |
 
 ### Diagnostics
 
 ```bash
-# Test DNS
-nslookup service.namespace.svc.cluster.local
-
 # Test connectivity
-nc -zv service.namespace.svc.cluster.local port
+curl http://localhost:<port>/mcp
 
-# Check service
-kubectl get svc -n namespace
+# Check if port is in use
+lsof -i :<port>
 
-# Check pods
-kubectl get pods -n namespace
+# Alternative port check
+ss -tlnp | grep <port>
 ```
 
 ## Best Practices

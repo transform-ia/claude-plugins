@@ -1,7 +1,7 @@
 ---
 name: skill-dev
 description: |
-  TypeScript/React development with Kubernetes dev containers.
+  TypeScript/React development with local toolchain.
 
   Auto-activates when working with *.ts, *.tsx, package.json, or tsconfig.json files.
 

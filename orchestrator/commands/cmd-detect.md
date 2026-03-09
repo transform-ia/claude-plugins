@@ -1,6 +1,6 @@
 ---
 description: "Detect frameworks: /orchestrator:cmd-detect [directory]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-detect.sh *)]
 ---
 
 # Orchestrator Detect

@@ -1,10 +1,10 @@
 #!/bin/bash
-# Execute 'go build' in golang-chart deployment
+# Execute 'go build' locally
 # Usage: cmd-build.sh <directory>
 #
 # Exit codes:
 #   0 = Success - build completed
-#   2 = BLOCKING error - build failed or deployment not found
+#   2 = BLOCKING error - build failed or go not found
 
 set -euo pipefail
 
@@ -14,10 +14,9 @@ dir="${1:?ERROR: Directory argument required. Usage: /go:cmd-build <directory>}"
 
 root=$("$SCRIPT_DIR/find-git-root.sh" "$dir") || exit 2
 
-# Find golang-chart deployment by label
-deployment=$(kubectl get deployment -l app.kubernetes.io/name=golang-chart -o jsonpath='{.items[0].metadata.name}' 2>/dev/null) || {
-    echo "ERROR: No golang-chart deployment found. Install with: helm install golang-dev oci://ghcr.io/transform-ia/golang-chart" >&2
+command -v go >/dev/null 2>&1 || {
+    echo "ERROR: go not found. Install Go: https://go.dev/dl/" >&2
     exit 2
 }
 
-kubectl exec "deployment/$deployment" -- sh -c "cd '$root' && go build ." || exit 2
+cd "$root" && go build . || exit 2

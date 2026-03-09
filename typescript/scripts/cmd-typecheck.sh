@@ -23,7 +23,7 @@ fi
 cd "$DIR"
 
 # Set npm cache to writable location
-export npm_config_cache=/workspace/.npm-cache
+export npm_config_cache="${HOME}/.npm-cache"
 
 echo "Running TypeScript type check in $DIR..."
 npx tsc --noEmit || {

@@ -1,6 +1,6 @@
 ---
 description: "Full release workflow: /github:cmd-release <version>"
-allowed-tools: [Bash, SlashCommand]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-release.sh *), SlashCommand(/github:cmd-build)]
 ---
 
 # GitHub Release
@@ -43,7 +43,7 @@ deployment.
 /github:cmd-release major                                    # Auto-bump major version
 /github:cmd-release auto                                     # Auto-detect from files or commits
 /github:cmd-release /path/to/project patch                   # Release project in specific directory
-/github:cmd-release /workspace/my-app auto                   # Auto-detect version for specific project
+/github:cmd-release ~/my-app auto                            # Auto-detect version for specific project
 ```
 
 ## Full Release Workflow
@@ -124,7 +124,7 @@ complete.**
 **The GitHub plugin stops here.** For downstream releases:
 
 - **Helm chart updates**: Use `/helm:cmd-release` in chart repository
-- **ArgoCD deployment**: Use orchestrator plugin or manual Application update
+- **Deployment**: Use standard deployment workflow
 - **Multi-repo orchestration**: Use orchestrator plugin workflows
 
 This keeps each plugin focused on its domain and prevents coupling.

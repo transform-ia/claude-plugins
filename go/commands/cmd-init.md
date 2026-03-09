@@ -1,6 +1,6 @@
 ---
 description: "Initialize Go module: /go:cmd-init <directory> <package-name>"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-init.sh *)]
 ---
 
 # Go Init

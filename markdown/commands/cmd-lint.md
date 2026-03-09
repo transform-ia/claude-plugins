@@ -1,6 +1,6 @@
 ---
 description: "Run markdownlint: /markdown:cmd-lint [path]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-lint.sh *)]
 ---
 
 # Markdown Lint

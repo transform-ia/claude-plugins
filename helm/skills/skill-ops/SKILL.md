@@ -1,17 +1,17 @@
 ---
 name: skill-ops
 description: |
-  Kubernetes operations for ArgoCD Application management.
+  Local Helm release management.
 
   ONLY activate when:
   - User explicitly requests /helm:skill-ops
-  - User requests to create, edit, or deploy ArgoCD Application manifests in /workspace/applications/
-  - User asks about ArgoCD sync status, health, or deployment troubleshooting
+  - User requests to install, upgrade, or uninstall a local Helm release
+  - User asks about Helm release status, history, or troubleshooting
 
   DO NOT activate when:
   - Developing Helm charts (use helm:skill-dev)
   - Creating or editing workflow files (use github:skill-dev)
   - Working on Go, Docker, or other code
-  - User mentions "helm" without ArgoCD/deployment context
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+  - User mentions "helm" without release management context
+allowed-tools: Read, Glob, Grep, Bash(helm *), Bash(kubectl get *)
 ---

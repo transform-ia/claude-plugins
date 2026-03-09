@@ -22,6 +22,9 @@ remote. If not, STOP and report to user.
 | Form Resolver   | @hookform/resolvers         | ^5.x    |
 | Routing         | react-router-dom            | ^7.x    |
 | Date Utilities  | date-fns                    | ^4.x    |
+| i18n            | react-i18next + i18next     | ^15.x   |
+| Testing         | Vitest                      | ^3.x    |
+| Test Rendering  | @testing-library/react      | ^16.x   |
 
 ## Standards
 
@@ -32,6 +35,9 @@ remote. If not, STOP and report to user.
 - Import from `node_modules` paths directly
 - Put business logic in components - use hooks or services
 - Use inline styles for repeated patterns - use theme or styled components
+- Hardcode user-facing strings in JSX/TSX - all strings go through `t()`
+  (react-i18next), even for single-language projects
+- Ship code without tests - every component, hook, and utility MUST have tests
 
 ### ALWAYS
 
@@ -42,6 +48,10 @@ remote. If not, STOP and report to user.
 - Export from index.ts files for clean imports
 - Use MUI theme for consistent styling
 - Handle loading and error states in data fetching
+- Wrap all user-facing strings with `t()` from react-i18next
+- **Ship tests with every change** - target minimum 90% code coverage
+- Co-locate test files next to source (Component.test.tsx next to
+  Component.tsx)
 
 ## Project Structure
 
@@ -161,6 +171,79 @@ mcp__typescript-*__hover        - Type information
 mcp__typescript-*__diagnostics  - TypeScript errors
 ```
 
+## Internationalization (i18n)
+
+**All user-facing strings MUST go through react-i18next**, even if the project
+currently supports only one language. This is non-negotiable - retrofitting i18n
+later is extremely costly.
+
+```typescript
+// WRONG - hardcoded string
+<Typography>No items found</Typography>
+<Button>Save</Button>
+
+// CORRECT - translated string
+import { useTranslation } from 'react-i18next';
+
+const { t } = useTranslation();
+<Typography>{t('items.empty')}</Typography>
+<Button>{t('common.save')}</Button>
+```
+
+Translation files live in `src/locales/{lang}/translation.json`:
+
+```json
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
+  "items": {
+    "empty": "No items found"
+  }
+}
+```
+
+## Testing Requirements
+
+**Every component, hook, and utility MUST have tests.** Code without tests is
+incomplete. Target minimum **90% code coverage**.
+
+- Use Vitest as the test runner (configured in `vite.config.ts`)
+- Use `@testing-library/react` for component tests
+- Test user interactions, not implementation details
+- Co-locate test files: `Component.test.tsx` next to `Component.tsx`
+- Run tests with `/typescript:cmd-test` or `npx vitest`
+
+```typescript
+// src/components/MyComponent/MyComponent.test.tsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MyComponent } from './MyComponent';
+
+describe('MyComponent', () => {
+  it('renders title', () => {
+    render(<MyComponent title="Hello" />);
+    expect(screen.getByText('Hello')).toBeInTheDocument();
+  });
+
+  it('calls onAction when clicked', async () => {
+    const onAction = vi.fn();
+    render(<MyComponent title="Hello" onAction={onAction} />);
+    await userEvent.click(screen.getByText('Hello'));
+    expect(onAction).toHaveBeenCalledOnce();
+  });
+});
+```
+
+**What to test:**
+
+- Components: rendering, user interactions, conditional display, error states
+- Hooks: return values, state changes, side effects
+- Utils: input/output, edge cases, error handling
+- GraphQL: mock Apollo responses with `MockedProvider`
+
 ## Environment Variables
 
 All client-side env vars must be prefixed with `VITE_`:
@@ -183,3 +266,17 @@ Run `/typescript:cmd-codegen <dir>` to regenerate types.
 ### "Module not found" errors
 
 Check package.json dependencies, run `npm install`, verify import paths.
+
+## OAuth2 PKCE Integration
+
+- Generate verifier (96+ random bytes → base64url, 128 chars) + challenge (SHA-256 → base64url) client-side
+- Store tokens in `sessionStorage` (not localStorage) — expires with tab
+- After PKCE code exchange: call `POST /{org}/oauth2/hasura-token` with Bearer access_token for Hasura JWT
+- Inject Hasura JWT via `Authorization: Bearer` in Apollo ApolloLink (`setContext` from `@apollo/client/link/context`)
+- Vite proxy: `/v1/graphql` → Hasura, API routes → Go server, OAuth2 redirects are DIRECT (browser redirect to OAuth2 server, not proxied)
+- Handle 401 from GraphQL: clear sessionStorage + redirect to authorize URL (use `onError` from `@apollo/client/link/error`)
+- For file upload: use `fetch` with `FormData` (not Apollo) + `Authorization: Bearer <hasuraToken>` header
+- For inline image display: fetch presigned URL from REST API → `<img src={url}>` or `<iframe>` for PDFs
+- Callback path: `/callback` — detect `?code=...&state=...` in URL, exchange via PKCE, then redirect to `/`
+- Dev port: 5176 (not 5174) to avoid conflicts with oauth2 web-test app
+- VITE_OAUTH2_ORG_SLUG, VITE_OAUTH2_CLIENT_ID, VITE_OAUTH2_SERVER_URL, VITE_OAUTH2_REDIRECT_URI via import.meta.env

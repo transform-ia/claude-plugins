@@ -1,7 +1,7 @@
 ---
 name: skill-dev
 description: |
-  Go development with Kubernetes dev containers.
+  Go development with local toolchain.
 
   Auto-activates when working with *.go, go.mod, or go.sum files.
 

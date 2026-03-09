@@ -7,9 +7,10 @@ description: |
 tools:
   - Read
   - Write
-  - Bash
+  - Bash(mkdir *)
+  - Bash(chmod *)
+  - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/*)
   - Glob
-model: sonnet
 ---
 
 # Plugin Creator Agent
@@ -137,7 +138,7 @@ my-plugin/
 set -euo pipefail
 
 # Check if we're in our plugin context
-MY_PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/PLUGIN_NAME"
+MY_PLUGIN_PATH="${CLAUDE_PLUGIN_ROOT}/../PLUGIN_NAME"
 if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$MY_PLUGIN_PATH" ]]; then
     exit 0  # Not in our plugin context, allow all operations
 fi
@@ -171,7 +172,7 @@ esac
 set -euo pipefail
 
 # Check if we're in our plugin context
-MY_PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/PLUGIN_NAME"
+MY_PLUGIN_PATH="${CLAUDE_PLUGIN_ROOT}/../PLUGIN_NAME"
 if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$MY_PLUGIN_PATH" ]]; then
     exit 0  # Not in our plugin context, allow all
 fi
@@ -203,7 +204,7 @@ exit 2
 set -euo pipefail
 
 # Check if we're in our plugin context
-MY_PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/PLUGIN_NAME"
+MY_PLUGIN_PATH="${CLAUDE_PLUGIN_ROOT}/../PLUGIN_NAME"
 if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$MY_PLUGIN_PATH" ]]; then
     exit 0
 fi
@@ -218,7 +219,7 @@ LINT_COMMAND
 ```markdown
 ---
 description: "Short description: /plugin:command [args]"
-allowed-tools: [Bash, Read, Edit]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-example.sh *), Read]
 ---
 
 Full description of what this command does.
@@ -245,7 +246,7 @@ description: |
   DO NOT activate when:
   - Working on other file types
   - Other conditions
-allowed-tools: Bash, Read, Edit, Write
+allowed-tools: Read, Write(*.ext), Edit(*.ext), Bash(tool_name *), Glob, Grep
 ---
 ```
 
@@ -259,11 +260,12 @@ description: |
   When to use it.
 
 tools:
-  - Bash
   - Read
-  - Edit
-  - Write
-model: sonnet
+  - Write(*.ext)
+  - Edit(*.ext)
+  - Bash(tool_name *)
+  - Glob
+  - Grep
 ---
 
 # Plugin Agent
@@ -332,7 +334,7 @@ model: sonnet
 2. **Create directory structure**:
 
    ```bash
-   mkdir -p /workspace/sandbox/transform-ia/claude-plugins/PLUGIN/{hooks,scripts,commands,skills/skill-dev,agents}
+   mkdir -p "${CLAUDE_PLUGIN_ROOT}/../PLUGIN/{hooks,scripts,commands,skills/skill-dev,agents}"
    ```
 
 3. **Create hooks.json** with appropriate matchers

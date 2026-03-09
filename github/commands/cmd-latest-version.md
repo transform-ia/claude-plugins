@@ -2,7 +2,7 @@
 description:
   "Get latest semantic version from local git: /github:cmd-latest-version
   <directory>"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-latest-version.sh *)]
 ---
 
 # GitHub Latest Version
@@ -26,7 +26,7 @@ GitHub repository, clone it first or use `gh release list`.
 
 Examples of valid paths:
 
-- `/workspace/my-project`
+- `~/my-project`
 - `.` (current directory)
 - `../other-repo`
 

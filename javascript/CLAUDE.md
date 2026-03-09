@@ -108,7 +108,7 @@ The plugin integrates with the javascript-dev MCP server providing:
 
 - Node.js 20+ installed
 - JavaScript project with package.json
-- MCP server running (javascript-dev pod)
+- MCP server running (javascript-dev service)
 
 ### Dependencies
 
@@ -167,12 +167,12 @@ module.exports = {
 
 ## Integration with Development Environment
 
-This plugin works seamlessly with the javascript-image container:
+This plugin works seamlessly with the local JavaScript development setup:
 
-1. **Container**: JavaScript development environment with language server
+1. **Runtime**: Node.js local development environment with language server
 2. **MCP Server**: HTTP bridge for language server communication
-3. **Workspace**: Shared volume for project files
-4. **Tools**: Pre-installed development tools and utilities
+3. **Workspace**: Local project directory
+4. **Tools**: Locally installed development tools and utilities
 
 ## Usage Examples
 
@@ -297,9 +297,9 @@ const data = await api.request('/users');
 
 **Language Server Not Responding**:
 
-- Check javascript-dev pod status: `kubectl get pods -n claude`
+- Verify the javascript-dev MCP server process is running
 - Verify MCP server connectivity
-- Check workspace mounting
+- Check workspace path configuration
 
 **ESLint Configuration Errors**:
 
@@ -329,7 +329,7 @@ const data = await api.request('/users');
 
 **Memory Usage**:
 
-- Monitor container resources
+- Monitor local resource usage
 - Optimize build configuration
 - Use incremental builds
 
@@ -409,7 +409,7 @@ const userService = {
 
 ```bash
 # Development workflow example
-cd /workspace/my-react-app
+cd my-react-app
 
 # 1. Write code with semantic understanding
 # 2. Lint automatically

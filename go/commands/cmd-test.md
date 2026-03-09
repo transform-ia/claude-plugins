@@ -1,6 +1,6 @@
 ---
 description: "Run Go tests: /go:cmd-test <directory> [package]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-test.sh *)]
 ---
 
 # Go Test

@@ -1,9 +1,11 @@
 #!/bin/bash
-# Sync all git repositories in /workspace/sandbox/ with their GitHub remotes
-# Usage: cmd-sync-repositories.sh
+# Sync all git repositories with their GitHub remotes
+# Usage: cmd-sync-repositories.sh [directory]
+#   directory: Path to scan for git repos (default: current directory)
 set -euo pipefail
 
-SANDBOX_DIR="/workspace/sandbox"
+SANDBOX_DIR="${1:-.}"
+SANDBOX_DIR="$(cd "$SANDBOX_DIR" && pwd)"
 
 # Colors for output
 RED='\033[0;31m'
@@ -21,7 +23,7 @@ declare -a NOT_GITHUB_REPOS=()
 declare -a SKIPPED_REPOS=()
 
 echo "=============================================="
-echo "GitHub Repository Sync - /workspace/sandbox/"
+echo "GitHub Repository Sync - ${SANDBOX_DIR}"
 echo "=============================================="
 echo ""
 

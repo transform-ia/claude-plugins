@@ -1,6 +1,6 @@
 ---
 description: "Format helm chart yaml: /helm:cmd-format [directory]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-format.sh *)]
 ---
 
 # Helm Format

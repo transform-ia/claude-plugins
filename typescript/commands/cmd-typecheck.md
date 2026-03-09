@@ -1,6 +1,6 @@
 ---
 description: "Run TypeScript type check: /typescript:cmd-typecheck <directory>"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-typecheck.sh *)]
 ---
 
 # TypeScript Type Check

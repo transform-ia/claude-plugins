@@ -9,7 +9,7 @@ if [[ -z "${1:-}" ]]; then
     echo "Usage: /github:cmd-latest-version <path>" >&2
     echo "" >&2
     echo "Examples:" >&2
-    echo "  /github:cmd-latest-version /workspace/my-project" >&2
+    echo "  /github:cmd-latest-version ~/my-project" >&2
     echo "  /github:cmd-latest-version ." >&2
     exit 1
 fi

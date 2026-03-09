@@ -7,7 +7,6 @@ description: |
 tools:
   - Task
   - SlashCommand(/orchestrator:*)
-model: sonnet
 ---
 
 # Orchestrator Agent

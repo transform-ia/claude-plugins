@@ -6,8 +6,8 @@ allowed-tools:
   - Task
   - AskUserQuestion
   - TodoWrite
-  - Bash
-  - mcp__github__create_repository
+  - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-bootstrap.sh *)
+  - Bash(gh repo create *)
   - SlashCommand(/github:cmd-release)
 ---
 
@@ -82,16 +82,11 @@ Store responses: `$ENABLE_GO`, `$ENABLE_DOCKER`, `$ENABLE_HELM`, `$GO_APP_TYPE`
 
 ```bash
 # Create GitHub repository
-mcp__github__create_repository(
-  organization=$org,
-  name=$name,
-  private=true,
-  description="Bootstrapped by /github:cmd-bootstrap"
-)
+gh repo create $org/$name --private --description "Bootstrapped by /github:cmd-bootstrap"
 
 # Create local workspace
-mkdir -p /workspace/sandbox/$org/$name
-cd /workspace/sandbox/$org/$name
+mkdir -p ~/sandbox/$org/$name
+cd ~/sandbox/$org/$name
 git init
 git remote add origin git@github.com:$org/$name.git
 ```
@@ -107,7 +102,7 @@ Task:
   subagent_type: "go:agent-dev"
   prompt: |
     Initialize Go module for new repository:
-    - Directory: /workspace/sandbox/$org/$name
+    - Directory: ~/sandbox/$org/$name
     - Module path: github.com/$org/$name
     - Application type: $GO_APP_TYPE
     - Create scaffold using /go:cmd-init with scaffold type
@@ -121,7 +116,7 @@ Task:
   subagent_type: "docker:agent-dev"
   prompt: |
     Create Dockerfile for repository:
-    - Directory: /workspace/sandbox/$org/$name
+    - Directory: ~/sandbox/$org/$name
     - Use Go template if go.mod exists, otherwise default
     - Include .dockerignore
     - Validate: hadolint must pass
@@ -134,7 +129,7 @@ Task:
   subagent_type: "helm:agent-dev"
   prompt: |
     Create Helm chart for repository:
-    - Directory: /workspace/sandbox/$org/$name/chart
+    - Directory: ~/sandbox/$org/$name/chart
     - Chart name: $name
     - Image: ghcr.io/$org/$name (if Docker enabled)
     - Validate: helm lint must pass
@@ -145,7 +140,7 @@ Task:
 Assemble workflow using templates:
 
 ```bash
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-bootstrap.sh /workspace/sandbox/$org/$name latest $name $FLAGS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-bootstrap.sh ~/sandbox/$org/$name latest $name $FLAGS")
 ```
 
 Create dependabot.yaml based on features:
@@ -164,7 +159,7 @@ updates:
 ### Phase 4: Finalization
 
 ```bash
-cd /workspace/sandbox/$org/$name
+cd ~/sandbox/$org/$name
 git add .
 git commit -m "chore: initial bootstrap via /github:cmd-bootstrap
 

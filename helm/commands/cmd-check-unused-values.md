@@ -1,6 +1,6 @@
 ---
 description: "Find unused values: /helm:cmd-check-unused-values [directory]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-check-unused-values.sh *)]
 ---
 
 # Helm Check Unused Values

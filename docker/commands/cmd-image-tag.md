@@ -1,6 +1,6 @@
 ---
 description: "Query image tags: /docker:cmd-image-tag <image> [count]"
-allowed-tools: [Bash, mcp__dockerhub__*]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-image-tag.sh *), mcp__dockerhub__*]
 ---
 
 # Docker Image Tag

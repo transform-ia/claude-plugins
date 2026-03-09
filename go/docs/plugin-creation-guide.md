@@ -153,7 +153,7 @@ is available to all hooks and persists through subagent invocations.
 set -euo pipefail
 
 # Check if we're in our plugin's context
-MY_PLUGIN_PATH="/workspace/sandbox/transform-ia/claude-plugins/myplugin"
+MY_PLUGIN_PATH="${CLAUDE_PLUGIN_ROOT}"
 if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$MY_PLUGIN_PATH" ]]; then
     exit 0  # Not in our plugin context, allow all operations
 fi
@@ -207,7 +207,7 @@ Commands are markdown files that expand to prompts when invoked.
 Build the Go project at $ARGUMENTS using the dev pod.
 
 1. Find the dev pod for this project
-2. Run: kubectl exec <pod> -- go build ./...
+2. Run: cd <project-dir> && go build ./...
 3. Report any errors
 ```
 

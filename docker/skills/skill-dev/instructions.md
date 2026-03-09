@@ -32,6 +32,8 @@ configuration is in `.hadolint.yaml`.
 - Use `latest` tag - always pin to specific versions
 - Use ARG for base image versions - Dependabot cannot track ARG variables.
   Always use explicit version tags in FROM statements.
+- Use YAML flow/inline sequences (`[a, b, c]`) - always use block style
+  (one item per line)
 
 ### ALWAYS
 
@@ -41,6 +43,8 @@ configuration is in `.hadolint.yaml`.
 - Use `.dockerignore` to exclude unnecessary files
 - Use dependency files for package management when available (see Dependency
   Management section)
+- Use YAML block-style sequences for lists (one item per line, prefixed with
+  `-`)
 
 ## Getting Latest Image Versions
 
@@ -153,3 +157,39 @@ WORKDIR /workspace
 - Copy only `package.json` for layer caching, not full source
 - Always `yarn cache clean` after install to reduce image size
 - Use a dedicated directory (`/usr/local/`) to avoid conflicts
+
+## YAML List Format
+
+**Always use block-style sequences (one item per line), never inline/flow
+style.** This applies to all YAML files: `docker-compose.yaml`, CI workflows,
+`.yamllint.yaml`, Helm values, etc.
+
+```yaml
+# CORRECT - block style
+ports:
+  - "8080:8080"
+  - "9090:9090"
+
+volumes:
+  - ./data:/data
+  - ./config:/config
+
+# WRONG - inline/flow style (NEVER use this)
+ports: ["8080:8080", "9090:9090"]
+volumes: [./data:/data, ./config:/config]
+```
+
+## Docker Compose
+
+- Always use `.yaml` extension (not `.yml`)
+- Always use `depends_on` with `condition: service_healthy` for service
+  dependencies
+- Always define healthchecks for all services using `test`, `interval`,
+  `timeout`, `retries`, `start_period`
+- Use named volumes for persistent data storage
+- Use `env_file` for environment variables when multiple services share config
+- Never hardcode secrets - use environment variables from .env files
+- Use `healthcheck` for PostgreSQL: `pg_isready -U <user> -d <db>`
+- Use `healthcheck` for Hasura: `curl -sf http://localhost:8080/healthz`
+- Apply Hasura metadata automatically using init containers or CLI migrations
+  image

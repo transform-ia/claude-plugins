@@ -346,6 +346,73 @@ updates:
       interval: "daily"
 ```
 
+## .gitignore
+
+Keep `.gitignore` at repository root.
+
+### Organization
+
+- Use comments (`#`) to organize sections by category
+- Group related patterns under descriptive headers
+
+### OS Artifacts
+
+```gitignore
+# OS
+.DS_Store
+Thumbs.db
+```
+
+### Editor Artifacts
+
+```gitignore
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+```
+
+### Language-Specific
+
+**Go**:
+
+```gitignore
+# Go
+*.test
+*.out
+coverage.txt
+```
+
+**Node.js**:
+
+```gitignore
+# Node
+node_modules/
+dist/
+.env
+```
+
+### Secrets
+
+Never commit secrets. Always ignore:
+
+```gitignore
+# Secrets
+.env
+*.key
+*.pem
+```
+
+### Negation
+
+Use `!` to re-include specific files that would otherwise be ignored:
+
+```gitignore
+*.env
+!.env.example
+```
+
 ## Common yamllint Fixes
 
 | Issue                    | Fix                                      |

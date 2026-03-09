@@ -8,9 +8,12 @@ tools:
   - Read(.github/*)
   - Glob
   - Grep
-  - Bash
-  - mcp__github__*
-model: haiku
+  - Bash(gh run *)
+  - Bash(gh workflow *)
+  - Bash(gh pr view *)
+  - Bash(gh pr list *)
+  - Bash(gh pr checks *)
+  - Bash(gh api *)
 ---
 
 # GitHub Builder Agent

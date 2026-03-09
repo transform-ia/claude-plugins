@@ -3,14 +3,16 @@
 # Source this from plugin hook scripts
 #
 # Usage:
-#   source "/workspace/sandbox/transform-ia/claude-plugins/scripts/lib/hook-common.sh"
+#   source "<plugins-root>/scripts/lib/hook-common.sh"
 #   if ! in_plugin_scope "$transcript_path" "$tool_use_id" "go"; then
 #       exit 0  # Not in scope
 #   fi
 
 set -euo pipefail
 
-readonly DETECT_CALLER="/workspace/sandbox/transform-ia/claude-plugins/scripts/detect-caller.py"
+# Resolve path relative to this script's location
+_HOOK_COMMON_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly DETECT_CALLER="$_HOOK_COMMON_DIR/../detect-caller.py"
 
 # Check if in plugin scope
 # Usage: in_plugin_scope "$transcript_path" "$tool_use_id" "plugin_prefix"

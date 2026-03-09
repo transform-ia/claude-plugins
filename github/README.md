@@ -92,7 +92,7 @@ Get the latest semantic version tag from a git repository.
 **Examples:**
 
 ```bash
-/github:cmd-latest-version /workspace/my-project
+/github:cmd-latest-version ~/projects/my-project
 /github:cmd-latest-version .
 ```
 
@@ -168,7 +168,7 @@ Automatically manage dependabot pull requests across repositories.
 **Safety:**
 
 - Only merges when ALL required checks pass
-- Uses MCP tools for reliable GitHub API operations
+- Uses `gh` CLI for GitHub API operations
 - Idempotent (safe to run multiple times)
 - Continues processing on errors
 
@@ -193,7 +193,7 @@ GitHub CI/CD workflow development and maintenance.
 - Set up CI/CD pipelines
 - Implement build, test, and deployment workflows
 
-**Tools:** Read, Write, Edit, Bash, MCP GitHub tools
+**Tools:** Read, Write(.github/*), Edit(.github/*), Bash(gh *), Bash(rm .github/*)
 
 ---
 
@@ -208,7 +208,7 @@ GitHub Actions build monitoring and status checking.
 - Retrieve build logs
 - Diagnose build failures
 
-**Tools:** Read, Bash, MCP GitHub tools (read-only)
+**Tools:** Read, Bash(gh run *), Bash(gh workflow *), Bash(gh pr *), Bash(gh api *)
 
 ---
 
@@ -256,11 +256,10 @@ Build monitoring agent for GitHub Actions.
 - Only read operations allowed: list, view, watch, status
 - Enforced by `block-bash.sh` hook
 
-**MCP Tools:**
+**gh CLI:**
 
-- Used for all GitHub API write operations
-- Provides structured, type-safe responses
-- Bypasses bash command restrictions
+- Used for all GitHub API operations
+- Provides structured JSON output with `--json` flag
 
 ### Workflow Pattern
 
@@ -273,7 +272,7 @@ Build monitoring agent for GitHub Actions.
 **Complex commands** (release, dependabot):
 
 - Embed workflow in command .md file
-- Mix of bash and MCP tools
+- `gh` CLI operations
 - Multi-phase orchestration
 
 ### Hook System
@@ -300,7 +299,7 @@ Build monitoring agent for GitHub Actions.
    ```yaml
    ---
    description: "Brief description: /github:cmd-<name> <args>"
-   allowed-tools: [Bash, Read, Write, Edit]
+   allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-<name>.sh *), Read]
    ---
    # Command Title
 
@@ -335,7 +334,7 @@ Run individual commands:
 Run tests:
 
 ```bash
-cd /workspace/sandbox/transform-ia/claude-plugins/github/tests
+cd github/tests
 ./run-tests.sh
 ```
 
@@ -352,7 +351,7 @@ cd /workspace/sandbox/transform-ia/claude-plugins/github/tests
 ### With GitHub
 
 - **Authentication**: Uses `gh` CLI authentication
-- **API**: GitHub MCP server provides API access
+- **API**: `gh api` provides direct GitHub API access
 - **Actions**: Monitors workflows via GitHub Actions API
 - **Dependabot**: Manages PRs via GitHub API
 

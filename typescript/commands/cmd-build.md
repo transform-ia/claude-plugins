@@ -1,6 +1,6 @@
 ---
 description: "Build TypeScript project: /typescript:cmd-build <directory>"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-build.sh *)]
 ---
 
 # TypeScript Build

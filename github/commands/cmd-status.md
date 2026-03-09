@@ -1,6 +1,6 @@
 ---
 description: "Check workflow status: /github:cmd-status [owner/repo] [limit]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-status.sh *)]
 ---
 
 # GitHub Status

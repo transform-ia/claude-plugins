@@ -1,6 +1,6 @@
 ---
 description: "Run Go project: /go:cmd-run <directory> [args]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-run.sh *)]
 ---
 
 # Go Run

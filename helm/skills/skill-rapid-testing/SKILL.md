@@ -1,16 +1,16 @@
 ---
 name: skill-rapid-testing
 description: |
-  Fast container testing via direct pod creation in Kubernetes.
+  Fast container testing via local Docker containers.
 
   ONLY activate when:
   - User explicitly requests /helm:skill-rapid-testing
-  - User requests to test a container image directly without deploying via ArgoCD
+  - User requests to test a container image locally using Docker
 
   DO NOT activate when:
   - Deploying to production (use helm:skill-ops)
   - Developing Helm charts (use helm:skill-dev)
   - Working on Dockerfiles (use docker:skill-dev)
   - User requests persistent deployments
-allowed-tools: Bash, Read, Write
+allowed-tools: Bash(docker run *), Bash(docker logs *), Bash(docker exec *), Bash(docker rm *), Read, Write(/tmp/*)
 ---

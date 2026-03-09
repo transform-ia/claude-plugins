@@ -1,10 +1,10 @@
 #!/bin/bash
-# Execute 'go run .' in golang-chart deployment
+# Execute 'go run .' locally
 # Usage: cmd-run.sh <directory> [args...]
 #
 # Exit codes:
 #   0 = Success - program ran successfully
-#   2 = BLOCKING error - run failed or deployment not found
+#   2 = BLOCKING error - run failed or go not found
 
 set -euo pipefail
 
@@ -15,20 +15,9 @@ shift
 
 root=$("$SCRIPT_DIR/find-git-root.sh" "$dir") || exit 2
 
-# Find golang-chart deployment by label
-deployment=$(kubectl get deployment -l app.kubernetes.io/name=golang-chart -o jsonpath='{.items[0].metadata.name}' 2>/dev/null) || {
-    echo "ERROR: No golang-chart deployment found. Install with: helm install golang-dev oci://ghcr.io/transform-ia/golang-chart" >&2
+command -v go >/dev/null 2>&1 || {
+    echo "ERROR: go not found. Install Go: https://go.dev/dl/" >&2
     exit 2
 }
 
-# Build the command with args properly escaped
-if [[ $# -eq 0 ]]; then
-    kubectl exec "deployment/$deployment" -- sh -c "cd '$root' && go run ." || exit 2
-else
-    # Properly escape arguments for passing through sh -c
-    args=""
-    for arg in "$@"; do
-        args="$args $(printf '%q' "$arg")"
-    done
-    kubectl exec "deployment/$deployment" -- sh -c "cd '$root' && go run .$args" || exit 2
-fi
+cd "$root" && go run . "$@" || exit 2

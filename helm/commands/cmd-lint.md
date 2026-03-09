@@ -1,6 +1,6 @@
 ---
 description: "Lint helm chart: /helm:cmd-lint [directory]"
-allowed-tools: [Bash, Read, Grep, Glob]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-lint.sh *), Read, Grep, Glob]
 ---
 
 # Helm Lint

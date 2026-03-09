@@ -1,10 +1,10 @@
 #!/bin/bash
-# Execute 'go mod init' in golang-chart deployment
+# Execute 'go mod init' locally
 # Usage: cmd-init.sh <directory> <package-name>
 #
 # Exit codes:
 #   0 = Success - go.mod created
-#   2 = BLOCKING error - init failed or deployment not found
+#   2 = BLOCKING error - init failed or go not found
 
 set -euo pipefail
 
@@ -16,10 +16,9 @@ pkg="${1:?ERROR: Package name required. Usage: /go:cmd-init <directory> <package
 
 root=$("$SCRIPT_DIR/find-git-root.sh" "$dir") || exit 2
 
-# Find golang-chart deployment by label
-deployment=$(kubectl get deployment -l app.kubernetes.io/name=golang-chart -o jsonpath='{.items[0].metadata.name}' 2>/dev/null) || {
-    echo "ERROR: No golang-chart deployment found. Install with: helm install golang-dev oci://ghcr.io/transform-ia/golang-chart" >&2
+command -v go >/dev/null 2>&1 || {
+    echo "ERROR: go not found. Install Go: https://go.dev/dl/" >&2
     exit 2
 }
 
-kubectl exec "deployment/$deployment" -- sh -c "cd '$root' && go mod init '$pkg'" || exit 2
+cd "$root" && go mod init "$pkg" || exit 2

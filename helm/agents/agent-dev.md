@@ -14,7 +14,6 @@ tools:
   - SlashCommand(/helm:*)
   - SlashCommand(/docker:cmd-image-tag *)
   - mcp__dockerhub__*
-model: sonnet
 ---
 
 # Helm Agent

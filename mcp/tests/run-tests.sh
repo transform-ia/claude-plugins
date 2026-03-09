@@ -44,52 +44,49 @@ else
 fi
 
 # Test: Allows .mcp.json in plugin context
-echo '{"tool_name":"Write","tool_input":{"file_path":"/workspace/.mcp.json"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test/.mcp.json"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
     TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/enforce-mcp-files.sh" && \
     pass "Allows .mcp.json in plugin context" || \
     fail "File restriction" "Should allow .mcp.json"
 
-# Test: kubectl restrictions - should block kubectl create
-result=$(echo '{"tool_input":{"command":"kubectl create job test --image=alpine"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+# Test: kubectl should be blocked entirely
+result=$(echo '{"tool_input":{"command":"kubectl get svc -n claude"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
     TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
-    pass "Blocks kubectl create (security)"
+    pass "Blocks kubectl commands"
 else
-    fail "kubectl security" "Should block kubectl create"
+    fail "kubectl security" "Should block all kubectl commands"
 fi
 
-# Test: kubectl restrictions - should block kubectl apply
-result=$(echo '{"tool_input":{"command":"kubectl apply -f /tmp/job.yaml"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+# Test: nslookup should be blocked
+result=$(echo '{"tool_input":{"command":"nslookup example.com"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
     TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
-    pass "Blocks kubectl apply (security)"
+    pass "Blocks nslookup commands"
 else
-    fail "kubectl security" "Should block kubectl apply"
+    fail "nslookup security" "Should block nslookup commands"
 fi
 
-# Test: kubectl restrictions - should block kubectl exec
-result=$(echo '{"tool_input":{"command":"kubectl exec -it pod -- sh"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
-    TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
-if [[ "$result" == *"BLOCKED"* ]]; then
-    pass "Blocks kubectl exec (security)"
-else
-    fail "kubectl security" "Should block kubectl exec"
-fi
-
-# Test: kubectl restrictions - should allow kubectl get
-echo '{"tool_input":{"command":"kubectl get svc -n claude"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+# Test: allows curl for connectivity testing
+echo '{"tool_input":{"command":"curl -v --max-time 5 http://localhost:3000/mcp"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
     TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" && \
-    pass "Allows kubectl get (read-only)" || \
-    fail "kubectl read" "Should allow kubectl get"
+    pass "Allows curl (connectivity testing)" || \
+    fail "curl access" "Should allow curl"
 
-# Test: kubectl restrictions - should allow kubectl describe
-echo '{"tool_input":{"command":"kubectl describe svc context7 -n claude"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+# Test: allows ss for port checking
+echo '{"tool_input":{"command":"ss -tlnp"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
     TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" && \
-    pass "Allows kubectl describe (read-only)" || \
-    fail "kubectl read" "Should allow kubectl describe"
+    pass "Allows ss (port checking)" || \
+    fail "ss access" "Should allow ss"
+
+# Test: allows lsof for port checking
+echo '{"tool_input":{"command":"lsof -i :3000"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+    TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" && \
+    pass "Allows lsof (port checking)" || \
+    fail "lsof access" "Should allow lsof"
 
 # Test: rm deletion - allows .mcp.json
-echo '{"tool_input":{"command":"rm /workspace/.mcp.json"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
+echo '{"tool_input":{"command":"rm /tmp/test/.mcp.json"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}' | \
     TEST_CALLER="/mcp:skill-dev" "$SCRIPTS_DIR/block-bash.sh" && \
     pass "Allows rm .mcp.json" || \
     fail "Deletion" "Should allow deleting .mcp.json"

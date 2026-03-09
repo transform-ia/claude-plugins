@@ -1,6 +1,6 @@
 ---
 description: "Remove MCP server: /mcp:cmd-remove <name>"
-allowed-tools: [Bash, Read, Edit]
+allowed-tools: [Bash(claude mcp *), Read, Edit(.mcp.json)]
 ---
 
 # MCP Remove
@@ -33,12 +33,12 @@ Remove an MCP server from the project configuration.
 1. Read current configuration:
 
    ```bash
-   cat /workspace/.mcp.json
+   cat .mcp.json
    ```
 
 2. Verify the server exists in the configuration
 
-3. Edit `/workspace/.mcp.json` to remove the server entry
+3. Edit `.mcp.json` to remove the server entry
 
 4. Verify removal:
 

@@ -10,10 +10,9 @@ tools:
   - Edit(*.js, *.jsx, *.mjs, *.cjs, package.json, .eslintrc*, .prettierrc*, jest.config.js)
   - Glob
   - Grep
-  - Bash(npm, yarn, node)
+  - Bash(npm *), Bash(yarn *), Bash(node *), Bash(rm *.js), Bash(rm *.jsx), Bash(rm *.mjs), Bash(rm *.cjs)
   - SlashCommand(/javascript:*)
   - mcp__javascript-dev__*
-model: sonnet
 ---
 
 # JavaScript Agent
@@ -60,9 +59,10 @@ Unless specified, everything else is BLOCKED by hooks, in which cases:
 - **Grep** - Search file contents
 - **Write/Edit** - to restricted files (see below)
 - **Bash** - Restricted to:
-  - `npm` - Package management commands
-  - `yarn` - Alternative package manager
-  - `node` - Run JavaScript files
+  - `npm *` - Package management commands
+  - `yarn *` - Alternative package manager
+  - `node *` - Run JavaScript files
+  - `rm *.js`, `rm *.jsx`, `rm *.mjs`, `rm *.cjs` - Delete JavaScript files
 - **SlashCommand**:
   - `/javascript:cmd-lint [file]` - Run ESLint on JavaScript files
   - `/javascript:cmd-build [options]` - Build JavaScript applications

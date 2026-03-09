@@ -1,6 +1,6 @@
 ---
 description: "Add MCP server: /mcp:cmd-add <name> <url>"
-allowed-tools: [Bash]
+allowed-tools: [Bash(claude mcp *)]
 ---
 
 # MCP Add
@@ -26,7 +26,7 @@ Add an MCP server to the project configuration.
 **Example**:
 
 ```text
-/mcp:cmd-add context7 http://context7-mcp.claude.svc.cluster.local:3000/mcp
+/mcp:cmd-add context7 http://localhost:3000/mcp
 ```
 
 ## Steps
@@ -43,20 +43,19 @@ Add an MCP server to the project configuration.
    claude mcp list
    ```
 
-3. Test connectivity (if in-cluster service):
+3. Test connectivity:
 
    ```bash
-   # For *.svc.cluster.local URLs
    curl -v --max-time 5 <url>
    ```
 
 ## Server Types
 
-- **HTTP**: `http://service.namespace.svc.cluster.local:port/mcp`
-- **SSE**: `http://service.namespace.svc.cluster.local:port/sse`
+- **HTTP**: `http://localhost:port/mcp`
+- **SSE**: `http://localhost:port/sse`
 - **External**: `https://api.example.com/mcp`
 
 ## URL Formats
 
-- **In-cluster**: `http://<service>.<namespace>.svc.cluster.local:<port>/mcp`
+- **Local HTTP**: `http://localhost:<port>/mcp`
 - **External HTTPS**: `https://api.example.com/mcp`

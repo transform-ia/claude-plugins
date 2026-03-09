@@ -1,6 +1,6 @@
 ---
 description: "Install npm dependencies: /typescript:cmd-install <directory>"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-install.sh *)]
 ---
 
 # Install Dependencies

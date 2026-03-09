@@ -4,7 +4,7 @@
 set -e
 
 # Default values
-WORKSPACE="${WORKSPACE:-/workspace}"
+WORKSPACE="${WORKSPACE:-.}"
 BUILD_MODE="${BUILD_MODE:-production}"
 ENV_FILE="${ENV_FILE:-/.env}"
 
@@ -40,7 +40,7 @@ JavaScript Build Script
 Usage: $0 [OPTIONS]
 
 Options:
-  -w, --workspace DIR    Workspace directory (default: /workspace)
+  -w, --workspace DIR    Workspace directory (default: current directory)
   -m, --mode MODE        Build mode: development|production (default: production)
   -e, --env FILE         Environment file to load
   -o, --output DIR       Output directory for build artifacts

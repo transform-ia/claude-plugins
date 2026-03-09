@@ -25,10 +25,7 @@ description: |
   - Using MCP tools for semantic navigation (definition, references, etc.)
 
   Use slash commands for build/test/lint operations. The skill auto-activates when modifying JavaScript code.
-allowed-tools:
-  Read, Write(*.js, *.jsx, *.mjs, *.cjs, package.json),
-  Edit(*.js, *.jsx, *.mjs, *.cjs, package.json), Glob, Grep,
-  Bash(npm, yarn, node), SlashCommand(/javascript:*), mcp__javascript-dev__*
+allowed-tools: Read, Write(*.js, *.jsx, *.mjs, *.cjs, package.json), Edit(*.js, *.jsx, *.mjs, *.cjs, package.json), Glob, Grep, Bash(npm *), Bash(yarn *), Bash(node *), Bash(rm *.js), Bash(rm *.jsx), Bash(rm *.mjs), Bash(rm *.cjs), SlashCommand(/javascript:*), mcp__javascript-dev__*
 ---
 
 The `javascript:skill-dev` skill provides JavaScript development capabilities for Claude Code, optimized for React and modern JavaScript projects.
@@ -110,12 +107,12 @@ This skill enables Claude Code to work with JavaScript projects using modern dev
 
 ## Integration with Development Environment
 
-This skill works seamlessly with the javascript-image container:
+This skill works seamlessly with the local JavaScript development setup:
 
 1. **Language Server**: Uses typescript-language-server with excellent JavaScript support
 2. **MCP Bridge**: Communicates via mcp-language-server over HTTP
 3. **Development Tools**: Access to ESLint, Prettier, and modern JavaScript tooling
-4. **Workspace Integration**: Works with mounted workspace volumes
+4. **Workspace Integration**: Works with local project directories
 
 ## Available Commands
 
@@ -215,8 +212,8 @@ module.exports = {
 ### Common Issues
 
 **Language Server Not Responding**:
-- Check javascript-dev pod status
-- Verify workspace mounting
+- Verify the javascript-dev MCP server process is running
+- Check workspace path configuration
 - Check MCP server connectivity
 
 **ESLint Configuration Errors**:
@@ -237,7 +234,7 @@ module.exports = {
 - Use project-specific tsconfig.json/jsconfig.json
 
 **Memory Issues**:
-- Monitor container resource usage
+- Monitor local resource usage
 - Optimize build configuration
 - Use incremental builds when possible
 

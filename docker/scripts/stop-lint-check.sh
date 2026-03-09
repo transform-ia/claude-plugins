@@ -7,7 +7,7 @@ if [[ -z "${CLAUDE_PLUGIN_ROOT:-}" ]] || [[ ! "${CLAUDE_PLUGIN_ROOT}" =~ /docker
     exit 0
 fi
 
-GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "/workspace")
+GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
 
 # Find modified Dockerfiles
 MODIFIED_FILES=$(git -C "$GIT_ROOT" diff --name-only --diff-filter=AM 2>/dev/null | grep -E '^Dockerfile|/Dockerfile' || true)

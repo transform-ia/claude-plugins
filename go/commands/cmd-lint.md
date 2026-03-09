@@ -1,6 +1,6 @@
 ---
 description: "Run golangci-lint: /go:cmd-lint <directory>"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-lint.sh *)]
 ---
 
 # Go Lint

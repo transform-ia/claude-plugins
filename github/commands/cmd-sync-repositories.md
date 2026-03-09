@@ -1,6 +1,6 @@
 ---
 description: "Sync repositories: /github:cmd-sync-repositories"
-allowed-tools: [Bash, Read, AskUserQuestion]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-sync-repositories.sh *), Read, AskUserQuestion]
 ---
 
 # GitHub Sync Repositories
@@ -8,14 +8,14 @@ allowed-tools: [Bash, Read, AskUserQuestion]
 ## Permissions
 
 This command is READ-ONLY with selective PULL operations. It scans git
-repositories in /workspace/sandbox/, checks their sync status with GitHub, and
+repositories in ~/sandbox/, checks their sync status with GitHub, and
 pulls remote changes when behind. Does not push or modify branches.
 
 ---
 
 ## Workflow
 
-1. Scan all subdirectories in /workspace/sandbox/ for git repositories
+1. Scan all subdirectories in ~/sandbox/ for git repositories
 2. For each git repo, check if it's connected to a GitHub organization we admin
 3. Pull remote changes if local is behind
 4. Analyze repos not on master/main branch

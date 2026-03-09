@@ -1,7 +1,7 @@
 ---
 description:
   "Preview rendered templates: /helm:cmd-template [directory] [release-name]"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-template.sh *)]
 ---
 
 # Helm Template

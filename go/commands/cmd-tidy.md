@@ -1,6 +1,6 @@
 ---
 description: "Run go mod tidy: /go:cmd-tidy <directory>"
-allowed-tools: [Bash]
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-tidy.sh *)]
 ---
 
 # Go Tidy
