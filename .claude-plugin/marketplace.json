@@ -56,13 +56,6 @@
       "author": { "name": "Transform IA" }
     },
     {
-      "name": "orchestrator",
-      "source": "./orchestrator",
-      "description": "Repository detection and plugin orchestration",
-      "version": "0.1.0",
-      "author": { "name": "Transform IA" }
-    },
-    {
       "name": "postgresql",
       "source": "./postgresql",
       "description": "PostgreSQL schema design, migrations, and query optimization",
