@@ -208,7 +208,7 @@ GitHub Actions build monitoring and status checking.
 - Retrieve build logs
 - Diagnose build failures
 
-**Tools:** Read, Bash(gh run *), Bash(gh workflow *), Bash(gh pr *), Bash(gh api *)
+**Tools:** Read, Bash(gh run \*), Bash(gh workflow \*), Bash(gh pr \*), Bash(gh api \*)
 
 ---
 
