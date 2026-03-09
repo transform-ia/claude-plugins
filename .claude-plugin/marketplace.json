@@ -48,14 +48,7 @@
       "version": "0.1.0",
       "author": { "name": "Transform IA" }
     },
-    {
-      "name": "mcp",
-      "source": "./mcp",
-      "description": "MCP server configuration management",
-      "version": "0.1.0",
-      "author": { "name": "Transform IA" }
-    },
-    {
+{
       "name": "postgresql",
       "source": "./postgresql",
       "description": "PostgreSQL schema design, migrations, and query optimization",
