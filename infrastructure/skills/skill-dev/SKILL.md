@@ -18,5 +18,5 @@ allowed-tools:
   Read, Write(*.yaml), Write(*.yml), Write(*.j2), Write(*.cfg),
   Edit(*.yaml), Edit(*.yml), Edit(*.j2), Edit(*.cfg),
   Glob, Grep,
-  SlashCommand(/infrastructure:cmd-run *)
+  SlashCommand(/infrastructure:cmd-deploy *)
 ---

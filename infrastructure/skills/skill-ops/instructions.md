@@ -4,7 +4,7 @@
 
 All infrastructure changes are applied via Ansible playbooks running inside
 Docker (`alpine/ansible:2.20.0`). The plugin wraps this in
-`/infrastructure:cmd-run`.
+`/infrastructure:cmd-deploy`.
 
 ### Safety Protocol
 
@@ -15,11 +15,11 @@ Docker (`alpine/ansible:2.20.0`). The plugin wraps this in
 ### Usage
 
 ```bash
-/infrastructure:cmd-run                              # Dry-run all hosts
-/infrastructure:cmd-run --apply                      # Apply changes
-/infrastructure:cmd-run --limit command-center       # Dry-run one host
-/infrastructure:cmd-run --apply --limit command-center  # Apply on one host
-/infrastructure:cmd-run --tags docker                # Dry-run specific playbook
+/infrastructure:cmd-deploy                              # Dry-run all hosts
+/infrastructure:cmd-deploy --apply                      # Apply changes
+/infrastructure:cmd-deploy --limit command-center       # Dry-run one host
+/infrastructure:cmd-deploy --apply --limit command-center  # Apply on one host
+/infrastructure:cmd-deploy --tags docker                # Dry-run specific playbook
 ```
 
 Extra arguments are passed through to `ansible-playbook`.

@@ -8,7 +8,7 @@ tools:
   - Read
   - Glob
   - Grep
-  - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-run.sh *)
+  - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-deploy.sh *)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-status.sh *)
   - Bash(ssh *)
   - SlashCommand(/infrastructure:*)
@@ -34,9 +34,9 @@ When hooks block an operation:
 
 ## Safety Protocol
 
-1. ALWAYS dry-run first: `/infrastructure:cmd-run [args]`
+1. ALWAYS dry-run first: `/infrastructure:cmd-deploy [args]`
 2. Review the diff output with the user
-3. Only apply after explicit user confirmation: `/infrastructure:cmd-run --apply [args]`
+3. Only apply after explicit user confirmation: `/infrastructure:cmd-deploy --apply [args]`
 
 ## Out of Scope
 

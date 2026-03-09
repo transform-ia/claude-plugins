@@ -8,7 +8,7 @@
   relevant vars (e.g., `when: wg is not defined` then `meta: end_host`). No
   host groups needed.
 - **Single entrypoint**: `site.yaml` imports all playbooks in order. The plugin
-  command `/infrastructure:cmd-run` wraps it in Docker.
+  command `/infrastructure:cmd-deploy` wraps it in Docker.
 - **No code duplication**: One playbook per concern, templated by role (e.g.,
   `wg.role: server|client`).
 
@@ -17,7 +17,7 @@
 1. Add hostname to `inventory/hosts.yaml`
 2. Create `inventory/host_vars/<hostname>.yaml` with `ansible_host` and any
    playbook-specific vars (e.g., `wg`, `docker`, `postgresql`)
-3. Run `/infrastructure:cmd-run --limit <hostname>` to verify (dry-run)
+3. Run `/infrastructure:cmd-deploy --limit <hostname>` to verify (dry-run)
 
 ## Adding a New Playbook
 
@@ -50,15 +50,15 @@ DNS zones are managed as YAML data files in `playbooks/cloudflare/zones/`.
 - **GitOps pattern**: Records in Cloudflare that are not declared in the YAML
   file get purged (except NS, SOA, and ACME-challenge records)
 - To update DNS: edit the zone file, then run
-  `/infrastructure:cmd-run --tags cloudflare`
+  `/infrastructure:cmd-deploy --tags cloudflare`
 
 ## Validation
 
 Always validate changes with a dry-run before applying:
 
 ```bash
-/infrastructure:cmd-run --limit <host>          # Dry-run specific host
-/infrastructure:cmd-run --tags <playbook>       # Dry-run specific playbook
+/infrastructure:cmd-deploy --limit <host>          # Dry-run specific host
+/infrastructure:cmd-deploy --tags <playbook>       # Dry-run specific playbook
 ```
 
 Review the diff output carefully before running with `--apply`.

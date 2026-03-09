@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run ansible playbook via Docker
-# Usage: cmd-run.sh [--apply] [--limit host] [--tags tag] [extra args...]
+# Usage: cmd-deploy.sh [--apply] [--limit host] [--tags tag] [extra args...]
 set -euo pipefail
 
 ANSIBLE_IMAGE="alpine/ansible:2.20.0"

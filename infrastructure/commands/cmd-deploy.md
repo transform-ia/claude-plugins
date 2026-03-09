@@ -1,6 +1,6 @@
 ---
-description: "Run ansible playbook: /infrastructure:cmd-run [--apply] [--limit host] [--tags tag]"
-allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-run.sh *)]
+description: "Run ansible playbook: /infrastructure:cmd-deploy [--apply] [--limit host] [--tags tag]"
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-deploy.sh *)]
 ---
 
 # Ansible Playbook Run
@@ -23,5 +23,5 @@ This command runs ansible playbooks via Docker. Default is dry-run (`--check --d
 Run the ansible playbook using the plugin script.
 
 ```text
-Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-run.sh $ARGUMENTS")
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-deploy.sh $ARGUMENTS")
 ```

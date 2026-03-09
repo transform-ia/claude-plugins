@@ -16,7 +16,7 @@ description: |
   - User mentions "infrastructure" in general conversation
 allowed-tools:
   Read, Glob, Grep,
-  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-run.sh *),
+  Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-deploy.sh *),
   Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-status.sh *),
   Bash(ssh *),
   SlashCommand(/infrastructure:*)
