@@ -19,10 +19,7 @@ fi
 # Parse image reference
 if [[ "$IMAGE" == ghcr.io/* ]]; then
     # GHCR image: ghcr.io/org/package or ghcr.io/user/package
-    REGISTRY="ghcr"
-    # Remove ghcr.io/ prefix
     IMAGE_PATH="${IMAGE#ghcr.io/}"
-    # Split into org/user and package
     ORG=$(echo "$IMAGE_PATH" | cut -d'/' -f1)
     PKG=$(echo "$IMAGE_PATH" | cut -d'/' -f2-)
 
@@ -43,11 +40,32 @@ if [[ "$IMAGE" == ghcr.io/* ]]; then
     { echo "Error: Could not query GHCR for $ORG/$PKG" >&2; exit 1; }
 
     echo "$RESULT"
+
+elif [[ "$IMAGE" == quay.io/* ]]; then
+    # Quay.io image: quay.io/namespace/repository
+    IMAGE_PATH="${IMAGE#quay.io/}"
+    NAMESPACE=$(echo "$IMAGE_PATH" | cut -d'/' -f1)
+    REPO=$(echo "$IMAGE_PATH" | cut -d'/' -f2-)
+
+    if [[ -z "$REPO" ]]; then
+        echo "Error: Invalid Quay.io image. Expected quay.io/<namespace>/<repository>" >&2
+        exit 1
+    fi
+
+    echo "Querying Quay.io: $NAMESPACE/$REPO"
+    echo "---"
+
+    RESULT=$(curl -sf "https://quay.io/api/v1/repository/$NAMESPACE/$REPO/tag/?limit=$COUNT&onlyActiveTags=true" \
+        | jq -r '.tags[].name' 2>/dev/null) || \
+    { echo "Error: Could not query Quay.io for $NAMESPACE/$REPO" >&2; exit 1; }
+
+    echo "$RESULT"
+
 else
     # Docker Hub - bash can't call MCP tools, return error
     echo "Error: Docker Hub queries must use MCP tools directly." >&2
     echo "" >&2
-    echo "This script only handles GHCR images (ghcr.io/*)." >&2
+    echo "This script only handles GHCR (ghcr.io/*) and Quay.io (quay.io/*) images." >&2
     echo "For Docker Hub, use mcp__dockerhub__listRepositoryTags tool:" >&2
     echo "  namespace: library (or org/user)" >&2
     echo "  repository: <image-name>" >&2

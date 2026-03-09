@@ -22,7 +22,7 @@ tool calls.
 
 Query available tags for a Docker image.
 
-For GHCR images (ghcr.io/\*), use the script:
+For GHCR images (ghcr.io/\*) and Quay.io images (quay.io/\*), use the script:
 
 ```text
 Bash("${CLAUDE_PLUGIN_ROOT}/scripts/cmd-image-tag.sh $ARGUMENTS")
@@ -43,3 +43,4 @@ Examples:
 - `/docker:cmd-image-tag python` - Docker Hub official image
 - `/docker:cmd-image-tag alpine/kubectl` - Docker Hub user/org image
 - `/docker:cmd-image-tag ghcr.io/transform-ia/claude-image` - GHCR image
+- `/docker:cmd-image-tag quay.io/superq/chrony-exporter` - Quay.io image
