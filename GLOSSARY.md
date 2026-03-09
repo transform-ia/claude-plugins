@@ -5,7 +5,7 @@
 ### Plugin
 
 A self-contained module providing specialized functionality for a specific
-domain (Go, Docker, Helm, GitHub, etc.). Each plugin contains:
+domain (Go, Docker, GitHub, etc.). Each plugin contains:
 
 - Agents (AI assistants)
 - Skills (agent configurations)
@@ -28,8 +28,6 @@ Agents have:
 
 - `go:agent-dev` - Go development agent
 - `docker:agent-dev` - Docker development agent
-- `helm:agent-dev` - Helm chart development agent
-
 **Location**: `<plugin>/agents/agent-*.md`
 
 ### Skill
@@ -99,8 +97,7 @@ Commands are classified by their modification scope:
 
 - **Definition**: Creates artifacts (binaries, reports) but does NOT modify
   source files
-- **Examples**: `/go:cmd-build` (creates binary), `/helm:cmd-template` (renders
-  YAML)
+- **Examples**: `/go:cmd-build` (creates binary)
 - **Standard Wording**: "This command creates artifacts but does not modify
   source files (\*.go, go.mod, go.sum)."
 
@@ -108,8 +105,7 @@ Commands are classified by their modification scope:
 
 - **Definition**: Modifies files with automated formatting only (reversible, no
   logic changes)
-- **Examples**: `/helm:cmd-lint` (prettier on Chart.yaml/values.yaml), Stop
-  hooks (gofmt, prettier)
+- **Examples**: Stop hooks (gofmt, prettier)
 - **Standard Wording**: "This command auto-formats files ({file list}) using
   {tool}. {Other files} are not modified."
 
@@ -136,9 +132,7 @@ Each plugin is focused on a single domain:
 
 - **go** - Go development (\*.go, go.mod, go.sum)
 - **typescript** - TypeScript/React development (\*.ts, \*.tsx)
-- **javascript** - JavaScript development (\*.js, \*.jsx)
 - **docker** - Dockerfiles and images
-- **helm** - Helm charts (Chart.yaml, values.yaml, templates/\*)
 - **github** - CI/CD workflows (.github/workflows/\*)
 - **markdown** - Documentation (\*.md)
 - **mcp** - MCP server configuration (.mcp.json)
@@ -295,7 +289,7 @@ has no dependency file format, so packages are unpinned to avoid build failures.
 
 ### Image Tags
 
-Docker images and Helm chart versions:
+Docker image versions:
 
 - **NEVER** use `latest` tag
 - **ALWAYS** pin to specific versions (e.g., `golang:1.23.4`, `alpine:3.21.0`)
@@ -378,7 +372,6 @@ All PreToolUse hooks use **5-second timeout**:
 | Plugin   | Timeout | Linter(s)               | Typical Runtime | Typical Project Size |
 | -------- | ------- | ----------------------- | --------------- | -------------------- |
 | go       | 120s    | golangci-lint           | 30-90s          | < 50k LOC            |
-| helm     | 120s    | helm + yamllint         | 20-60s          | < 100 templates      |
 | docker   | 60s     | hadolint                | 5-15s           | < 10 Dockerfiles     |
 | github   | 60s     | yamllint + prettier     | 5-20s           | < 20 workflows       |
 | markdown | 60s     | markdownlint + prettier | 10-30s          | < 100 files          |
@@ -394,7 +387,6 @@ All PreToolUse hooks use **5-second timeout**:
 **When to Increase Timeout**:
 
 - Monorepo with >100k LOC: increase go timeout to 300s
-- Helm chart with >200 templates: increase helm timeout to 180s
 - Multiple chained linters: sum individual timeouts + 20s buffer
 
 **How to Adjust Timeout** - Edit `<plugin>/hooks/hooks.json`:

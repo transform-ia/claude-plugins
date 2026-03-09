@@ -4,7 +4,7 @@
 
 Claude Code plugin framework and collection of official plugins. Provides plugin
 infrastructure, development tools, and standard plugins (go, typescript,
-javascript, docker, helm, github, markdown, mcp, graphql, postgresql).
+docker, github, markdown, mcp, graphql, postgresql).
 
 ## Local Development Environment
 
@@ -15,7 +15,7 @@ on the machine.
 
 **Local Toolchain:**
 
-- Development tools installed locally (go, node, npm, golangci-lint, helm, etc.)
+- Development tools installed locally (go, node, npm, golangci-lint, etc.)
 - Git, gh CLI, and standard Unix tools available
 - Projects stored in local filesystem directories
 - MCP servers run as local processes (stdio or localhost HTTP)
@@ -24,7 +24,6 @@ on the machine.
 
 - **Go** - Go toolchain, gopls language server, golangci-lint
 - **TypeScript/Node.js** - Node.js runtime, npm, TypeScript compiler, ESLint
-- **Helm** - Helm CLI for chart development and linting
 - **Docker** - Docker CLI for building and managing images
 
 All tools operate directly on the local filesystem.
@@ -35,13 +34,12 @@ All tools operate directly on the local filesystem.
 
 - `/go:cmd-build` - Build Go binaries locally
 - `/typescript:cmd-dev` - Start TypeScript dev server
-- `/helm:cmd-lint` - Lint Helm charts
 - `/markdown:cmd-lint` - Lint markdown files
 - `/github:cmd-status` - Check GitHub workflow status
 
 ### Available plugins
 
-This repository contains: go, typescript, javascript, docker, helm, github,
+This repository contains: go, typescript, docker, github,
 markdown, mcp, graphql, postgresql
 
 ## Repo Linting

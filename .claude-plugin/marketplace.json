@@ -35,20 +35,13 @@
       "author": { "name": "Transform IA" }
     },
     {
-      "name": "helm",
-      "source": "./helm",
-      "description": "Helm chart development, linting, and Kubernetes operations",
-      "version": "0.1.0",
-      "author": { "name": "Transform IA" }
-    },
-    {
       "name": "markdown",
       "source": "./markdown",
       "description": "Markdown documentation linting and formatting",
       "version": "0.1.0",
       "author": { "name": "Transform IA" }
     },
-{
+    {
       "name": "postgresql",
       "source": "./postgresql",
       "description": "PostgreSQL schema design, migrations, and query optimization",
@@ -66,13 +59,6 @@
       "name": "infrastructure",
       "source": "./infrastructure",
       "description": "Infrastructure operations via Ansible and container troubleshooting",
-      "version": "0.1.0",
-      "author": { "name": "Transform IA" }
-    },
-    {
-      "name": "javascript",
-      "source": "./javascript",
-      "description": "JavaScript development tools and language server integration",
       "version": "0.1.0",
       "author": { "name": "Transform IA" }
     }

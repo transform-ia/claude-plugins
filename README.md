@@ -2,4 +2,4 @@
 
 Claude Code plugin framework and plugin collection.
 
-**Repository**: <https://github.com/transform-ia/claude-plugins>
+See [CLAUDE.md](CLAUDE.md) for full documentation.
