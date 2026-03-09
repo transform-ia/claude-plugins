@@ -3,8 +3,8 @@
 ## Repository Purpose
 
 Claude Code plugin framework and collection of official plugins. Provides plugin
-infrastructure, development tools, and standard plugins (go, typescript, docker,
-helm, github, markdown, mcp, orchestrator).
+infrastructure, development tools, and standard plugins (go, typescript,
+javascript, docker, helm, github, markdown, mcp, graphql, postgresql).
 
 ## Local Development Environment
 
@@ -33,7 +33,6 @@ All tools operate directly on the local filesystem.
 
 ### When to use plugins
 
-- `/orchestrator:detect` - Auto-detect appropriate plugin for current task
 - `/go:cmd-build` - Build Go binaries locally
 - `/typescript:cmd-dev` - Start TypeScript dev server
 - `/helm:cmd-lint` - Lint Helm charts
@@ -42,8 +41,14 @@ All tools operate directly on the local filesystem.
 
 ### Available plugins
 
-This repository contains: orchestrator, go, typescript, javascript, docker,
-helm, github, markdown, mcp
+This repository contains: go, typescript, javascript, docker, helm, github,
+markdown, mcp, graphql, postgresql
+
+## Repo Linting
+
+```bash
+npx markdownlint-cli2 "**/*.md"  # Lint all markdown files
+```
 
 ## Plugin Development Workflow
 
