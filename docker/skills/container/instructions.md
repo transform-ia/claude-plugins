@@ -29,6 +29,10 @@ configuration is in `.hadolint.yaml`.
 
 ### NEVER
 
+- Use `scratch` as a base image - scratch images contain no shell or debugging
+  tools, making it impossible to `docker exec` into the container for
+  troubleshooting. Always use `alpine` or `debian`-based images for runtime
+  stages instead.
 - Use `latest` tag - always pin to specific versions
 - Use ARG for base image versions - Dependabot cannot track ARG variables.
   Always use explicit version tags in FROM statements.
@@ -104,7 +108,9 @@ COPY --from=builder /build/app /app
 RUN upx --best --lzma /app
 
 # Runtime stage
-FROM scratch
+FROM alpine:<version>
+RUN addgroup -g 1000 app && adduser -D -u 1000 -G app app
+USER app
 COPY --from=upx /app /app
 ENTRYPOINT ["/app"]
 ```
