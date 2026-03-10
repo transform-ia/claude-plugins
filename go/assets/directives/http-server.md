@@ -1,59 +1,31 @@
 # HTTP Server Directive
 
-**Triggers when:** Application needs HTTP endpoints (serve command, API,
-webhooks)
+**Triggers when:** Application needs HTTP endpoints
 
-## Single Port, Multiple Handlers
+## Use gokit.ServeCommand
 
-ALL handlers MUST bind to a single HTTP port (default: 80). Use Go's
-`http.NewServeMux()`:
+ALL HTTP serving MUST use `gokit.ServeCommand()`. This automatically provides:
 
-```go
-mux := http.NewServeMux()
+- `/health` endpoint (200 OK, JSON)
+- `/metrics` endpoint (Prometheus)
+- Graceful shutdown (30s timeout)
+- Single port, single mux
 
-mux.Handle("/health", healthHandler)      // No auth
-mux.Handle("/metrics", metricsHandler)    // No auth
-mux.Handle("/graphql", authMiddleware(graphqlHandler))
-mux.Handle("/mcp", authMiddleware(mcpHandler))
-
-server := &http.Server{
-    Addr:    fmt.Sprintf(":%d", cfg.HTTPPort),
-    Handler: mux,
-}
-```
-
-## Required Endpoints for Daemons
-
-- `/health` - Health check (no auth, returns 200 OK, JSON)
-- `/metrics` - Prometheus metrics (no auth)
+    gokit.ServeCommand[ServeConfig]("serve", "Start server", func(ctx *gokit.Context[ServeConfig]) []gokit.Route {
+        return []gokit.Route{
+            {Pattern: "/api", Handler: apiHandler(ctx)},
+            {Pattern: "/graphql", Handler: graphqlHandler(ctx)},
+        }
+    })
 
 ## Middleware Composition
 
-```go
-func RequireAuth(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        // auth logic...
-        next.ServeHTTP(w, r)
-    })
-}
-
-// Chain: mux.Handle("/api", RequireAuth(RequireOAuth(apiHandler)))
-```
-
-## Graceful Shutdown
-
-```go
-ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-defer stop()
-
-go func() {
-    if err := server.ListenAndServe(); err != http.ErrServerClosed {
-        logger.Error(ctx, "server error", map[string]any{"error": err})
+    func RequireAuth(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            // auth logic...
+            next.ServeHTTP(w, r)
+        })
     }
-}()
 
-<-ctx.Done()
-shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-defer cancel()
-server.Shutdown(shutdownCtx)
-```
+    // Usage in routes:
+    {Pattern: "/api", Handler: RequireAuth(apiHandler(ctx))}

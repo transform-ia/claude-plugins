@@ -1,29 +1,12 @@
 package main
 
-import (
-	"context"
-	"fmt"
+import "github.com/transform-ia/gokit"
 
-	"github.com/spf13/cobra"
-)
-
-func {{.CmdName}}Cmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "{{.CmdName}}",
-		Short: "{{.Description}}",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return run{{.CmdNameTitle}}(cmd.Context())
-		},
-	}
+type {{.CommandName}}Config struct {
+	// Add config fields with envconfig + validator tags
 }
 
-func run{{.CmdNameTitle}}(ctx context.Context) error {
-	cfg, err := LoadConfig()
-	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
-	}
-
-	// TODO: Implement {{.CmdName}} logic
-	_ = cfg
+func run{{.CommandName}}(ctx *gokit.Context[{{.CommandName}}Config]) error {
+	ctx.Logger.Ctx(ctx).Info("{{.CommandName}} starting")
 	return nil
 }
