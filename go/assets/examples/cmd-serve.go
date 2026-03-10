@@ -1,30 +1,26 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"net/http"
 
-	"github.com/spf13/cobra"
+	"github.com/transform-ia/gokit"
 )
 
-func serveCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "serve",
-		Short: "Start HTTP server",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runServe(cmd.Context())
-		},
+type ServeConfig struct {
+	Port        int    `envconfig:"PORT" default:"8080" validate:"required"`
+	DatabaseURL string `envconfig:"DATABASE_URL" required:"true" validate:"required"`
+}
+
+func routes(ctx *gokit.Context[ServeConfig]) []gokit.Route {
+	// gokit automatically registers /health and /metrics.
+	return []gokit.Route{
+		{Pattern: "/api/users", Handler: usersHandler(ctx)},
 	}
 }
 
-func runServe(ctx context.Context) error {
-	cfg, err := LoadConfig()
-	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
-	}
-
-	// ... server setup
-	_ = cfg
-	return nil
+func usersHandler(ctx *gokit.Context[ServeConfig]) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx.Logger.Ctx(r.Context()).Info("handling users request")
+		w.WriteHeader(http.StatusOK)
+	})
 }

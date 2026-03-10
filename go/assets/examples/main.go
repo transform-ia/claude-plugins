@@ -1,31 +1,14 @@
 package main
 
-import (
-	"fmt"
-	"os"
-
-	"github.com/spf13/cobra"
-)
+import "github.com/transform-ia/gokit"
 
 func main() {
-	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-}
-
-func run() error {
-	rootCmd := &cobra.Command{
-		Use:   "myapp",
+	gokit.Run(gokit.App{
+		Name:  "myapp",
 		Short: "My application description",
-	}
-
-	// Add subcommands
-	rootCmd.AddCommand(serveCmd())
-	rootCmd.AddCommand(workerCmd())
-
-	if err := rootCmd.Execute(); err != nil {
-		return fmt.Errorf("command execution failed: %w", err)
-	}
-	return nil
+		Commands: []gokit.Command{
+			gokit.ServeCommand[ServeConfig]("serve", "Start HTTP server", routes),
+			gokit.NewCommand[WorkerConfig]("worker", "Start background worker", runWorker),
+		},
+	})
 }
