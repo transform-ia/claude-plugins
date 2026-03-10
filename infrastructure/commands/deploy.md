@@ -1,5 +1,5 @@
 ---
-description: "Run ansible playbook: /infrastructure:deploy [--apply] [--limit host] [--tags tag]"
+description: "Run ansible playbook: /infrastructure:deploy [--apply] [--limit host] [--tags tag] [host]"
 allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/deploy.sh *)]
 ---
 

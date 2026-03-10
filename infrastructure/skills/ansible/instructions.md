@@ -44,13 +44,69 @@
 ## Cloudflare DNS Zone Management
 
 DNS zones are managed as YAML data files in `playbooks/cloudflare/zones/`.
+The playbook applies declared records then **purges** any Cloudflare records
+not present in the file (except NS, SOA, and `_acme-challenge` TXT records).
 
-- One file per domain: `zones/<domain>.yaml`
-- Contains all DNS records (A, CNAME, MX, TXT)
-- **GitOps pattern**: Records in Cloudflare that are not declared in the YAML
-  file get purged (except NS, SOA, and ACME-challenge records)
-- To update DNS: edit the zone file, then run
-  `/infrastructure:deploy --tags cloudflare`
+### Zone file location
+
+One file per domain: `playbooks/cloudflare/zones/<domain>.yaml`
+
+Existing zones: `robotinfra.com`, `transformia.ca`, `tournevent.ca`,
+`bit-flippers.com`, `agpad.app`, `afkcollection.com`, `crawford-alexander.com`
+
+### Zone file format
+
+```yaml
+---
+dns_records:
+  - type: A
+    name: td              # subdomain, or "@" for apex
+    content: "1.2.3.4"
+    ttl: 300              # optional, default 1 (auto)
+  - type: CNAME
+    name: www
+    content: td.example.com
+  - type: MX
+    name: "@"
+    content: aspmx.l.google.com
+    priority: 1           # required for MX
+    ttl: 3600
+  - type: TXT
+    name: "@"
+    content: "v=spf1 mx ~all"
+    ttl: 3600
+```
+
+Supported optional fields: `ttl` (default auto), `proxied` (default false),
+`priority`, `weight`, `port`, `service`, `proto` (for SRV records).
+
+### Adding a new DNS record
+
+1. Edit `playbooks/cloudflare/zones/<domain>.yaml`
+2. Add the record entry under `dns_records`
+3. Dry-run: `/infrastructure:deploy --tags cloudflare`
+4. Review the diff, then apply: `/infrastructure:deploy --tags cloudflare --apply`
+
+### Removing a DNS record
+
+Delete the entry from the zone file. The purge step will remove it from
+Cloudflare on the next apply run.
+
+### Adding a new zone
+
+1. Create `playbooks/cloudflare/zones/<new-domain>.yaml` with a `dns_records`
+   list
+2. Add `<new-domain>` (without `.yaml`) to the `cloudflare.zones` list in
+   the host vars of the host that manages Cloudflare
+3. Dry-run and apply as above
+
+### Important behavior
+
+- **Purge is destructive**: any record in Cloudflare not declared in the YAML
+  file will be deleted on apply (except NS, SOA, `_acme-challenge`)
+- Always dry-run first to review which records would be purged
+- The `community.general.cloudflare_dns` module silently succeeds if an
+  identical record already exists
 
 ## Validation
 

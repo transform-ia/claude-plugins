@@ -9,10 +9,22 @@ ANSIBLE_DIR="$("$(dirname "$0")/read-config.sh")"
 # Parse arguments
 APPLY=false
 EXTRA_ARGS=()
+SKIP_NEXT=false
 
-for arg in "$@"; do
+for i in $(seq 1 $#); do
+  arg="${!i}"
+  if [ "$SKIP_NEXT" = true ]; then
+    SKIP_NEXT=false
+    continue
+  fi
   if [ "$arg" = "--apply" ]; then
     APPLY=true
+  elif [ "$arg" = "--limit" ] || [ "$arg" = "--tags" ]; then
+    next=$((i + 1))
+    EXTRA_ARGS+=("$arg" "${!next}")
+    SKIP_NEXT=true
+  elif [[ "$arg" != --* ]]; then
+    EXTRA_ARGS+=(--limit "$arg")
   else
     EXTRA_ARGS+=("$arg")
   fi
