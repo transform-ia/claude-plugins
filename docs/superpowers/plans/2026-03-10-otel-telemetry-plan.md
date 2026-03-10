@@ -1157,107 +1157,20 @@ All work in this chunk happens in:
 
 ---
 
-### Task 10: Create telemetry.md directive, delete prometheus.md
+### Task 10: Delete prometheus.md and rewrite instructions.md
 
 **Files:**
 
-- Create: `go/assets/directives/telemetry.md`
 - Delete: `go/assets/directives/prometheus.md`
-
-- [ ] **Step 1: Write telemetry.md**
-
-Create `go/assets/directives/telemetry.md`:
-
-```markdown
-# Telemetry Directive
-
-gokit handles all telemetry initialization. This directive covers how to use
-OTel APIs in business code.
-
-## Traces
-
-Every public method on a service SHOULD create a span:
-
-    ctx, span := otel.Tracer("myapp").Start(ctx, "ServiceName.MethodName")
-    defer span.End()
-
-    span.SetAttributes(attribute.String("key", "value"))
-
-On error, record it on the span:
-
-    span.RecordError(err)
-    span.SetStatus(codes.Error, err.Error())
-
-## Metrics
-
-Define meters at package level, use in functions:
-
-    var requestCounter, _ = otel.Meter("myapp").Int64Counter(
-        "myapp_requests_total",
-        metric.WithDescription("Total requests processed"),
-    )
-
-    requestCounter.Add(ctx, 1, metric.WithAttributes(
-        attribute.String("method", "GetUser"),
-    ))
-
-### Metric Naming
-
-- Prefix: `<service>_`
-- Suffixes: `_total` (counter), `_seconds` (histogram), `_bytes` (gauge)
-
-## Logs
-
-Use the logger from `ctx.Logger`. It automatically injects trace/span IDs:
-
-    ctx.Logger.Ctx(ctx).Info("user fetched", zap.String("user_id", id))
-    ctx.Logger.Ctx(ctx).Error("failed to fetch user", zap.Error(err))
-
-## Required Imports for Business Code
-
-    import (
-        "go.opentelemetry.io/otel"
-        "go.opentelemetry.io/otel/attribute"
-        "go.opentelemetry.io/otel/codes"
-        "go.opentelemetry.io/otel/metric"
-        "go.uber.org/zap"
-    )
-
-## Environment Variables
-
-Configured at the infrastructure level, NOT in application code:
-
-| Variable                               | Backend         |
-| -------------------------------------- | --------------- |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`         | All signals     |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`  | VictoriaTraces  |
-| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | VictoriaMetrics |
-| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | VictoriaLogs    |
-```
-
-- [ ] **Step 2: Delete prometheus.md**
-
-```bash
-rm go/assets/directives/prometheus.md
-```
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add go/assets/directives/telemetry.md
-git rm go/assets/directives/prometheus.md
-git commit -m "feat: replace prometheus directive with telemetry directive"
-```
-
----
-
-### Task 11: Rewrite instructions.md
-
-**Files:**
-
 - Modify: `go/skills/gocode/instructions.md`
 
-- [ ] **Step 1: Rewrite the full file**
+- [ ] **Step 1: Delete prometheus.md**
+
+```bash
+git rm go/assets/directives/prometheus.md
+```
+
+- [ ] **Step 2: Rewrite the full instructions file**
 
 Replace entire contents of `go/skills/gocode/instructions.md` with:
 
@@ -1355,7 +1268,6 @@ Reference files in `assets/` for complete examples:
 
 For domain-specific patterns, see `assets/directives/`:
 
-- `telemetry.md` — Traces, metrics, and logs (OTel + Victoria*)
 - `http-server.md` — HTTP routing with gokit.ServeCommand
 - `graphql-server.md` — GraphQL with gqlgen
 - `mcp-server.md` — MCP server with mcp-go
@@ -1406,9 +1318,71 @@ network or disk, refactor it to accept an interface instead.
 **Error wrapping:** Always `fmt.Errorf("context: %w", err)`, never bare
 `return err`.
 
-**Telemetry:** gokit handles init. Use `otel.Tracer().Start()` for spans,
-`otel.Meter()` for metrics, `ctx.Logger.Ctx(ctx)` for logs. See
-`assets/directives/telemetry.md`.
+## Telemetry in Business Code
+
+gokit handles all telemetry initialization. The patterns below show how to use
+OTel APIs in your business code. This is NOT optional — every service method
+MUST have traces, and every key operation MUST have metrics.
+
+### Traces
+
+Every public method on a service MUST create a span:
+
+    ctx, span := otel.Tracer("myapp").Start(ctx, "ServiceName.MethodName")
+    defer span.End()
+
+    span.SetAttributes(attribute.String("key", "value"))
+
+On error, record it on the span:
+
+    span.RecordError(err)
+    span.SetStatus(codes.Error, err.Error())
+
+### Metrics
+
+Define meters at package level, use in functions:
+
+    var requestCounter, _ = otel.Meter("myapp").Int64Counter(
+        "myapp_requests_total",
+        metric.WithDescription("Total requests processed"),
+    )
+
+    requestCounter.Add(ctx, 1, metric.WithAttributes(
+        attribute.String("method", "GetUser"),
+    ))
+
+Metric naming: prefix with `<service>_`, suffix with `_total` (counter),
+`_seconds` (histogram), `_bytes` (gauge).
+
+### Logs
+
+Use the logger from `ctx.Logger`. It automatically injects trace/span IDs:
+
+    ctx.Logger.Ctx(ctx).Info("user fetched", zap.String("user_id", id))
+    ctx.Logger.Ctx(ctx).Error("failed to fetch user", zap.Error(err))
+
+### Required Imports for Business Code
+
+    import (
+        "go.opentelemetry.io/otel"
+        "go.opentelemetry.io/otel/attribute"
+        "go.opentelemetry.io/otel/codes"
+        "go.opentelemetry.io/otel/metric"
+        "go.uber.org/zap"
+    )
+
+### Environment Variables
+
+Configured at the infrastructure level, NOT in application code:
+
+| Variable                               | Backend         |
+| -------------------------------------- | --------------- |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`         | All signals     |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`  | VictoriaTraces  |
+| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | VictoriaMetrics |
+| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | VictoriaLogs    |
+
+When no endpoint is set, traces go to stdout and logs go to console.
 
 ## Troubleshooting
 
@@ -1439,12 +1413,12 @@ server.
 
 ```bash
 git add go/skills/gocode/instructions.md
-git commit -m "feat: rewrite gocode skill to enforce gokit usage"
+git commit -m "feat: rewrite gocode skill to enforce gokit with embedded telemetry"
 ```
 
 ---
 
-### Task 12: Rewrite example files
+### Task 11: Rewrite example files
 
 **Files:**
 
@@ -1605,7 +1579,7 @@ git commit -m "feat: rewrite example files to use gokit"
 
 ---
 
-### Task 13: Update http-server.md and templates
+### Task 12: Update http-server.md and templates
 
 **Files:**
 

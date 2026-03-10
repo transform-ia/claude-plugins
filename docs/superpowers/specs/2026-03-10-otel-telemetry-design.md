@@ -307,9 +307,9 @@ required way to build Go applications in this ecosystem.
 | ----------------------------------- | ---------------------------------------------------- |
 | `skills/gocode/instructions.md`    | Full rewrite: enforce gokit, update NEVER/ALWAYS,     |
 |                                     | replace required libs table, update all patterns.     |
+|                                     | Telemetry usage (traces, metrics, logs) embedded      |
+|                                     | directly — NOT a separate directive.                  |
 | `assets/directives/prometheus.md`  | Delete (absorbed by gokit)                            |
-| `assets/directives/telemetry.md`   | New: OTel usage in business code (traces, metrics,    |
-|                                     | logs). NOT setup — gokit handles that.                |
 | `assets/directives/http-server.md` | Simplify: reference gokit.ServeCommand instead of     |
 |                                     | manual mux/server setup.                              |
 | `assets/examples/main.go`          | Rewrite: use gokit.Run() with commands                |
