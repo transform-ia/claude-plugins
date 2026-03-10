@@ -19,7 +19,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/lib/hook-com
 # Parse hook input
 parse_hook_input
 
-# GitHub plugin uses both cmd-* and skill-* patterns
+# GitHub plugin uses various command and skill patterns
 # Custom scope check (more permissive than standard in_plugin_scope)
 caller=""
 if [[ -n "${TEST_CALLER:-}" ]]; then
@@ -44,8 +44,8 @@ if [[ -z "$caller" ]]; then
     exit 0
 fi
 
-# Check if caller is from github plugin (cmd-* or skill-*)
-if [[ "$caller" != /github:cmd-* && "$caller" != /github:skill-* ]]; then
+# Check if caller is from github plugin
+if [[ "$caller" != /github:* ]]; then
     exit 0  # Not from github plugin, allow
 fi
 
@@ -91,8 +91,8 @@ echo "" >&2
 echo "Attempted to modify: $FILE_PATH" >&2
 echo "" >&2
 echo "For other file types:" >&2
-echo "  - Go files (*.go) → use go:skill-dev" >&2
-echo "  - Dockerfile → use docker:skill-dev" >&2
-echo "  - Helm charts (*.yaml) → use helm:skill-dev" >&2
+echo "  - Go files (*.go) → use go:gocode" >&2
+echo "  - Dockerfile → use docker:container" >&2
+echo "  - Helm charts (*.yaml) → use helm:agent-dev" >&2
 echo "  - Other files → exit GitHub plugin scope first" >&2
 exit 2  # Block

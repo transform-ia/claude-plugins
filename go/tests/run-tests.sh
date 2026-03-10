@@ -111,7 +111,7 @@ test_find_dev_pod_error() {
 
 # Test: block-bash.sh allows plugin scripts
 test_block_bash_allows_plugin() {
-    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/cmd-lint.sh /dir"}}'
+    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/golint.sh /dir"}}'
     local output
     local exit_code=0
     output=$(echo "$input" | "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
@@ -127,7 +127,7 @@ test_block_bash_blocks_go() {
     local input='{"tool_input":{"command":"go build ."},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}'
     local output
     local exit_code=0
-    output=$(echo "$input" | TEST_CALLER="/go:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | TEST_CALLER="/go:gocode" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]]; then
         pass "block-bash.sh blocks 'go' commands"
     else
@@ -140,7 +140,7 @@ test_block_bash_blocks_other() {
     local input='{"tool_input":{"command":"ls -la"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}'
     local output
     local exit_code=0
-    output=$(echo "$input" | TEST_CALLER="/go:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | TEST_CALLER="/go:gocode" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]]; then
         pass "block-bash.sh blocks other bash commands"
     else
@@ -166,7 +166,7 @@ test_enforce_go_blocks_golangci() {
     local input='{"tool_name":"Write","tool_input":{"file_path":"/path/to/.golangci.yaml"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}'
     local output
     local exit_code=0
-    output=$(echo "$input" | TEST_CALLER="/go:skill-dev" "$SCRIPTS_DIR/enforce-go-files.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | TEST_CALLER="/go:gocode" "$SCRIPTS_DIR/enforce-go-files.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]] && [[ "$output" == *"linter"* ]]; then
         pass "enforce-go-files.sh blocks .golangci.yaml (protects linter config)"
     else
@@ -179,7 +179,7 @@ test_enforce_go_blocks_other() {
     local input='{"tool_name":"Write","tool_input":{"file_path":"/path/to/file.txt"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}'
     local output
     local exit_code=0
-    output=$(echo "$input" | TEST_CALLER="/go:skill-dev" "$SCRIPTS_DIR/enforce-go-files.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | TEST_CALLER="/go:gocode" "$SCRIPTS_DIR/enforce-go-files.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]]; then
         pass "enforce-go-files.sh blocks non-.go files"
     else
@@ -189,7 +189,7 @@ test_enforce_go_blocks_other() {
 
 # Test: post-bash-check.sh allows successful plugin scripts
 test_post_bash_allows_success() {
-    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/cmd-build.sh"},"tool_result":{"exit_code":0}}'
+    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/compile.sh"},"tool_result":{"exit_code":0}}'
     local output
     local exit_code=0
     output=$(echo "$input" | "$SCRIPTS_DIR/post-bash-check.sh" 2>&1) || exit_code=$?
@@ -202,7 +202,7 @@ test_post_bash_allows_success() {
 
 # Test: post-bash-check.sh blocks failed plugin scripts
 test_post_bash_blocks_failure() {
-    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/cmd-build.sh"},"tool_result":{"exit_code":2}}'
+    local input='{"tool_input":{"command":"/path/to/claude-plugins/go/scripts/compile.sh"},"tool_result":{"exit_code":2}}'
     local output
     local exit_code=0
     output=$(echo "$input" | "$SCRIPTS_DIR/post-bash-check.sh" 2>&1) || exit_code=$?
@@ -216,8 +216,8 @@ test_post_bash_blocks_failure() {
 # Run tests
 header "Testing script existence"
 for script in block-bash.sh enforce-go-files.sh find-dev-pod.sh find-git-root.sh \
-              cmd-lint.sh cmd-build.sh cmd-test.sh cmd-run.sh cmd-init.sh \
-              cmd-tidy.sh post-bash-check.sh stop-lint-check.sh sync-go-mcp.sh; do
+              golint.sh compile.sh gotest.sh run.sh mod-init.sh \
+              tidy.sh post-bash-check.sh stop-lint-check.sh sync-go-mcp.sh; do
     test_script_exists "$script"
 done
 
@@ -245,7 +245,7 @@ test_post_bash_allows_success
 test_post_bash_blocks_failure
 
 header "Testing exec scripts require directory"
-for script in cmd-lint.sh cmd-build.sh cmd-test.sh cmd-run.sh cmd-tidy.sh; do
+for script in golint.sh compile.sh gotest.sh run.sh tidy.sh; do
     test_requires_dir_arg "$script"
 done
 
@@ -256,7 +256,7 @@ test_rm_allows_go() {
     local input='{"tool_input":{"command":"rm /tmp/main.go"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}'
     local output
     local exit_code=0
-    output=$(echo "$input" | TEST_CALLER="/go:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | TEST_CALLER="/go:gocode" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 0 ]]; then
         pass "Allows rm *.go files"
     else
@@ -269,7 +269,7 @@ test_rm_allows_gomod() {
     local input='{"tool_input":{"command":"rm /tmp/go.mod"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}'
     local output
     local exit_code=0
-    output=$(echo "$input" | TEST_CALLER="/go:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | TEST_CALLER="/go:gocode" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 0 ]]; then
         pass "Allows rm go.mod"
     else
@@ -282,7 +282,7 @@ test_rm_allows_gosum() {
     local input='{"tool_input":{"command":"rm /tmp/go.sum"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}'
     local output
     local exit_code=0
-    output=$(echo "$input" | TEST_CALLER="/go:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | TEST_CALLER="/go:gocode" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 0 ]]; then
         pass "Allows rm go.sum"
     else
@@ -295,7 +295,7 @@ test_rm_blocks_other() {
     local input='{"tool_input":{"command":"rm /tmp/test.txt"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}'
     local output
     local exit_code=0
-    output=$(echo "$input" | TEST_CALLER="/go:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | TEST_CALLER="/go:gocode" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]]; then
         pass "Blocks rm non-Go files"
     else
@@ -308,7 +308,7 @@ test_rm_blocks_golangci() {
     local input='{"tool_input":{"command":"rm /tmp/.golangci.yaml"},"transcript_path":"/tmp/t.json","tool_use_id":"test-123"}'
     local output
     local exit_code=0
-    output=$(echo "$input" | TEST_CALLER="/go:skill-dev" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
+    output=$(echo "$input" | TEST_CALLER="/go:gocode" "$SCRIPTS_DIR/block-bash.sh" 2>&1) || exit_code=$?
     if [[ $exit_code -eq 2 ]] && [[ "$output" == *"BLOCKED"* ]] && [[ "$output" == *"linter"* ]]; then
         pass "Blocks rm .golangci.yaml (protects linter config)"
     else

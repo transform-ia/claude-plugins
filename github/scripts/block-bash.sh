@@ -1,6 +1,6 @@
 #!/bin/bash
 # PreToolUse: Block most Bash commands when in GitHub plugin context
-# Exception: github:skill-builder skill needs gh CLI access
+# Exception: github:build-monitor skill needs gh CLI access
 #
 # Exit codes (per Claude Code docs):
 #   0 = Allow (success)
@@ -16,7 +16,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/lib/hook-com
 # Parse hook input
 parse_hook_input
 
-# GitHub plugin uses both cmd-* and skill-* patterns
+# GitHub plugin uses various command and skill patterns
 # Custom scope check (more permissive than standard in_plugin_scope)
 caller=""
 if [[ -n "${TEST_CALLER:-}" ]]; then
@@ -41,8 +41,8 @@ if [[ -z "$caller" ]]; then
     exit 0
 fi
 
-# Check if caller is from github plugin (cmd-* or skill-*)
-if [[ "$caller" != /github:cmd-* && "$caller" != /github:skill-* ]]; then
+# Check if caller is from github plugin
+if [[ "$caller" != /github:* ]]; then
     exit 0  # Not from github plugin, allow
 fi
 
@@ -84,13 +84,13 @@ if [[ "$COMMAND" =~ ^rm[[:space:]] ]]; then
     exit 0
 fi
 
-# Allow git commands for /github:cmd-release workflow ONLY
+# Allow git commands for /github:release workflow ONLY
 if [[ "$COMMAND" =~ ^git[[:space:]] ]]; then
-    if [[ "$caller" == "/github:cmd-release" ]]; then
+    if [[ "$caller" == "/github:release" ]]; then
         exit 0  # Allow git commands (add, commit, tag, push)
     fi
-    echo "BLOCKED: git commands are only allowed in /github:cmd-release context." >&2
-    echo "Use /github:cmd-release to create tags and push commits." >&2
+    echo "BLOCKED: git commands are only allowed in /github:release context." >&2
+    echo "Use /github:release to create tags and push commits." >&2
     exit 2
 fi
 
@@ -129,12 +129,12 @@ fi
 
 # Provide helpful redirects
 if [[ "$COMMAND" =~ ^yamllint ]]; then
-    echo "BLOCKED: Use /github:cmd-lint instead of direct yamllint." >&2
+    echo "BLOCKED: Use /github:actionlint instead of direct yamllint." >&2
     exit 2
 fi
 
 if [[ "$COMMAND" =~ ^prettier ]]; then
-    echo "BLOCKED: Use /github:cmd-lint instead of direct prettier." >&2
+    echo "BLOCKED: Use /github:actionlint instead of direct prettier." >&2
     exit 2
 fi
 
@@ -146,10 +146,10 @@ echo "" >&2
 echo "Attempted command: $COMMAND" >&2
 echo "" >&2
 echo "Available commands:" >&2
-echo "  /github:cmd-lint [dir]      - Lint .github workflow files" >&2
-echo "  /github:cmd-status [repo]   - Check workflow status" >&2
-echo "  /github:cmd-logs <run-id>   - Get workflow logs" >&2
-echo "  /github:cmd-release <ver>   - Full release workflow" >&2
+echo "  /github:actionlint [dir]      - Lint .github workflow files" >&2
+echo "  /github:workflow-status [repo]   - Check workflow status" >&2
+echo "  /github:logs <run-id>   - Get workflow logs" >&2
+echo "  /github:release <ver>   - Full release workflow" >&2
 echo "" >&2
 echo "For other operations, exit the GitHub plugin scope first." >&2
 echo "═══════════════════════════════════════════════════════════════" >&2

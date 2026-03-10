@@ -49,20 +49,20 @@ fi
 
 # Provide helpful redirects
 if [[ "$COMMAND" =~ hadolint ]]; then
-    echo "BLOCKED: Use /docker:cmd-lint instead of direct hadolint." >&2
+    echo "BLOCKED: Use /docker:hadolint instead of direct hadolint." >&2
     exit 2
 fi
 
 if [[ "$COMMAND" =~ ^docker ]]; then
-    echo "BLOCKED: Docker commands not allowed. Use /docker:cmd-lint or /docker:cmd-image-tag." >&2
+    echo "BLOCKED: Docker commands not allowed. Use /docker:hadolint or /docker:image-tag." >&2
     exit 2
 fi
 
 echo "BLOCKED: Bash not allowed in docker plugin context." >&2
 echo "" >&2
 echo "Available commands:" >&2
-echo "  /docker:cmd-lint        - Run hadolint on Dockerfile" >&2
-echo "  /docker:cmd-image-tag   - Query image tags from registry" >&2
+echo "  /docker:hadolint        - Run hadolint on Dockerfile" >&2
+echo "  /docker:image-tag       - Query image tags from registry" >&2
 echo "" >&2
 echo "For other operations, exit the plugin context first." >&2
 exit 2

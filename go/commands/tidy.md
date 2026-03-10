@@ -1,0 +1,26 @@
+---
+description: "Run go mod tidy: /go:tidy <directory>"
+allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/tidy.sh *)]
+---
+
+# Go Tidy
+
+## Permissions
+
+This command modifies `go.mod` and `go.sum` (updates dependencies).
+
+---
+
+## Parameter Validation
+
+**REQUIRED**: If `$ARGUMENTS` is empty, respond with: "Error: directory
+required. Usage: /go:tidy DIRECTORY" and STOP. Do not proceed with any
+tool calls.
+
+---
+
+Run the tidy script using absolute path. Do NOT cd or change directory.
+
+```text
+Bash("${CLAUDE_PLUGIN_ROOT}/scripts/tidy.sh $ARGUMENTS")
+```

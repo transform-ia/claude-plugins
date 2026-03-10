@@ -26,9 +26,10 @@ Agents have:
 
 **Examples**:
 
-- `go:agent-dev` - Go development agent
-- `docker:agent-dev` - Docker development agent
-**Location**: `<plugin>/agents/agent-*.md`
+- `go:gocode` - Go development agent
+- `docker:container` - Docker development agent
+
+**Location**: `<plugin>/agents/<name>.md`
 
 ### Skill
 
@@ -40,7 +41,7 @@ A configuration file that defines:
 
 Skills are loaded into Claude Code and make agents available in conversations.
 
-**Location**: `<plugin>/skills/skill-*/SKILL.md` (config) and `instructions.md`
+**Location**: `<plugin>/skills/<name>/SKILL.md` (config) and `instructions.md`
 (behavior)
 
 ### Hook
@@ -71,15 +72,15 @@ A bash script that validates operations BEFORE they execute. Hooks enforce:
 ### Command (Slash Command)
 
 A user-invocable shortcut that runs a plugin script. Format:
-`/plugin:cmd-name [args]`
+`/plugin:name [args]`
 
 **Examples**:
 
-- `/go:cmd-build <dir>` - Build Go binary
-- `/github:cmd-release <version>` - Create release tag and monitor build
-- `/docker:cmd-lint [file]` - Lint Dockerfile
+- `/go:compile <dir>` - Build Go binary
+- `/github:release <version>` - Create release tag and monitor build
+- `/docker:hadolint [file]` - Lint Dockerfile
 
-**Location**: `<plugin>/commands/cmd-*/COMMAND.md`
+**Location**: `<plugin>/commands/<name>/COMMAND.md`
 
 #### Command Permission Levels
 
@@ -88,7 +89,7 @@ Commands are classified by their modification scope:
 #### Level 0: Read-Only
 
 - **Definition**: No files modified, no artifacts created
-- **Examples**: `/go:cmd-test` (runs tests), `/docker:cmd-image-tag` (queries
+- **Examples**: `/go:gotest` (runs tests), `/docker:image-tag` (queries
   registry)
 - **Standard Wording**: "This command is read-only. It does not modify any files
   or create artifacts."
@@ -97,7 +98,7 @@ Commands are classified by their modification scope:
 
 - **Definition**: Creates artifacts (binaries, reports) but does NOT modify
   source files
-- **Examples**: `/go:cmd-build` (creates binary)
+- **Examples**: `/go:compile` (creates binary)
 - **Standard Wording**: "This command creates artifacts but does not modify
   source files (\*.go, go.mod, go.sum)."
 
@@ -147,7 +148,7 @@ The currently active agent determines which plugin's hooks are enforced.
 Example:
 
 ```text
-User → go:agent-dev (can edit *.go)
+User → go:gocode (can edit *.go)
 ```
 
 In this context:
@@ -164,7 +165,7 @@ active.
 
 1. Read transcript from stdin (JSONL format)
 2. Find most recent `Task` tool call with `subagent_type` field
-3. Extract plugin name from `subagent_type` (e.g., "docker:agent-dev" →
+3. Extract plugin name from `subagent_type` (e.g., "docker:container" →
    "docker")
 4. Return plugin name or "unknown"
 
@@ -264,10 +265,10 @@ Agents activate directly for plugin-specific requests:
 
 ```text
 1. User: "Fix the Dockerfile linting errors"
-2. docker:agent-dev: Activates (user message explicitly mentions Dockerfile, Docker, or container images)
-3. docker:agent-dev: /docker:cmd-lint
-4. docker:agent-dev: Edit Dockerfile
-5. docker:agent-dev: Report completion
+2. docker:container: Activates (user message explicitly mentions Dockerfile, Docker, or container images)
+3. docker:container: /docker:hadolint
+4. docker:container: Edit Dockerfile
+5. docker:container: Report completion
 ```
 
 ## Dependency Management
@@ -414,7 +415,7 @@ Hook scripts support a `TEST_CALLER` environment variable for unit testing:
 
 ```bash
 # Example: Test that Go hook blocks non-Go files
-TEST_CALLER="/go:skill-dev" echo '{"tool_input":{"file_path":"test.py"}}' | ./enforce-go-files.sh
+TEST_CALLER="/go:gocode" echo '{"tool_input":{"file_path":"test.py"}}' | ./enforce-go-files.sh
 ```
 
 **Security**: TEST_CALLER is only checked when `transcript_path` is empty. In
@@ -464,5 +465,5 @@ Allowed: *.go, go.mod, go.sum files and /go:* commands
 Requested: Edit Dockerfile
 
 Use the appropriate plugin instead:
-- Dockerfile → docker:agent-dev
+- Dockerfile → docker:container
 ```

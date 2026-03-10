@@ -44,9 +44,9 @@ case "$filename" in
         echo "Attempted to modify: $FILE_PATH" >&2
         echo "" >&2
         echo "For other file types:" >&2
-        echo "  - Go files (*.go) → use go:skill-dev" >&2
-        echo "  - Helm charts (*.yaml) → use helm:skill-dev" >&2
-        echo "  - GitHub workflows → use github:skill-dev" >&2
+        echo "  - Go files (*.go) → use go:gocode" >&2
+        echo "  - Helm charts (*.yaml) → use helm:agent-dev" >&2
+        echo "  - GitHub workflows → use github:cicd" >&2
         echo "  - Other files → exit Docker plugin scope first" >&2
         exit 2  # Block
         ;;

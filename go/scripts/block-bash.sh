@@ -61,17 +61,17 @@ fi
 # Provide helpful redirect for go/golangci-lint
 if [[ "$COMMAND" =~ ^go[[:space:]] ]]; then
     echo "BLOCKED: Use /go:* commands instead:" >&2
-    echo "  /go:cmd-init <dir> <pkg>  - go mod init" >&2
-    echo "  /go:cmd-tidy <dir>        - go mod tidy" >&2
-    echo "  /go:cmd-build <dir>       - go build" >&2
-    echo "  /go:cmd-test <dir>        - go test" >&2
-    echo "  /go:cmd-lint <dir>        - golangci-lint" >&2
-    echo "  /go:cmd-run <dir>         - go run ." >&2
+    echo "  /go:mod-init <dir> <pkg>  - go mod init" >&2
+    echo "  /go:tidy <dir>            - go mod tidy" >&2
+    echo "  /go:compile <dir>         - go build" >&2
+    echo "  /go:gotest <dir>          - go test" >&2
+    echo "  /go:golint <dir>          - golangci-lint" >&2
+    echo "  /go:run <dir>             - go run ." >&2
     exit 2
 fi
 
 if [[ "$COMMAND" =~ ^golangci-lint ]]; then
-    echo "BLOCKED: Use /go:cmd-lint <dir> instead of direct golangci-lint." >&2
+    echo "BLOCKED: Use /go:golint <dir> instead of direct golangci-lint." >&2
     exit 2
 fi
 
@@ -79,12 +79,12 @@ fi
 echo "BLOCKED: Bash not allowed in Go plugin context." >&2
 echo "" >&2
 echo "Available commands:" >&2
-echo "  /go:cmd-init <dir> <pkg>  - go mod init" >&2
-echo "  /go:cmd-tidy <dir>        - go mod tidy" >&2
-echo "  /go:cmd-build <dir>       - go build" >&2
-echo "  /go:cmd-test <dir>        - go test" >&2
-echo "  /go:cmd-lint <dir>        - golangci-lint" >&2
-echo "  /go:cmd-run <dir>         - go run ." >&2
+echo "  /go:mod-init <dir> <pkg>  - go mod init" >&2
+echo "  /go:tidy <dir>            - go mod tidy" >&2
+echo "  /go:compile <dir>         - go build" >&2
+echo "  /go:gotest <dir>          - go test" >&2
+echo "  /go:golint <dir>          - golangci-lint" >&2
+echo "  /go:run <dir>             - go run ." >&2
 echo "" >&2
 echo "For other operations, exit the plugin context first." >&2
 exit 2

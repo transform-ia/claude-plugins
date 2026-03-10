@@ -32,10 +32,10 @@ All tools operate directly on the local filesystem.
 
 ### When to use plugins
 
-- `/go:cmd-build` - Build Go binaries locally
-- `/typescript:cmd-dev` - Start TypeScript dev server
-- `/markdown:cmd-lint` - Lint markdown files
-- `/github:cmd-status` - Check GitHub workflow status
+- `/go:compile` - Build Go binaries locally
+- `/typescript:dev` - Start TypeScript dev server
+- `/markdown:mdlint` - Lint markdown files
+- `/github:workflow-status` - Check GitHub workflow status
 
 ### Available plugins
 
@@ -73,10 +73,10 @@ npx markdownlint-cli2 "**/*.md"  # Lint all markdown files
 
 - `/<plugin-name>/` - Individual plugin directories
 - `/<plugin-name>/.claude-plugin/plugin.json` - Plugin manifest
-- `/<plugin-name>/agents/` - Agent definitions (\*.md files)
-- `/<plugin-name>/skills/` - Skill definitions (directories)
-- `/<plugin-name>/commands/` - Slash commands (\*.md files)
-- `/<plugin-name>/scripts/` - Executable scripts
+- `/<plugin-name>/agents/<name>.md` - Agent definitions
+- `/<plugin-name>/skills/<name>/` - Skill definitions (directories)
+- `/<plugin-name>/commands/<name>.md` - Slash commands
+- `/<plugin-name>/scripts/<name>.sh` - Executable scripts
 - `/<plugin-name>/README.md` - Plugin documentation
 - `/GLOSSARY.md` - Plugin terminology reference
 - `/scripts/` - Shared utility scripts
@@ -103,8 +103,8 @@ npx markdownlint-cli2 "**/*.md"  # Lint all markdown files
 
 ## Testing Plugins
 
-- Invoke skill: Use Skill tool with `<plugin>:skill-<name>`
-- Run command: Use SlashCommand tool with `/<plugin>:cmd-<name>`
+- Invoke skill: Use Skill tool with `<plugin>:<name>`
+- Run command: Use SlashCommand tool with `/<plugin>:<name>`
 - Test scripts: Execute directly or via Bash tool
 - Verify agent activation: Check transcript for agent loading
 

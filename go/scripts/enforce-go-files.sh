@@ -52,9 +52,9 @@ case "$normalized_path" in
         echo "Attempted to modify: $FILE_PATH" >&2
         echo "" >&2
         echo "For other file types:" >&2
-        echo "  - Dockerfile → use docker:skill-dev" >&2
-        echo "  - Helm charts (*.yaml) → use helm:skill-dev" >&2
-        echo "  - Markdown (*.md) → use markdown:skill-dev" >&2
+        echo "  - Dockerfile → use docker:container" >&2
+        echo "  - Helm charts (*.yaml) → use helm:agent-dev" >&2
+        echo "  - Markdown (*.md) → use markdown:docs" >&2
         echo "  - Other files → exit Go plugin scope first" >&2
         exit 2  # Block
         ;;

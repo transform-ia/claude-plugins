@@ -34,32 +34,32 @@ agents, and skills. Avoid repeating the prefix in filenames.
 
 ### How Naming Works
 
-| Plugin Folder | File                    | Invocation           |
-| ------------- | ----------------------- | -------------------- |
-| `go/`         | `commands/cmd-build.md` | `/go:cmd-build`      |
-| `go/`         | `agents/agent-dev.md`   | `go:agent-dev`       |
-| `go/`         | `skills/skill-dev/`     | skill `go:skill-dev` |
+| Plugin Folder | File                   | Invocation          |
+| ------------- | ---------------------- | ------------------- |
+| `go/`         | `commands/compile.md`  | `/go:compile`       |
+| `go/`         | `agents/gocode.md`     | `go:gocode`         |
+| `go/`         | `skills/gocode/`       | skill `go:gocode`   |
 
 ### Avoid Stutter
 
 ```text
-❌ BAD: go/agents/go-dev.md     → go:go-dev (stutters!)
-✅ GOOD: go/agents/agent-dev.md       → go:agent-dev
+❌ BAD: go/agents/go-dev.md        → go:go-dev (stutters!)
+✅ GOOD: go/agents/gocode.md       → go:gocode
 
-❌ BAD: go/skills/go-quality/   → skill go:go-quality
-✅ GOOD: go/skills/skill-quality/     → skill go:skill-quality
+❌ BAD: go/skills/go-quality/      → skill go:go-quality
+✅ GOOD: go/skills/gocode/         → skill go:gocode
 
-❌ BAD: go/commands/go-build.md → /go:go-build
-✅ GOOD: go/commands/cmd-build.md   → /go:cmd-build
+❌ BAD: go/commands/go-build.md    → /go:go-build
+✅ GOOD: go/commands/compile.md    → /go:compile
 ```
 
 ### Rule
 
 If your plugin folder is named `foo/`, then:
 
-- Commands: `foo/commands/cmd-bar.md` → `/foo:cmd-bar`
-- Agents: `foo/agents/agent-bar.md` → `foo:agent-bar`
-- Skills: `foo/skills/skill-bar/` → skill `foo:skill-bar`
+- Commands: `foo/commands/bar.md` → `/foo:bar`
+- Agents: `foo/agents/bar.md` → `foo:bar`
+- Skills: `foo/skills/bar/` → skill `foo:bar`
 
 Never include the plugin name in the filename—it's already the prefix.
 
@@ -142,7 +142,7 @@ if we're in plugin context.
 
 ### How It Works
 
-When a plugin command (e.g., `/go:cmd-build`) runs, Claude Code sets
+When a plugin command (e.g., `/go:compile`) runs, Claude Code sets
 `CLAUDE_PLUGIN_ROOT` to the plugin's directory path. This environment variable
 is available to all hooks and persists through subagent invocations.
 
@@ -189,7 +189,7 @@ user_content=$(echo "$user_line" | jq -r '.message.content // empty')
 ```
 
 **Limitation**: Transcript parsing only finds the immediate parent. Subagents
-have their own message chains, so `/go:cmd-build` won't be found as the parent
+have their own message chains, so `/go:compile` won't be found as the parent
 when a subagent runs Bash. Use `CLAUDE_PLUGIN_ROOT` for reliable scoping.
 
 ## Command Files
@@ -198,8 +198,8 @@ Commands are markdown files that expand to prompts when invoked.
 
 ### Naming Convention
 
-- File: `commands/build.md`
-- Invocation: `/go:cmd-build` (plugin prefix + filename without .md)
+- File: `commands/compile.md`
+- Invocation: `/go:compile` (plugin prefix + filename without .md)
 
 ### Command Structure
 
@@ -254,7 +254,7 @@ Detailed instructions loaded when skill activates.
 
 The Go plugin demonstrates these patterns:
 
-- **Commands**: `/go:cmd-build`, `/go:cmd-test`, `/go:cmd-lint`, etc.
+- **Commands**: `/go:compile`, `/go:gotest`, `/go:golint`, etc.
 - **Hook scoping**: Only enforces Go-only file restrictions when initiated by
   `/go:*` commands
 - **Bash blocking**: Prevents shell commands in favor of plugin commands (within

@@ -4,21 +4,21 @@ Automate GitHub workflows, CI/CD, releases, and dependency management.
 
 ## Commands
 
-### /github:cmd-status
+### /github:workflow-status
 
 Check GitHub Actions workflow status for a repository.
 
 **Usage:**
 
 ```bash
-/github:cmd-status [owner/repo] [limit]
+/github:workflow-status [owner/repo] [limit]
 ```
 
 **Examples:**
 
 ```bash
-/github:cmd-status transform-ia/hooks
-/github:cmd-status transform-ia/hooks 10
+/github:workflow-status transform-ia/hooks
+/github:workflow-status transform-ia/hooks 10
 ```
 
 **What it does:**
@@ -29,21 +29,21 @@ Check GitHub Actions workflow status for a repository.
 
 ---
 
-### /github:cmd-logs
+### /github:logs
 
 Get workflow logs for a specific GitHub Actions run.
 
 **Usage:**
 
 ```bash
-/github:cmd-logs <run-id> [owner/repo]
+/github:logs <run-id> [owner/repo]
 ```
 
 **Examples:**
 
 ```bash
-/github:cmd-logs 123456789
-/github:cmd-logs 123456789 transform-ia/hooks
+/github:logs 123456789
+/github:logs 123456789 transform-ia/hooks
 ```
 
 **What it does:**
@@ -54,21 +54,21 @@ Get workflow logs for a specific GitHub Actions run.
 
 ---
 
-### /github:cmd-lint
+### /github:actionlint
 
 Lint `.github/` workflow files using yamllint and prettier.
 
 **Usage:**
 
 ```bash
-/github:cmd-lint [directory]
+/github:actionlint [directory]
 ```
 
 **Examples:**
 
 ```bash
-/github:cmd-lint .github/workflows
-/github:cmd-lint
+/github:actionlint .github/workflows
+/github:actionlint
 ```
 
 **What it does:**
@@ -79,21 +79,21 @@ Lint `.github/` workflow files using yamllint and prettier.
 
 ---
 
-### /github:cmd-latest-version
+### /github:latest-version
 
 Get the latest semantic version tag from a git repository.
 
 **Usage:**
 
 ```bash
-/github:cmd-latest-version <path>
+/github:latest-version <path>
 ```
 
 **Examples:**
 
 ```bash
-/github:cmd-latest-version ~/projects/my-project
-/github:cmd-latest-version .
+/github:latest-version ~/projects/my-project
+/github:latest-version .
 ```
 
 **What it does:**
@@ -107,7 +107,7 @@ Get the latest semantic version tag from a git repository.
 
 ---
 
-### /github:cmd-release
+### /github:release
 
 Execute a full release workflow with version bump, tagging, and build
 monitoring.
@@ -115,15 +115,15 @@ monitoring.
 **Usage:**
 
 ```bash
-/github:cmd-release <version>
+/github:release <version>
 ```
 
 **Examples:**
 
 ```bash
-/github:cmd-release 1.2.0
-/github:cmd-release patch    # Auto-bump patch version
-/github:cmd-release minor    # Auto-bump minor version
+/github:release 1.2.0
+/github:release patch    # Auto-bump patch version
+/github:release minor    # Auto-bump minor version
 ```
 
 **What it does:**
@@ -139,21 +139,21 @@ monitoring.
 
 ---
 
-### /github:cmd-dependabot
+### /github:dependabot
 
 Automatically manage dependabot pull requests across repositories.
 
 **Usage:**
 
 ```bash
-/github:cmd-dependabot [REPONAME]
+/github:dependabot [REPONAME]
 ```
 
 **Examples:**
 
 ```bash
-/github:cmd-dependabot transform-ia/claude-plugins  # Process single repo
-/github:cmd-dependabot                              # Process all repos
+/github:dependabot transform-ia/claude-plugins  # Process single repo
+/github:dependabot                              # Process all repos
 ```
 
 **What it does:**
@@ -182,7 +182,7 @@ Automatically manage dependabot pull requests across repositories.
 
 ## Skills
 
-### github:skill-dev
+### github:cicd
 
 GitHub CI/CD workflow development and maintenance.
 
@@ -197,7 +197,7 @@ GitHub CI/CD workflow development and maintenance.
 
 ---
 
-### github:skill-builder
+### github:build-monitor
 
 GitHub Actions build monitoring and status checking.
 
@@ -214,7 +214,7 @@ GitHub Actions build monitoring and status checking.
 
 ## Agents
 
-### github:agent-dev
+### github:cicd
 
 Development agent for GitHub workflows and CI/CD.
 
@@ -227,7 +227,7 @@ Development agent for GitHub workflows and CI/CD.
 
 ---
 
-### github:agent-builder
+### github:build-monitor
 
 Build monitoring agent for GitHub Actions.
 
@@ -251,7 +251,7 @@ Build monitoring agent for GitHub Actions.
 
 **Bash Command Restrictions:**
 
-- Git commands ONLY allowed in `/github:cmd-release`
+- Git commands ONLY allowed in `/github:release`
 - `gh` write operations (merge, create, edit) blocked
 - Only read operations allowed: list, view, watch, status
 - Enforced by `block-bash.sh` hook
@@ -294,19 +294,19 @@ Build monitoring agent for GitHub Actions.
 
 ### Adding a New Command
 
-1. Create `/commands/cmd-<name>.md`:
+1. Create `/commands/<name>.md`:
 
    ```yaml
    ---
-   description: "Brief description: /github:cmd-<name> <args>"
-   allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/cmd-<name>.sh *), Read]
+   description: "Brief description: /github:<name> <args>"
+   allowed-tools: [Bash(${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh *), Read]
    ---
    # Command Title
 
    [Instructions for Claude]
    ```
 
-2. For simple commands, create `/scripts/cmd-<name>.sh`:
+2. For simple commands, create `/scripts/<name>.sh`:
 
    ```bash
    #!/bin/bash
@@ -326,9 +326,9 @@ Build monitoring agent for GitHub Actions.
 Run individual commands:
 
 ```bash
-/github:cmd-status transform-ia/hooks
-/github:cmd-lint .github/workflows
-/github:cmd-dependabot transform-ia/claude-plugins
+/github:workflow-status transform-ia/hooks
+/github:actionlint .github/workflows
+/github:dependabot transform-ia/claude-plugins
 ```
 
 Run tests:
@@ -344,7 +344,7 @@ cd github/tests
 
 ### With Other Plugins
 
-- **helm**: `/helm:cmd-release` for chart releases after GitHub release
+- **helm**: `/helm:release` for chart releases after GitHub release
 - **docker**: Docker image builds triggered by GitHub workflows
 
 ### With GitHub
@@ -363,10 +363,10 @@ cd github/tests
 **Cause:** Plugin not loaded or command file not discovered **Solution:**
 Restart Claude Code to reload plugins
 
-### "BLOCKED: git commands only allowed in /github:cmd-release"
+### "BLOCKED: git commands only allowed in /github:release"
 
 **Cause:** Attempting git operations outside release workflow **Solution:** Use
-`/github:cmd-release` for version tagging and releases
+`/github:release` for version tagging and releases
 
 ### "Repository not accessible"
 

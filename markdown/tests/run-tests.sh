@@ -63,7 +63,7 @@ echo "========================"
 backup_original_caller
 
 # Test: Scripts exist and are executable
-for script in enforce-md-files.sh block-bash.sh cmd-lint.sh stop-lint-check.sh; do
+for script in enforce-md-files.sh block-bash.sh mdlint.sh stop-lint-check.sh; do
     if [[ -x "$SCRIPTS_DIR/$script" ]]; then
         pass "$script exists and is executable"
     else
@@ -93,7 +93,7 @@ echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"},"transcript
 cleanup_mock_caller
 
 # Test: Hook scoping - should block .go files when caller is /markdown:*
-setup_mock_caller "/markdown:skill-dev"
+setup_mock_caller "/markdown:docs"
 result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.go"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
     "$SCRIPTS_DIR/enforce-md-files.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
@@ -104,7 +104,7 @@ fi
 cleanup_mock_caller
 
 # Test: Allows .md files when caller is /markdown:*
-setup_mock_caller "/markdown:skill-dev"
+setup_mock_caller "/markdown:docs"
 echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.md"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
     "$SCRIPTS_DIR/enforce-md-files.sh" && \
     pass "Allows .md files when caller is /markdown:*" || \
@@ -112,7 +112,7 @@ echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.md"},"transcript
 cleanup_mock_caller
 
 # Test: Fail-closed behavior - missing transcript_path
-setup_mock_caller "/markdown:skill-dev"
+setup_mock_caller "/markdown:docs"
 result=$(echo '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.md"},"tool_use_id":"test-123"}' | \
     "$SCRIPTS_DIR/enforce-md-files.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]] && [[ "$result" == *"Missing transcript metadata"* ]]; then
@@ -134,7 +134,7 @@ fi
 cleanup_mock_caller
 
 # Test: rm deletion - allows .md files with exact match
-setup_mock_caller "/markdown:skill-dev"
+setup_mock_caller "/markdown:docs"
 echo '{"tool_input":{"command":"rm *.md"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
     "$SCRIPTS_DIR/block-bash.sh" && \
     pass "Allows 'rm *.md' (exact allowlist match)" || \
@@ -142,7 +142,7 @@ echo '{"tool_input":{"command":"rm *.md"},"transcript_path":"/tmp/transcript.jso
 cleanup_mock_caller
 
 # Test: rm deletion - blocks non-exact patterns
-setup_mock_caller "/markdown:skill-dev"
+setup_mock_caller "/markdown:docs"
 result=$(echo '{"tool_input":{"command":"rm /tmp/test.md"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
     "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
@@ -153,7 +153,7 @@ fi
 cleanup_mock_caller
 
 # Test: rm deletion - blocks non-md files
-setup_mock_caller "/markdown:skill-dev"
+setup_mock_caller "/markdown:docs"
 result=$(echo '{"tool_input":{"command":"rm /tmp/test.go"},"transcript_path":"/tmp/transcript.json","tool_use_id":"test-123"}' | \
     "$SCRIPTS_DIR/block-bash.sh" 2>&1 || true)
 if [[ "$result" == *"BLOCKED"* ]]; then
@@ -164,7 +164,7 @@ fi
 cleanup_mock_caller
 
 # Test: Allowlist includes all expected patterns
-setup_mock_caller "/markdown:skill-dev"
+setup_mock_caller "/markdown:docs"
 for pattern in "rm *.md" "rm **/*.md" "rm -f *.md" "rm -rf *.md"; do
     if echo "{\"tool_input\":{\"command\":\"$pattern\"},\"transcript_path\":\"/tmp/transcript.json\",\"tool_use_id\":\"test-123\"}" | \
         "$SCRIPTS_DIR/block-bash.sh" 2>&1 | grep -q "BLOCKED"; then
@@ -176,8 +176,8 @@ done
 cleanup_mock_caller
 
 # Test: Plugin scripts are allowed
-setup_mock_caller "/markdown:skill-dev"
-echo "{\"tool_input\":{\"command\":\"${CLAUDE_PLUGIN_ROOT}/scripts/cmd-lint.sh README.md\"},\"transcript_path\":\"/tmp/transcript.json\",\"tool_use_id\":\"test-123\"}" | \
+setup_mock_caller "/markdown:docs"
+echo "{\"tool_input\":{\"command\":\"${CLAUDE_PLUGIN_ROOT}/scripts/mdlint.sh README.md\"},\"transcript_path\":\"/tmp/transcript.json\",\"tool_use_id\":\"test-123\"}" | \
     "$SCRIPTS_DIR/block-bash.sh" && \
     pass "Allows plugin's own scripts" || \
     fail "Plugin scripts" "Should allow ${CLAUDE_PLUGIN_ROOT}/scripts/*"
