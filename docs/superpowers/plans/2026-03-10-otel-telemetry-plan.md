@@ -1,149 +1,305 @@
-# OTel Telemetry Library & Go Plugin Update — Implementation Plan
+# gokit — Implementation Plan
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development
 > (if subagents available) or superpowers:executing-plans to implement this plan.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Create `github.com/transform-ia/telemetry` Go library that
-initializes all three OTel pillars with one call, then update the gocode plugin
-to use it.
+**Goal:** Create `github.com/transform-ia/gokit`, a Go application framework
+that owns cobra CLI, config loading, telemetry, and HTTP server lifecycle.
+Then rewrite the go:gocode plugin to enforce gokit usage.
 
-**Architecture:** Single-package Go library with flat file structure. One
-`Init()` entry point configures traces (stdouttrace + OTLP), metrics (OTLP push
-+ optional Prometheus scrape), and logs (otelzap console + OTLP bridge).
-Standard `OTEL_EXPORTER_OTLP_*` env vars control Victoria* backend
-connectivity. The gocode plugin replaces its Prometheus-only directive and
-examples with the new library.
+**Architecture:** Single flat Go package using generics for typed per-command
+config. `Run()`/`RunSingle()` entry points set up signal handling, config,
+telemetry, and logger. `ServeCommand()` adds HTTP server with automatic
+`/health` and `/metrics`. OTel exporters configured via standard
+`OTEL_EXPORTER_OTLP_*` env vars targeting Victoria* backends.
 
-**Tech Stack:** Go, OpenTelemetry SDK, otelzap, Prometheus client, gRPC OTLP
-exporters.
+**Tech Stack:** Go 1.22+, cobra, envconfig, validator/v10, OTel SDK, otelzap,
+Prometheus client, gRPC OTLP exporters.
 
 **Spec:** `docs/superpowers/specs/2026-03-10-otel-telemetry-design.md`
 
 ---
 
-## Chunk 1: `github.com/transform-ia/telemetry` Library
+## Chunk 1: gokit Library — Core
+
+All work in this chunk happens in a **new repository**:
+`/home/patate/sandbox/transformia/gokit/`
 
 ### File Structure
 
-| File           | Responsibility                                           |
-| -------------- | -------------------------------------------------------- |
-| `go.mod`       | Module definition and dependencies                       |
-| `telemetry.go` | `Config` struct, `Init()` orchestrator, resource builder |
-| `traces.go`    | `initTraces()` — stdouttrace + optional OTLP gRPC       |
-| `metrics.go`   | `initMetrics()` — OTLP push + optional Prometheus reader |
-| `logs.go`      | `initLogs()` — otelzap console + optional OTLP bridge   |
-
-All work in this chunk happens in a **new repository**:
-`/home/patate/sandbox/transformia/telemetry/`
+| File           | Responsibility                                            |
+| -------------- | --------------------------------------------------------- |
+| `go.mod`       | Module `github.com/transform-ia/gokit`                    |
+| `gokit.go`     | App, Command, Context[T], Run(), RunSingle(), NewCommand()|
+| `config.go`    | Generic config loading (envconfig + validator)            |
+| `telemetry.go` | OTel orchestrator, resource builder, shutdown             |
+| `traces.go`    | TracerProvider: stdouttrace + OTLP gRPC                   |
+| `metrics.go`   | MeterProvider: OTLP push + Prometheus reader              |
+| `logs.go`      | otelzap: console + OTLP log bridge                        |
+| `serve.go`     | ServeCommand(), Route, /health, /metrics, graceful shutdown|
 
 ---
 
-### Task 1: Initialize the Go module
+### Task 1: Initialize Go module and core types
 
 **Files:**
 
 - Create: `go.mod`
-- Create: `telemetry.go` (minimal, compiles)
+- Create: `gokit.go`
 
-- [ ] **Step 1: Create repo directory**
+- [ ] **Step 1: Create repo and init module**
 
 ```bash
-mkdir -p /home/patate/sandbox/transformia/telemetry
-cd /home/patate/sandbox/transformia/telemetry
+mkdir -p /home/patate/sandbox/transformia/gokit
+cd /home/patate/sandbox/transformia/gokit
 git init
+go mod init github.com/transform-ia/gokit
 ```
 
-- [ ] **Step 2: Initialize go.mod**
-
-```bash
-go mod init github.com/transform-ia/telemetry
-```
-
-- [ ] **Step 3: Write minimal telemetry.go with Config and Init stub**
+- [ ] **Step 2: Write gokit.go with core types and Run/RunSingle stubs**
 
 ```go
-package telemetry
+package gokit
 
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"github.com/spf13/cobra"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 )
 
-// Config holds telemetry initialization options.
-type Config struct {
-	// ServiceName is the OTel resource service.name attribute.
-	// Can be overridden by OTEL_SERVICE_NAME env var.
-	ServiceName string
-
-	// Mux is an optional HTTP mux. If non-nil, a /metrics endpoint is
-	// registered for Prometheus scraping. Pass nil for short-lived commands.
-	Mux *http.ServeMux
+// Context is passed to every command handler. T is the command's config type.
+type Context[T any] struct {
+	context.Context
+	Config *T
+	Logger *otelzap.Logger
 }
 
-// Init sets up all three OTel pillars (traces, metrics, logs).
-// It reads OTEL_EXPORTER_OTLP_* env vars for backend connectivity.
-// When endpoints are not configured, output falls back to console.
-// Returns a shutdown function that must be called on exit.
-func Init(ctx context.Context, cfg Config) (func(context.Context) error, error) {
-	serviceName := cfg.ServiceName
-	if env := os.Getenv("OTEL_SERVICE_NAME"); env != "" {
-		serviceName = env
-	}
-	if serviceName == "" {
-		return nil, fmt.Errorf("telemetry: ServiceName is required")
+// App defines a multi-command CLI application.
+type App struct {
+	Name     string
+	Short    string
+	Commands []Command
+}
+
+// Command is an interface satisfied by NewCommand and ServeCommand.
+type Command interface {
+	cobraCommand() *cobra.Command
+}
+
+// Run starts a multi-command app with signal handling.
+func Run(app App) {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	rootCmd := &cobra.Command{
+		Use:   app.Name,
+		Short: app.Short,
 	}
 
-	res, err := resource.New(ctx,
-		resource.WithAttributes(semconv.ServiceName(serviceName)),
-		resource.WithTelemetrySDK(),
-		resource.WithHost(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("telemetry: failed to create resource: %w", err)
+	for _, cmd := range app.Commands {
+		rootCmd.AddCommand(cmd.cobraCommand())
 	}
 
-	_ = res // will be used by sub-initializers
-	shutdown := func(ctx context.Context) error { return nil }
-	return shutdown, nil
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+// RunSingle starts a single-command app (no subcommands).
+func RunSingle[T any](name, short string, fn func(ctx *Context[T]) error) {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	rootCmd := &cobra.Command{
+		Use:   name,
+		Short: short,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			appCtx, err := buildContext[T](cmd.Context(), name)
+			if err != nil {
+				return err
+			}
+			defer appCtx.shutdown(cmd.Context())
+			return fn(appCtx.context)
+		},
+	}
+
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+// appContext holds the built context and shutdown function.
+type appContext[T any] struct {
+	context  *Context[T]
+	shutdown func(context.Context) error
+}
+
+// buildContext creates a Context[T] by loading config, initializing
+// telemetry, and creating the logger. Placeholder until config/telemetry
+// are implemented.
+func buildContext[T any](ctx context.Context, serviceName string) (*appContext[T], error) {
+	return &appContext[T]{
+		context: &Context[T]{
+			Context: ctx,
+		},
+		shutdown: func(ctx context.Context) error { return nil },
+	}, nil
 }
 ```
 
-- [ ] **Step 4: Run go mod tidy and verify it compiles**
+- [ ] **Step 3: Run go mod tidy and verify compilation**
 
 ```bash
 go mod tidy
 go build ./...
 ```
 
-Expected: compiles with no errors.
-
-- [ ] **Step 5: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add -A
-git commit -m "init: go module with Config and Init stub"
+git commit -m "init: go module with core types, Run, RunSingle stubs"
 ```
 
 ---
 
-### Task 2: Implement traces.go
+### Task 2: Implement config loading with generics
+
+**Files:**
+
+- Create: `config.go`
+- Create: `config_test.go`
+- Modify: `gokit.go` (wire into buildContext)
+
+- [ ] **Step 1: Write config_test.go (failing tests first)**
+
+```go
+package gokit
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+type testConfig struct {
+	Port int    `envconfig:"PORT" default:"8080" validate:"required"`
+	Name string `envconfig:"APP_NAME" default:"test"`
+}
+
+type testBadConfig struct {
+	Required string `envconfig:"REQUIRED_FIELD" validate:"required"`
+}
+
+func TestLoadConfig_Defaults(t *testing.T) {
+	cfg, err := loadConfig[testConfig]()
+	require.NoError(t, err)
+	assert.Equal(t, 8080, cfg.Port)
+	assert.Equal(t, "test", cfg.Name)
+}
+
+func TestLoadConfig_ValidationFails(t *testing.T) {
+	t.Setenv("REQUIRED_FIELD", "")
+	_, err := loadConfig[testBadConfig]()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "config validation failed")
+}
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+```bash
+go mod tidy
+go test ./... -v
+```
+
+Expected: FAIL — `loadConfig` not defined.
+
+- [ ] **Step 3: Write config.go**
+
+```go
+package gokit
+
+import (
+	"fmt"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/kelseyhightower/envconfig"
+)
+
+func loadConfig[T any]() (*T, error) {
+	var cfg T
+	if err := envconfig.Process("", &cfg); err != nil {
+		return nil, fmt.Errorf("gokit: failed to load config: %w", err)
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(&cfg); err != nil {
+		return nil, fmt.Errorf("gokit: config validation failed: %w", err)
+	}
+
+	return &cfg, nil
+}
+```
+
+- [ ] **Step 4: Wire loadConfig into buildContext in gokit.go**
+
+Update `buildContext`:
+
+```go
+func buildContext[T any](ctx context.Context, serviceName string) (*appContext[T], error) {
+	cfg, err := loadConfig[T]()
+	if err != nil {
+		return nil, err
+	}
+
+	return &appContext[T]{
+		context: &Context[T]{
+			Context: ctx,
+			Config:  cfg,
+		},
+		shutdown: func(ctx context.Context) error { return nil },
+	}, nil
+}
+```
+
+- [ ] **Step 5: Run tests to verify they pass**
+
+```bash
+go mod tidy
+go test ./... -v
+```
+
+Expected: PASS.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add -A
+git commit -m "feat: add generic config loading with envconfig and validator"
+```
+
+---
+
+### Task 3: Implement traces.go
 
 **Files:**
 
 - Create: `traces.go`
-- Modify: `telemetry.go` (wire initTraces into Init)
 
 - [ ] **Step 1: Write traces.go**
 
 ```go
-package telemetry
+package gokit
 
 import (
 	"context"
@@ -157,25 +313,15 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
-// initTraces sets up the TracerProvider with:
-// - stdouttrace exporter (always)
-// - OTLP gRPC exporter to VictoriaTraces (when endpoint configured)
-//
-// Endpoint resolution:
-//  1. OTEL_EXPORTER_OTLP_TRACES_ENDPOINT (per-signal override)
-//  2. OTEL_EXPORTER_OTLP_ENDPOINT (global fallback)
-//  3. No OTLP export (console only)
-func initTraces(ctx context.Context, res *resource.Resource) (shutdown func(context.Context) error, err error) {
+func initTraces(ctx context.Context, res *resource.Resource) (func(context.Context) error, error) {
 	var exporters []sdktrace.SpanExporter
 
-	// Console exporter (always active).
 	consoleExporter, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
 	if err != nil {
-		return nil, fmt.Errorf("telemetry: failed to create stdout trace exporter: %w", err)
+		return nil, fmt.Errorf("gokit: stdout trace exporter: %w", err)
 	}
 	exporters = append(exporters, consoleExporter)
 
-	// OTLP exporter (when endpoint is configured).
 	endpoint := otlpTracesEndpoint()
 	if endpoint != "" {
 		otlpExporter, err := otlptracegrpc.New(ctx,
@@ -183,7 +329,7 @@ func initTraces(ctx context.Context, res *resource.Resource) (shutdown func(cont
 			otlptracegrpc.WithInsecure(),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("telemetry: failed to create OTLP trace exporter: %w", err)
+			return nil, fmt.Errorf("gokit: OTLP trace exporter: %w", err)
 		}
 		exporters = append(exporters, otlpExporter)
 	}
@@ -198,12 +344,9 @@ func initTraces(ctx context.Context, res *resource.Resource) (shutdown func(cont
 	tp := sdktrace.NewTracerProvider(opts...)
 	otel.SetTracerProvider(tp)
 
-	return func(ctx context.Context) error {
-		return tp.Shutdown(ctx)
-	}, nil
+	return tp.Shutdown, nil
 }
 
-// otlpTracesEndpoint returns the OTLP endpoint for traces, or empty string.
 func otlpTracesEndpoint() string {
 	if v := os.Getenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"); v != "" {
 		return v
@@ -212,42 +355,14 @@ func otlpTracesEndpoint() string {
 }
 ```
 
-- [ ] **Step 2: Wire initTraces into Init in telemetry.go**
-
-Replace the stub shutdown in `telemetry.go` `Init()` with:
-
-```go
-	var shutdowns []func(context.Context) error
-
-	tracesShutdown, err := initTraces(ctx, res)
-	if err != nil {
-		return nil, fmt.Errorf("telemetry: traces init failed: %w", err)
-	}
-	shutdowns = append(shutdowns, tracesShutdown)
-
-	shutdown := func(ctx context.Context) error {
-		var errs []error
-		for _, fn := range shutdowns {
-			if err := fn(ctx); err != nil {
-				errs = append(errs, err)
-			}
-		}
-		if len(errs) > 0 {
-			return fmt.Errorf("telemetry shutdown errors: %v", errs)
-		}
-		return nil
-	}
-	return shutdown, nil
-```
-
-- [ ] **Step 3: Run go mod tidy and verify it compiles**
+- [ ] **Step 2: Compile**
 
 ```bash
 go mod tidy
 go build ./...
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add -A
@@ -256,17 +371,16 @@ git commit -m "feat: add trace provider with stdouttrace and OTLP gRPC"
 
 ---
 
-### Task 3: Implement metrics.go
+### Task 4: Implement metrics.go
 
 **Files:**
 
 - Create: `metrics.go`
-- Modify: `telemetry.go` (wire initMetrics into Init)
 
 - [ ] **Step 1: Write metrics.go**
 
 ```go
-package telemetry
+package gokit
 
 import (
 	"context"
@@ -283,19 +397,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-// initMetrics sets up the MeterProvider with:
-// - OTLP gRPC periodic reader (when endpoint configured)
-// - Prometheus scrape reader + /metrics handler (when mux provided)
-//
-// Endpoint resolution:
-//  1. OTEL_EXPORTER_OTLP_METRICS_ENDPOINT (per-signal override)
-//  2. OTEL_EXPORTER_OTLP_ENDPOINT (global fallback)
-//  3. No OTLP push
-func initMetrics(ctx context.Context, res *resource.Resource, mux *http.ServeMux) (shutdown func(context.Context) error, err error) {
+func initMetrics(ctx context.Context, res *resource.Resource, mux *http.ServeMux) (func(context.Context) error, error) {
 	var opts []sdkmetric.Option
 	opts = append(opts, sdkmetric.WithResource(res))
 
-	// OTLP push exporter (when endpoint is configured).
 	endpoint := otlpMetricsEndpoint()
 	if endpoint != "" {
 		otlpExporter, err := otlpmetricgrpc.New(ctx,
@@ -303,18 +408,17 @@ func initMetrics(ctx context.Context, res *resource.Resource, mux *http.ServeMux
 			otlpmetricgrpc.WithInsecure(),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("telemetry: failed to create OTLP metric exporter: %w", err)
+			return nil, fmt.Errorf("gokit: OTLP metric exporter: %w", err)
 		}
 		opts = append(opts, sdkmetric.WithReader(
 			sdkmetric.NewPeriodicReader(otlpExporter),
 		))
 	}
 
-	// Prometheus scrape exporter (when mux is provided).
 	if mux != nil {
 		promExp, err := promexporter.New()
 		if err != nil {
-			return nil, fmt.Errorf("telemetry: failed to create prometheus exporter: %w", err)
+			return nil, fmt.Errorf("gokit: prometheus exporter: %w", err)
 		}
 		opts = append(opts, sdkmetric.WithReader(promExp))
 		mux.Handle("/metrics", promhttp.Handler())
@@ -323,12 +427,9 @@ func initMetrics(ctx context.Context, res *resource.Resource, mux *http.ServeMux
 	mp := sdkmetric.NewMeterProvider(opts...)
 	otel.SetMeterProvider(mp)
 
-	return func(ctx context.Context) error {
-		return mp.Shutdown(ctx)
-	}, nil
+	return mp.Shutdown, nil
 }
 
-// otlpMetricsEndpoint returns the OTLP endpoint for metrics, or empty string.
 func otlpMetricsEndpoint() string {
 	if v := os.Getenv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"); v != "" {
 		return v
@@ -337,26 +438,14 @@ func otlpMetricsEndpoint() string {
 }
 ```
 
-- [ ] **Step 2: Wire initMetrics into Init in telemetry.go**
-
-Add after the traces init block:
-
-```go
-	metricsShutdown, err := initMetrics(ctx, res, cfg.Mux)
-	if err != nil {
-		return nil, fmt.Errorf("telemetry: metrics init failed: %w", err)
-	}
-	shutdowns = append(shutdowns, metricsShutdown)
-```
-
-- [ ] **Step 3: Run go mod tidy and verify it compiles**
+- [ ] **Step 2: Compile**
 
 ```bash
 go mod tidy
 go build ./...
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add -A
@@ -365,17 +454,16 @@ git commit -m "feat: add meter provider with OTLP push and Prometheus scrape"
 
 ---
 
-### Task 4: Implement logs.go
+### Task 5: Implement logs.go
 
 **Files:**
 
 - Create: `logs.go`
-- Modify: `telemetry.go` (wire initLogs into Init, return logger)
 
 - [ ] **Step 1: Write logs.go**
 
 ```go
-package telemetry
+package gokit
 
 import (
 	"context"
@@ -391,27 +479,17 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// initLogs sets up the otelzap logger with:
-// - Console output (always, via zap)
-// - OTLP log bridge to VictoriaLogs (when endpoint configured)
-//
-// Endpoint resolution:
-//  1. OTEL_EXPORTER_OTLP_LOGS_ENDPOINT (per-signal override)
-//  2. OTEL_EXPORTER_OTLP_ENDPOINT (global fallback)
-//  3. No OTLP export (console only)
 func initLogs(ctx context.Context, res *resource.Resource) (*otelzap.Logger, func(context.Context) error, error) {
-	// Base zap logger (console output).
 	zapCfg := zap.NewProductionConfig()
 	zapCfg.EncoderConfig.TimeKey = "timestamp"
 	zapCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	baseLogger, err := zapCfg.Build()
 	if err != nil {
-		return nil, nil, fmt.Errorf("telemetry: failed to create zap logger: %w", err)
+		return nil, nil, fmt.Errorf("gokit: zap logger: %w", err)
 	}
 
 	var logShutdown func(context.Context) error
 
-	// OTLP log bridge (when endpoint is configured).
 	endpoint := otlpLogsEndpoint()
 	if endpoint != "" {
 		otlpExporter, err := otlploggrpc.New(ctx,
@@ -419,7 +497,7 @@ func initLogs(ctx context.Context, res *resource.Resource) (*otelzap.Logger, fun
 			otlploggrpc.WithInsecure(),
 		)
 		if err != nil {
-			return nil, nil, fmt.Errorf("telemetry: failed to create OTLP log exporter: %w", err)
+			return nil, nil, fmt.Errorf("gokit: OTLP log exporter: %w", err)
 		}
 
 		lp := sdklog.NewLoggerProvider(
@@ -432,7 +510,6 @@ func initLogs(ctx context.Context, res *resource.Resource) (*otelzap.Logger, fun
 		logShutdown = func(ctx context.Context) error { return nil }
 	}
 
-	// Wrap with otelzap to inject trace/span IDs into log entries.
 	logger := otelzap.New(baseLogger)
 
 	shutdown := func(ctx context.Context) error {
@@ -443,7 +520,6 @@ func initLogs(ctx context.Context, res *resource.Resource) (*otelzap.Logger, fun
 	return logger, shutdown, nil
 }
 
-// otlpLogsEndpoint returns the OTLP endpoint for logs, or empty string.
 func otlpLogsEndpoint() string {
 	if v := os.Getenv("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"); v != "" {
 		return v
@@ -452,37 +528,14 @@ func otlpLogsEndpoint() string {
 }
 ```
 
-- [ ] **Step 2: Update Config and Init in telemetry.go**
-
-Add `Logger` to the return value of `Init()` so callers get a ready-to-use
-otelzap logger:
-
-```go
-// Init sets up all three OTel pillars (traces, metrics, logs).
-// Returns an otelzap logger and a shutdown function.
-func Init(ctx context.Context, cfg Config) (*otelzap.Logger, func(context.Context) error, error) {
-```
-
-Add after the metrics init block:
-
-```go
-	logger, logsShutdown, err := initLogs(ctx, res)
-	if err != nil {
-		return nil, nil, fmt.Errorf("telemetry: logs init failed: %w", err)
-	}
-	shutdowns = append(shutdowns, logsShutdown)
-
-	return logger, shutdown, nil
-```
-
-- [ ] **Step 3: Run go mod tidy and verify it compiles**
+- [ ] **Step 2: Compile**
 
 ```bash
 go mod tidy
 go build ./...
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add -A
@@ -491,181 +544,620 @@ git commit -m "feat: add otelzap logger with console and OTLP log bridge"
 
 ---
 
-### Task 5: Write tests
+### Task 6: Implement telemetry.go orchestrator and wire into buildContext
 
 **Files:**
 
-- Create: `telemetry_test.go`
+- Create: `telemetry.go`
+- Modify: `gokit.go` (update buildContext)
 
-- [ ] **Step 1: Write telemetry_test.go**
+- [ ] **Step 1: Write telemetry.go**
 
 ```go
-package telemetry_test
+package gokit
 
 import (
 	"context"
+	"fmt"
 	"net/http"
-	"testing"
+	"os"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/transform-ia/telemetry"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func TestInit_RequiresServiceName(t *testing.T) {
-	_, _, err := telemetry.Init(context.Background(), telemetry.Config{})
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "ServiceName is required")
+type telemetryResult struct {
+	logger   *otelzap.Logger
+	shutdown func(context.Context) error
 }
 
-func TestInit_ConsoleOnly(t *testing.T) {
-	// No OTEL_EXPORTER_OTLP_* env vars set — pure console fallback.
+func initTelemetry(ctx context.Context, serviceName string, mux *http.ServeMux) (*telemetryResult, error) {
+	if env := os.Getenv("OTEL_SERVICE_NAME"); env != "" {
+		serviceName = env
+	}
+
+	res, err := resource.New(ctx,
+		resource.WithAttributes(semconv.ServiceName(serviceName)),
+		resource.WithTelemetrySDK(),
+		resource.WithHost(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("gokit: resource: %w", err)
+	}
+
+	var shutdowns []func(context.Context) error
+
+	tracesShutdown, err := initTraces(ctx, res)
+	if err != nil {
+		return nil, err
+	}
+	shutdowns = append(shutdowns, tracesShutdown)
+
+	metricsShutdown, err := initMetrics(ctx, res, mux)
+	if err != nil {
+		return nil, err
+	}
+	shutdowns = append(shutdowns, metricsShutdown)
+
+	logger, logsShutdown, err := initLogs(ctx, res)
+	if err != nil {
+		return nil, err
+	}
+	shutdowns = append(shutdowns, logsShutdown)
+
+	shutdown := func(ctx context.Context) error {
+		var errs []error
+		for _, fn := range shutdowns {
+			if err := fn(ctx); err != nil {
+				errs = append(errs, err)
+			}
+		}
+		if len(errs) > 0 {
+			return fmt.Errorf("gokit: shutdown errors: %v", errs)
+		}
+		return nil
+	}
+
+	return &telemetryResult{logger: logger, shutdown: shutdown}, nil
+}
+```
+
+- [ ] **Step 2: Update buildContext in gokit.go**
+
+```go
+func buildContext[T any](ctx context.Context, serviceName string) (*appContext[T], error) {
+	cfg, err := loadConfig[T]()
+	if err != nil {
+		return nil, err
+	}
+
+	tel, err := initTelemetry(ctx, serviceName, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &appContext[T]{
+		context: &Context[T]{
+			Context: ctx,
+			Config:  cfg,
+			Logger:  tel.logger,
+		},
+		shutdown: tel.shutdown,
+	}, nil
+}
+```
+
+- [ ] **Step 3: Write telemetry_test.go**
+
+```go
+package gokit
+
+import (
+	"context"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestInitTelemetry_ConsoleOnly(t *testing.T) {
 	t.Setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "")
 	t.Setenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "")
 	t.Setenv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "")
 	t.Setenv("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "")
 
-	logger, shutdown, err := telemetry.Init(context.Background(), telemetry.Config{
-		ServiceName: "test-service",
-	})
+	tel, err := initTelemetry(context.Background(), "test-svc", nil)
 	require.NoError(t, err)
-	require.NotNil(t, logger)
-	require.NotNil(t, shutdown)
+	require.NotNil(t, tel.logger)
+	require.NotNil(t, tel.shutdown)
 
-	err = shutdown(context.Background())
+	err = tel.shutdown(context.Background())
 	require.NoError(t, err)
-}
-
-func TestInit_WithMux(t *testing.T) {
-	// Mux provided — /metrics should be registered.
-	t.Setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "")
-
-	mux := http.NewServeMux()
-	logger, shutdown, err := telemetry.Init(context.Background(), telemetry.Config{
-		ServiceName: "test-service",
-		Mux:         mux,
-	})
-	require.NoError(t, err)
-	require.NotNil(t, logger)
-	defer shutdown(context.Background())
-
-	// Verify /metrics is registered by making a request.
-	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, httptest.NewRequest("GET", "/metrics", nil))
-	assert.Equal(t, http.StatusOK, rec.Code)
-}
-
-func TestInit_ServiceNameFromEnv(t *testing.T) {
-	t.Setenv("OTEL_SERVICE_NAME", "env-service")
-	t.Setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "")
-
-	logger, shutdown, err := telemetry.Init(context.Background(), telemetry.Config{
-		ServiceName: "config-service", // overridden by env
-	})
-	require.NoError(t, err)
-	require.NotNil(t, logger)
-	defer shutdown(context.Background())
 }
 ```
 
-Note: add `"net/http/httptest"` to imports.
-
-- [ ] **Step 2: Run tests**
+- [ ] **Step 4: Run tests**
 
 ```bash
+go mod tidy
 go test ./... -v
 ```
 
-Expected: all tests PASS.
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add -A
+git commit -m "feat: wire telemetry orchestrator into buildContext"
+```
+
+---
+
+### Task 7: Implement NewCommand
+
+**Files:**
+
+- Modify: `gokit.go`
+
+- [ ] **Step 1: Add NewCommand and genericCommand to gokit.go**
+
+```go
+type genericCommand[T any] struct {
+	use   string
+	short string
+	fn    func(ctx *Context[T]) error
+}
+
+func (c *genericCommand[T]) cobraCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   c.use,
+		Short: c.short,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			appCtx, err := buildContext[T](cmd.Context(), cmd.Root().Use)
+			if err != nil {
+				return err
+			}
+			defer appCtx.shutdown(cmd.Context())
+			return c.fn(appCtx.context)
+		},
+	}
+}
+
+func NewCommand[T any](use, short string, fn func(ctx *Context[T]) error) Command {
+	return &genericCommand[T]{use: use, short: short, fn: fn}
+}
+```
+
+- [ ] **Step 2: Compile**
+
+```bash
+go build ./...
+```
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add -A
-git commit -m "test: add telemetry init tests"
+git commit -m "feat: add NewCommand with generic typed config"
 ```
 
 ---
 
-### Task 6: Add README.md
+### Task 8: Implement serve.go (ServeCommand)
 
 **Files:**
 
-- Create: `README.md`
+- Create: `serve.go`
+- Create: `serve_test.go`
 
-- [ ] **Step 1: Write README.md**
+- [ ] **Step 1: Write serve_test.go (failing tests first)**
 
-```markdown
-# telemetry
+```go
+package gokit
 
-Go library for initializing OpenTelemetry traces, metrics, and logs with a
-single call. Designed for the transform-ia ecosystem with Victoria* backends.
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-## Install
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
 
-    go get github.com/transform-ia/telemetry
+func TestReservedPathValidation(t *testing.T) {
+	tests := []struct {
+		name    string
+		pattern string
+		wantErr bool
+	}{
+		{"health is reserved", "/health", true},
+		{"metrics is reserved", "/metrics", true},
+		{"api is allowed", "/api/users", false},
+		{"graphql is allowed", "/graphql", false},
+	}
 
-## Usage
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.wantErr {
+				assert.True(t, reservedPaths[tt.pattern])
+			} else {
+				assert.False(t, reservedPaths[tt.pattern])
+			}
+		})
+	}
+}
 
-### Long-running daemon
+func TestHealthEndpoint(t *testing.T) {
+	mux := http.NewServeMux()
+	registerHealth(mux)
 
-    mux := http.NewServeMux()
-    logger, shutdown, err := telemetry.Init(ctx, telemetry.Config{
-        ServiceName: "myapp",
-        Mux:         mux, // registers /metrics for Prometheus scrape
-    })
-    if err != nil {
-        return fmt.Errorf("failed to init telemetry: %w", err)
-    }
-    defer shutdown(ctx)
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest("GET", "/health", nil))
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Contains(t, rec.Body.String(), "ok")
+}
 
-### Short-lived command
+func TestGetPortFromConfig(t *testing.T) {
+	type withPort struct {
+		Port int `envconfig:"PORT" default:"9090"`
+	}
+	type withoutPort struct {
+		Name string
+	}
 
-    logger, shutdown, err := telemetry.Init(ctx, telemetry.Config{
-        ServiceName: "myapp-migrate",
-        Mux:         nil, // no Prometheus scrape
-    })
-    if err != nil {
-        return fmt.Errorf("failed to init telemetry: %w", err)
-    }
-    defer shutdown(ctx)
+	cfg1 := &withPort{Port: 9090}
+	port, ok := getPortFromConfig(cfg1)
+	require.True(t, ok)
+	assert.Equal(t, 9090, port)
 
-## Environment Variables
+	cfg2 := &withoutPort{Name: "test"}
+	_, ok = getPortFromConfig(cfg2)
+	assert.False(t, ok)
+}
 
-| Variable                               | Purpose            | Fallback                       |
-| -------------------------------------- | ------------------ | ------------------------------ |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`         | All signals        | Console output                 |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`  | VictoriaTraces     | `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | VictoriaMetrics    | `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | VictoriaLogs       | `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME`                    | Override cfg name  | `Config.ServiceName`           |
+func TestValidateRoutes_RejectsReserved(t *testing.T) {
+	routes := []Route{
+		{Pattern: "/metrics", Handler: http.NotFoundHandler()},
+	}
+	err := validateRoutes(routes)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "conflicts with reserved path")
+}
 
-## Behavior
-
-| Signal      | Endpoint set            | Endpoint not set                   |
-| ----------- | ----------------------- | ---------------------------------- |
-| **Traces**  | OTLP + stdouttrace      | stdouttrace only                   |
-| **Metrics** | OTLP push               | Prometheus scrape only (if Mux)    |
-| **Logs**    | Console + OTLP bridge   | Console only                       |
+func TestValidateRoutes_AcceptsNormal(t *testing.T) {
+	routes := []Route{
+		{Pattern: "/api/users", Handler: http.NotFoundHandler()},
+	}
+	err := validateRoutes(routes)
+	require.NoError(t, err)
+}
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
-git add README.md
-git commit -m "docs: add README"
+go mod tidy
+go test ./... -v
+```
+
+Expected: FAIL — functions not defined.
+
+- [ ] **Step 3: Write serve.go**
+
+```go
+package gokit
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"reflect"
+	"time"
+
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+)
+
+// Route defines an HTTP route for ServeCommand.
+type Route struct {
+	Pattern string
+	Handler http.Handler
+}
+
+var reservedPaths = map[string]bool{
+	"/health":  true,
+	"/metrics": true,
+}
+
+func validateRoutes(routes []Route) error {
+	for _, route := range routes {
+		if reservedPaths[route.Pattern] {
+			return fmt.Errorf("gokit: route %q conflicts with reserved path", route.Pattern)
+		}
+	}
+	return nil
+}
+
+func registerHealth(mux *http.ServeMux) {
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	})
+}
+
+func getPortFromConfig(cfg any) (int, bool) {
+	v := reflect.ValueOf(cfg)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		return 0, false
+	}
+	f := v.FieldByName("Port")
+	if !f.IsValid() || f.Kind() != reflect.Int {
+		return 0, false
+	}
+	return int(f.Int()), true
+}
+
+type serveCommand[T any] struct {
+	use   string
+	short string
+	fn    func(ctx *Context[T]) []Route
+}
+
+func (c *serveCommand[T]) cobraCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   c.use,
+		Short: c.short,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return c.run(cmd)
+		},
+	}
+}
+
+func (c *serveCommand[T]) run(cmd *cobra.Command) error {
+	ctx := cmd.Context()
+	serviceName := cmd.Root().Use
+
+	cfg, err := loadConfig[T]()
+	if err != nil {
+		return err
+	}
+
+	mux := http.NewServeMux()
+	registerHealth(mux)
+
+	tel, err := initTelemetry(ctx, serviceName, mux)
+	if err != nil {
+		return err
+	}
+	defer tel.shutdown(ctx)
+
+	appCtx := &Context[T]{
+		Context: ctx,
+		Config:  cfg,
+		Logger:  tel.logger,
+	}
+
+	routes := c.fn(appCtx)
+	if err := validateRoutes(routes); err != nil {
+		return err
+	}
+	for _, route := range routes {
+		mux.Handle(route.Pattern, route.Handler)
+	}
+
+	port := 8080
+	if p, ok := getPortFromConfig(cfg); ok {
+		port = p
+	}
+
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: mux,
+	}
+
+	go func() {
+		tel.logger.Ctx(ctx).Info("server starting", zap.String("addr", server.Addr))
+		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+			tel.logger.Ctx(ctx).Error("server error", zap.Error(err))
+		}
+	}()
+
+	<-ctx.Done()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	return server.Shutdown(shutdownCtx)
+}
+
+func ServeCommand[T any](use, short string, fn func(ctx *Context[T]) []Route) Command {
+	return &serveCommand[T]{use: use, short: short, fn: fn}
+}
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+```bash
+go test ./... -v
+```
+
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add -A
+git commit -m "feat: add ServeCommand with /health, /metrics, route validation"
 ```
 
 ---
 
-## Chunk 2: Go Plugin Update in claude-plugins
+### Task 9: Integration test and README
+
+**Files:**
+
+- Create: `gokit_integration_test.go`
+- Create: `README.md`
+
+- [ ] **Step 1: Write integration test**
+
+```go
+package gokit
+
+import (
+	"context"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+type integrationConfig struct {
+	Name string `envconfig:"APP_NAME" default:"integration-test"`
+}
+
+func TestBuildContext_FullStack(t *testing.T) {
+	t.Setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "")
+	t.Setenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "")
+	t.Setenv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "")
+	t.Setenv("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "")
+
+	appCtx, err := buildContext[integrationConfig](context.Background(), "test-svc")
+	require.NoError(t, err)
+
+	assert.Equal(t, "integration-test", appCtx.context.Config.Name)
+	require.NotNil(t, appCtx.context.Logger)
+
+	err = appCtx.shutdown(context.Background())
+	require.NoError(t, err)
+}
+```
+
+- [ ] **Step 2: Run all tests**
+
+```bash
+go test ./... -v
+```
+
+Expected: all PASS.
+
+- [ ] **Step 3: Write README.md**
+
+```markdown
+# gokit
+
+Go application framework for the transform-ia ecosystem. Owns the full
+application lifecycle: CLI, config, telemetry, and HTTP server.
+
+## Install
+
+    go get github.com/transform-ia/gokit
+
+## Quick Start
+
+### Single-command app
+
+    package main
+
+    import "github.com/transform-ia/gokit"
+
+    type Config struct {
+        Token string `envconfig:"API_TOKEN" required:"true" validate:"required"`
+    }
+
+    func main() {
+        gokit.RunSingle[Config]("myapp", "Does a thing", run)
+    }
+
+    func run(ctx *gokit.Context[Config]) error {
+        ctx.Logger.Ctx(ctx).Info("running")
+        return nil
+    }
+
+### Multi-command app with HTTP server
+
+    package main
+
+    import "github.com/transform-ia/gokit"
+
+    type ServeConfig struct {
+        Port int `envconfig:"PORT" default:"8080" validate:"required"`
+    }
+
+    type MigrateConfig struct {
+        DatabaseURL string `envconfig:"DATABASE_URL" required:"true" validate:"required"`
+    }
+
+    func main() {
+        gokit.Run(gokit.App{
+            Name:  "myapp",
+            Short: "My application",
+            Commands: []gokit.Command{
+                gokit.ServeCommand[ServeConfig]("serve", "Start server", routes),
+                gokit.NewCommand[MigrateConfig]("migrate", "Run migrations", migrate),
+            },
+        })
+    }
+
+    func routes(ctx *gokit.Context[ServeConfig]) []gokit.Route {
+        return []gokit.Route{
+            {Pattern: "/api/users", Handler: usersHandler(ctx)},
+        }
+    }
+
+    func migrate(ctx *gokit.Context[MigrateConfig]) error {
+        ctx.Logger.Ctx(ctx).Info("migrating")
+        return nil
+    }
+
+## What gokit provides
+
+- **CLI**: cobra root command, signal handling (SIGINT/SIGTERM)
+- **Config**: envconfig loading + validator/v10 validation per command
+- **Telemetry**: traces (stdouttrace + OTLP), metrics (OTLP + Prometheus),
+  logs (otelzap console + OTLP bridge)
+- **HTTP**: ServeCommand with automatic /health and /metrics, graceful shutdown
+
+## Environment Variables
+
+| Variable                               | Purpose            |
+| -------------------------------------- | ------------------ |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`         | All signals        |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`  | VictoriaTraces     |
+| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | VictoriaMetrics    |
+| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | VictoriaLogs       |
+| `OTEL_SERVICE_NAME`                    | Override app name  |
+
+When no endpoint is set, traces go to stdout and logs go to console.
+
+## Reserved Paths
+
+`/health` and `/metrics` are reserved by ServeCommand. Consumer routes
+that use these paths cause a startup error.
+```
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add -A
+git commit -m "test: add integration test; docs: add README"
+```
+
+---
+
+## Chunk 2: Go Plugin Rewrite
 
 All work in this chunk happens in:
 `/home/patate/sandbox/transformia/claude-plugins/`
 
 ---
 
-### Task 7: Create telemetry.md directive (replaces prometheus.md)
+### Task 10: Create telemetry.md directive, delete prometheus.md
 
 **Files:**
 
@@ -679,40 +1171,10 @@ Create `go/assets/directives/telemetry.md`:
 ```markdown
 # Telemetry Directive
 
-**MANDATORY for every application.** All Go applications MUST initialize
-telemetry using `github.com/transform-ia/telemetry`. This covers traces,
-metrics, and logs in a single call.
+gokit handles all telemetry initialization. This directive covers how to use
+OTel APIs in business code.
 
-## Rule: Every App Gets Telemetry
-
-- Long-running daemons: pass `Mux` to `telemetry.Init()` for Prometheus scrape
-- Short-lived commands: pass `nil` for Mux (OTLP push still works if configured)
-
-## Setup
-
-    logger, shutdown, err := telemetry.Init(ctx, telemetry.Config{
-        ServiceName: "myapp",
-        Mux:         mux, // nil for short-lived commands
-    })
-    if err != nil {
-        return fmt.Errorf("failed to init telemetry: %w", err)
-    }
-    defer shutdown(ctx)
-
-## Environment Variables
-
-Standard OTel env vars control backend connectivity:
-
-| Variable                               | Backend         |
-| -------------------------------------- | --------------- |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`         | All signals     |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`  | VictoriaTraces  |
-| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | VictoriaMetrics |
-| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | VictoriaLogs    |
-
-When no endpoint is configured, traces go to stdout and logs go to console.
-
-## Traces in Business Code
+## Traces
 
 Every public method on a service SHOULD create a span:
 
@@ -726,7 +1188,7 @@ On error, record it on the span:
     span.RecordError(err)
     span.SetStatus(codes.Error, err.Error())
 
-## Metrics in Business Code
+## Metrics
 
 Define meters at package level, use in functions:
 
@@ -744,15 +1206,14 @@ Define meters at package level, use in functions:
 - Prefix: `<service>_`
 - Suffixes: `_total` (counter), `_seconds` (histogram), `_bytes` (gauge)
 
-## Logs in Business Code
+## Logs
 
-Use the otelzap logger returned by `Init()`. It automatically injects
-trace/span IDs into log entries:
+Use the logger from `ctx.Logger`. It automatically injects trace/span IDs:
 
-    logger.Ctx(ctx).Info("user fetched", zap.String("user_id", id))
-    logger.Ctx(ctx).Error("failed to fetch user", zap.Error(err))
+    ctx.Logger.Ctx(ctx).Info("user fetched", zap.String("user_id", id))
+    ctx.Logger.Ctx(ctx).Error("failed to fetch user", zap.Error(err))
 
-## Required Imports
+## Required Imports for Business Code
 
     import (
         "go.opentelemetry.io/otel"
@@ -761,6 +1222,17 @@ trace/span IDs into log entries:
         "go.opentelemetry.io/otel/metric"
         "go.uber.org/zap"
     )
+
+## Environment Variables
+
+Configured at the infrastructure level, NOT in application code:
+
+| Variable                               | Backend         |
+| -------------------------------------- | --------------- |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`         | All signals     |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`  | VictoriaTraces  |
+| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | VictoriaMetrics |
+| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | VictoriaLogs    |
 ```
 
 - [ ] **Step 2: Delete prometheus.md**
@@ -774,270 +1246,295 @@ rm go/assets/directives/prometheus.md
 ```bash
 git add go/assets/directives/telemetry.md
 git rm go/assets/directives/prometheus.md
-git commit -m "feat: replace prometheus directive with comprehensive telemetry directive"
+git commit -m "feat: replace prometheus directive with telemetry directive"
 ```
 
 ---
 
-### Task 8: Update instructions.md
+### Task 11: Rewrite instructions.md
 
 **Files:**
 
 - Modify: `go/skills/gocode/instructions.md`
 
-- [ ] **Step 1: Update NEVER section**
+- [ ] **Step 1: Rewrite the full file**
 
-Replace:
-
-```markdown
-- Ship a long-running application without OTel metrics - see
-  `assets/directives/prometheus.md`
-```
-
-With:
+Replace entire contents of `go/skills/gocode/instructions.md` with:
 
 ```markdown
-- Ship any application without telemetry - see `assets/directives/telemetry.md`
-```
+# Go Development
 
-- [ ] **Step 2: Update ALWAYS section**
+## Standards
 
-Replace:
+### NEVER
 
-```markdown
-- **Expose OTel metrics** for every long-running application (servers, workers,
-  consumers, daemons) via `/metrics` on the shared HTTP port - if the app has no
-  HTTP server, create one for `/health` and `/metrics`. See
-  `assets/directives/prometheus.md`
-```
+- Use `os.Getenv()` — use envconfig struct tags
+- Use manual struct validation — use validator/v10 struct tags
+- Use `internal/` packages — all packages must be importable
+- Put `main.go` in `cmd/` — keep at repository root
+- Ship code without tests — every package MUST have `_test.go` files
+- Depend on concrete implementations for external resources (databases, APIs,
+  message queues) — always depend on interfaces
+- Write `main()` with manual cobra setup — use `gokit.Run()` or
+  `gokit.RunSingle()`
+- Write manual signal handling (`signal.NotifyContext`) — gokit owns it
+- Call `envconfig.Process()` or `validator.Struct()` directly — gokit owns
+  config lifecycle
+- Create `*zap.Logger` or `*otelzap.Logger` manually — gokit provides it via
+  `Context.Logger`
+- Set up OTel providers manually — gokit owns telemetry initialization
+- Create `http.Server` manually for serving — use `gokit.ServeCommand()`
+- Register `/health` or `/metrics` handlers — gokit registers them
+  automatically
 
-With:
+### ALWAYS
 
-```markdown
-- **Initialize telemetry** in every application using
-  `github.com/transform-ia/telemetry`. Long-running daemons pass `Mux` for
-  Prometheus scrape; short-lived commands pass `nil`. See
+- Wrap ALL errors: `fmt.Errorf("context: %w", err)`
+- Use MCP tools for semantic navigation (not grep)
+- Put `go.mod` and `main.go` at git root
+- Use `gokit.Run()` for multi-command apps, `gokit.RunSingle()` for
+  single-command apps
+- Use `gokit.ServeCommand()` for HTTP server commands
+- Use `gokit.NewCommand()` for non-HTTP commands (workers, migrations, CLI
+  tools)
+- Define per-command config structs with envconfig + validator tags
+- Access logger via `ctx.Logger.Ctx(ctx)` — never create loggers
+- Create spans in every public service method using `otel.Tracer().Start()`
+  and record errors with `span.RecordError()` — see
   `assets/directives/telemetry.md`
-- **Create spans** in every public service method using
-  `otel.Tracer().Start()` and record errors with `span.RecordError()`
-- **Use otelzap** for all logging via `logger.Ctx(ctx)` to inject trace context
-```
+- Define metrics for key operations using `otel.Meter()` — see
+  `assets/directives/telemetry.md`
+- **Ship tests with every change** — no PR is complete without tests
+- Define interfaces for external dependencies and accept them as constructor
+  parameters
 
-- [ ] **Step 3: Update Required Libraries table**
+## Required Libraries
 
-Replace the entire table with:
-
-```markdown
 | Purpose    | Library                                |
 | ---------- | -------------------------------------- |
-| CLI        | github.com/spf13/cobra                 |
-| Config     | github.com/kelseyhightower/envconfig   |
-| Validation | github.com/go-playground/validator/v10 |
+| Framework  | github.com/transform-ia/gokit          |
 | Testing    | github.com/stretchr/testify            |
-| Telemetry  | github.com/transform-ia/telemetry      |
 | MCP Server | github.com/mark3labs/mcp-go            |
+
+All other libraries (cobra, envconfig, validator, otelzap, OTel, prometheus)
+are provided by gokit. Do NOT import them directly for functionality gokit
+provides.
+
+## MCP Tools (gopls)
+
+Prefer MCP tools over grep — they understand Go semantics:
+
+    mcp__golang-*__definition   - Go to definition
+    mcp__golang-*__references   - Find all references
+    mcp__golang-*__callers      - Who calls this function
+    mcp__golang-*__callees      - What does this function call
+    mcp__golang-*__hover        - Type information
+    mcp__golang-*__diagnostics  - Compiler errors
+
+**When to use MCP tools:**
+
+- Renaming symbols across files → `references`
+- Understanding code flow → `callers` and `callees`
+- Finding implementations → `definition`
+- Checking errors before lint → `diagnostics`
+
+**When to use grep/glob:** string literals, comments, file patterns, non-Go
+files.
+
+## Code Patterns
+
+Reference files in `assets/` for complete examples:
+
+| Pattern              | Reference File                  |
+| -------------------- | ------------------------------- |
+| main.go with gokit   | `assets/examples/main.go`       |
+| serve command        | `assets/examples/cmd-serve.go`  |
+| worker command       | `assets/examples/cmd-worker.go` |
+| service with OTel    | `assets/examples/service.go`    |
+| repository + testing | `assets/examples/repository.go` |
+
+For domain-specific patterns, see `assets/directives/`:
+
+- `telemetry.md` — Traces, metrics, and logs (OTel + Victoria*)
+- `http-server.md` — HTTP routing with gokit.ServeCommand
+- `graphql-server.md` — GraphQL with gqlgen
+- `mcp-server.md` — MCP server with mcp-go
+- `testing.md` — Testing patterns
+
+## Testing Requirements
+
+**Every package MUST have tests.** Code without tests is incomplete code.
+
+- Write table-driven tests using `testify/assert` and `testify/require`
+- Test both success and error paths
+- Use `testify/mock` or hand-written fakes for external dependencies
+
+### Interface-Driven Design for Testability
+
+All components that connect to external resources MUST be accessed through
+interfaces.
+
+    type UserRepository interface {
+        GetByID(ctx context.Context, id string) (*User, error)
+        Create(ctx context.Context, user *User) error
+    }
+
+    type UserService struct {
+        repo   UserRepository
+        logger *otelzap.Logger
+    }
+
+    func NewUserService(repo UserRepository, logger *otelzap.Logger) *UserService {
+        return &UserService{repo: repo, logger: logger}
+    }
+
+**Rule of thumb:** If `NewXxx()` takes a concrete struct that talks to the
+network or disk, refactor it to accept an interface instead.
+
+### Key Patterns (Quick Reference)
+
+**Config (per-command struct):**
+
+    type ServeConfig struct {
+        Port     int    `envconfig:"PORT" default:"8080" validate:"required"`
+        LogLevel string `envconfig:"LOG_LEVEL" default:"info"`
+    }
+
+**Validation (validator/v10):** Common tags: `required`, `email`, `url`,
+`min=N,max=N`, `gte=N,lte=N`, `alphanum`, `omitempty`.
+
+**Error wrapping:** Always `fmt.Errorf("context: %w", err)`, never bare
+`return err`.
+
+**Telemetry:** gokit handles init. Use `otel.Tracer().Start()` for spans,
+`otel.Meter()` for metrics, `ctx.Logger.Ctx(ctx)` for logs. See
+`assets/directives/telemetry.md`.
+
+## Troubleshooting
+
+### "Go not found" or "golangci-lint not found"
+
+Go toolchain not installed locally. Install from go.dev and golangci-lint.run.
+
+### "BLOCKED: Bash not allowed in Go plugin context"
+
+Use `/go:*` slash commands instead of direct shell commands.
+
+### "BLOCKED: Go plugin cannot modify linter configuration"
+
+`.golangci.yaml` is read-only. Discuss lint rule changes with the user.
+
+### "LINT ERRORS: Please fix the issues above"
+
+golangci-lint found errors during Stop hook. Review errors, fix code, and the
+hook will re-format and re-lint on next completion.
+
+### MCP server not accessible
+
+Verify gopls installed (`gopls version`), check `.mcp.json`, restart MCP
+server.
 ```
 
-- [ ] **Step 4: Update Code Patterns table**
-
-Add telemetry directive to the directives list. Replace:
-
-```markdown
-- `prometheus.md` - Prometheus metrics
-```
-
-With:
-
-```markdown
-- `telemetry.md` - Traces, metrics, and logs (OTel + Victoria*)
-```
-
-- [ ] **Step 5: Update logging quick reference**
-
-Replace:
-
-```markdown
-**Logging (otelzap):** `logger.Ctx(ctx).Info("msg", zap.String("key", "val"))`
-```
-
-With:
-
-```markdown
-**Telemetry:** Initialize with `telemetry.Init(ctx, cfg)`. Use
-`otel.Tracer().Start()` for spans, `otel.Meter()` for metrics,
-`logger.Ctx(ctx)` for logs. See `assets/directives/telemetry.md`.
-```
-
-- [ ] **Step 6: Verify file is well-formed**
-
-Read the full file and confirm all changes are consistent.
-
-- [ ] **Step 7: Commit**
+- [ ] **Step 2: Commit**
 
 ```bash
 git add go/skills/gocode/instructions.md
-git commit -m "feat: update gocode skill for full OTel telemetry"
+git commit -m "feat: rewrite gocode skill to enforce gokit usage"
 ```
 
 ---
 
-### Task 9: Update example files
+### Task 12: Rewrite example files
 
 **Files:**
 
+- Modify: `go/assets/examples/main.go`
 - Modify: `go/assets/examples/cmd-serve.go`
 - Modify: `go/assets/examples/cmd-worker.go`
 - Modify: `go/assets/examples/service.go`
+- Delete: `go/assets/examples/config.go`
 
-- [ ] **Step 1: Update cmd-serve.go**
+- [ ] **Step 1: Rewrite main.go**
 
 ```go
 package main
 
-import (
-	"context"
-	"fmt"
-	"net/http"
-	"os/signal"
-	"syscall"
-	"time"
+import "github.com/transform-ia/gokit"
 
-	"github.com/spf13/cobra"
-	"github.com/transform-ia/telemetry"
-)
-
-func serveCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "serve",
-		Short: "Start HTTP server",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runServe(cmd.Context())
+func main() {
+	gokit.Run(gokit.App{
+		Name:  "myapp",
+		Short: "My application description",
+		Commands: []gokit.Command{
+			gokit.ServeCommand[ServeConfig]("serve", "Start HTTP server", routes),
+			gokit.NewCommand[WorkerConfig]("worker", "Start background worker", runWorker),
 		},
-	}
-}
-
-func runServe(ctx context.Context) error {
-	cfg, err := LoadConfig()
-	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
-	}
-
-	mux := http.NewServeMux()
-
-	logger, shutdown, err := telemetry.Init(ctx, telemetry.Config{
-		ServiceName: "myapp",
-		Mux:         mux,
 	})
-	if err != nil {
-		return fmt.Errorf("failed to init telemetry: %w", err)
-	}
-	defer shutdown(ctx)
-
-	// Health check
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
-	// Business handlers go here
-	// mux.Handle("/api/users", usersHandler(logger))
-
-	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.Port),
-		Handler: mux,
-	}
-
-	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
-	go func() {
-		logger.Ctx(ctx).Info("server starting")
-		if err := server.ListenAndServe(); err != http.ErrServerClosed {
-			logger.Ctx(ctx).Error("server error", zap.Error(err))
-		}
-	}()
-
-	<-ctx.Done()
-
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	return server.Shutdown(shutdownCtx)
 }
 ```
 
-- [ ] **Step 2: Update cmd-worker.go**
+- [ ] **Step 2: Rewrite cmd-serve.go**
 
 ```go
 package main
 
 import (
-	"context"
-	"fmt"
 	"net/http"
-	"os/signal"
-	"syscall"
-	"time"
 
-	"github.com/spf13/cobra"
-	"github.com/transform-ia/telemetry"
+	"github.com/transform-ia/gokit"
+)
+
+type ServeConfig struct {
+	Port        int    `envconfig:"PORT" default:"8080" validate:"required"`
+	DatabaseURL string `envconfig:"DATABASE_URL" required:"true" validate:"required"`
+}
+
+func routes(ctx *gokit.Context[ServeConfig]) []gokit.Route {
+	// gokit automatically registers /health and /metrics.
+	return []gokit.Route{
+		{Pattern: "/api/users", Handler: usersHandler(ctx)},
+	}
+}
+
+func usersHandler(ctx *gokit.Context[ServeConfig]) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx.Logger.Ctx(r.Context()).Info("handling users request")
+		w.WriteHeader(http.StatusOK)
+	})
+}
+```
+
+- [ ] **Step 3: Rewrite cmd-worker.go**
+
+```go
+package main
+
+import (
+	"github.com/transform-ia/gokit"
 	"go.uber.org/zap"
 )
 
-func workerCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "worker",
-		Short: "Start background worker",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runWorker(cmd.Context())
-		},
-	}
+type WorkerConfig struct {
+	Port     int    `envconfig:"PORT" default:"8080" validate:"required"`
+	QueueURL string `envconfig:"QUEUE_URL" required:"true" validate:"required"`
 }
 
-func runWorker(ctx context.Context) error {
-	cfg, err := LoadConfig()
-	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
-	}
+func runWorker(ctx *gokit.Context[WorkerConfig]) error {
+	ctx.Logger.Ctx(ctx).Info("worker starting", zap.String("queue", ctx.Config.QueueURL))
 
-	mux := http.NewServeMux()
-
-	logger, shutdown, err := telemetry.Init(ctx, telemetry.Config{
-		ServiceName: "myworker",
-		Mux:         mux,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to init telemetry: %w", err)
-	}
-	defer shutdown(ctx)
-
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
-	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.Port),
-		Handler: mux,
-	}
-
-	go func() {
-		if err := server.ListenAndServe(); err != http.ErrServerClosed {
-			logger.Ctx(ctx).Error("http server error", zap.Error(err))
+	for {
+		select {
+		case <-ctx.Done():
+			ctx.Logger.Ctx(ctx).Info("worker shutting down")
+			return nil
+		default:
+			// Process work...
 		}
-	}()
-
-	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
-	logger.Ctx(ctx).Info("worker starting")
-	// ... worker loop using ctx ...
-	<-ctx.Done()
-
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	return server.Shutdown(shutdownCtx)
+	}
 }
 ```
 
-- [ ] **Step 3: Update service.go**
+- [ ] **Step 4: Rewrite service.go**
 
 ```go
 package main
@@ -1061,7 +1558,6 @@ var (
 	)
 )
 
-// UserService handles user business logic.
 type UserService struct {
 	repo   UserRepository
 	logger *otelzap.Logger
@@ -1092,33 +1588,107 @@ func (s *UserService) GetUser(ctx context.Context, id string) (*User, error) {
 }
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Delete config.go**
 
 ```bash
-git add go/assets/examples/cmd-serve.go go/assets/examples/cmd-worker.go go/assets/examples/service.go
-git commit -m "feat: update example files with full OTel telemetry patterns"
+rm go/assets/examples/config.go
+```
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add go/assets/examples/main.go go/assets/examples/cmd-serve.go \
+    go/assets/examples/cmd-worker.go go/assets/examples/service.go
+git rm go/assets/examples/config.go
+git commit -m "feat: rewrite example files to use gokit"
 ```
 
 ---
 
-### Task 10: Update http-server.md directive
+### Task 13: Update http-server.md and templates
 
 **Files:**
 
 - Modify: `go/assets/directives/http-server.md`
+- Modify: `go/assets/templates/main.go.tmpl`
+- Modify: `go/assets/templates/cmd.go.tmpl`
 
-- [ ] **Step 1: Update metrics reference**
+- [ ] **Step 1: Rewrite http-server.md**
 
-Replace the `mux.Handle("/metrics", metricsHandler)` line in the example with a
-comment indicating telemetry.Init handles this:
+```markdown
+# HTTP Server Directive
 
-```go
-// /metrics is registered automatically by telemetry.Init() when Mux is provided
+**Triggers when:** Application needs HTTP endpoints
+
+## Use gokit.ServeCommand
+
+ALL HTTP serving MUST use `gokit.ServeCommand()`. This automatically provides:
+
+- `/health` endpoint (200 OK, JSON)
+- `/metrics` endpoint (Prometheus)
+- Graceful shutdown (30s timeout)
+- Single port, single mux
+
+    gokit.ServeCommand[ServeConfig]("serve", "Start server", func(ctx *gokit.Context[ServeConfig]) []gokit.Route {
+        return []gokit.Route{
+            {Pattern: "/api", Handler: apiHandler(ctx)},
+            {Pattern: "/graphql", Handler: graphqlHandler(ctx)},
+        }
+    })
+
+## Middleware Composition
+
+    func RequireAuth(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            // auth logic...
+            next.ServeHTTP(w, r)
+        })
+    }
+
+    // Usage in routes:
+    {Pattern: "/api", Handler: RequireAuth(apiHandler(ctx))}
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 2: Rewrite main.go.tmpl**
+
+```go
+package main
+
+import "github.com/transform-ia/gokit"
+
+func main() {
+	gokit.Run(gokit.App{
+		Name:  "{{.AppName}}",
+		Short: "{{.AppDescription}}",
+		Commands: []gokit.Command{
+			// Add commands here
+		},
+	})
+}
+```
+
+- [ ] **Step 3: Rewrite cmd.go.tmpl**
+
+```go
+package main
+
+import "github.com/transform-ia/gokit"
+
+type {{.CommandName}}Config struct {
+	// Add config fields with envconfig + validator tags
+}
+
+func run{{.CommandName}}(ctx *gokit.Context[{{.CommandName}}Config]) error {
+	ctx.Logger.Ctx(ctx).Info("{{.CommandName}} starting")
+	return nil
+}
+```
+
+- [ ] **Step 4: Commit**
 
 ```bash
-git add go/assets/directives/http-server.md
-git commit -m "fix: update http-server directive to reference telemetry.Init"
+git add go/assets/directives/http-server.md \
+    go/assets/templates/main.go.tmpl \
+    go/assets/templates/cmd.go.tmpl
+git commit -m "feat: update http-server directive and templates for gokit"
 ```
