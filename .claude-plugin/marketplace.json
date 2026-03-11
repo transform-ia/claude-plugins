@@ -24,7 +24,7 @@
       "name": "go",
       "source": "./go",
       "description": "Go development with local toolchain",
-      "version": "0.5.2",
+      "version": "0.5.3",
       "author": { "name": "Transform IA" }
     },
     {
