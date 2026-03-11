@@ -4,10 +4,6 @@
 # Plugin identity
 readonly PLUGIN_NAME="markdown"
 
-# Scoping mechanism
-readonly USE_CALLER_DETECTION=true
-readonly FAIL_CLOSED=true  # Security: fail closed, not open
-
 # File patterns
 readonly ALLOWED_EXTENSIONS=("md")
 
@@ -20,11 +16,8 @@ readonly ALLOWED_BASH_COMMANDS=(
 )
 
 # Error messages (single definition)
-readonly MSG_OUT_OF_SCOPE="Markdown plugin cannot handle requests outside its scope."
 readonly MSG_BLOCKED_FILE="BLOCKED: Markdown plugin can only modify *.md files."
 readonly MSG_BLOCKED_BASH="BLOCKED: Bash operations restricted in markdown plugin context."
-readonly MSG_SECURITY_ERROR="BLOCKED: Security validation failed."
-readonly MSG_DETECTION_FAILED="BLOCKED: Caller detection failed - denying for security."
 
 # Helper: Check if command is in allowlist
 is_command_allowed() {

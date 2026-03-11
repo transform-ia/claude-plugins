@@ -14,12 +14,10 @@ source "$SCRIPT_DIR/lib/validators.sh"
 input=$(cat)
 
 # Parse hook input
-transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
-tool_use_id=$(echo "$input" | jq -r '.tool_use_id // empty')
 command=$(echo "$input" | jq -r '.tool_input.command // empty')
 
-# Check if in plugin scope (handles fail-closed internally)
-if ! in_plugin_scope "$transcript_path" "$tool_use_id"; then
+# Check if in plugin scope
+if ! in_plugin_scope; then
     exit 0  # Not in scope - allow
 fi
 

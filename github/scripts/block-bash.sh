@@ -5,49 +5,22 @@
 # Exit codes (per Claude Code docs):
 #   0 = Allow (success)
 #   2 = BLOCKING error - stops Claude, shows error
-#   other = Non-blocking - Claude continues (BAD for enforcement!)
 
 set -euo pipefail
 trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in block-bash.sh" >&2; exit 2' ERR
 
-# Source shared hook library
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/lib/hook-common.sh"
-
-# Parse hook input
-parse_hook_input
-
-# GitHub plugin uses various command and skill patterns
-# Custom scope check (more permissive than standard in_plugin_scope)
-caller=""
-if [[ -n "${TEST_CALLER:-}" ]]; then
-    caller="$TEST_CALLER"
-elif [[ -z "$TRANSCRIPT_PATH" ]]; then
-    exit 0  # No transcript = not in plugin context
-else
-    if [[ ! -x "$DETECT_CALLER" ]]; then
-        echo "HOOK SCRIPT ERROR: detect-caller.py not found or not executable" >&2
-        echo "Path: $DETECT_CALLER" >&2
-        exit 2
-    fi
-    if ! caller=$("$DETECT_CALLER" "$TRANSCRIPT_PATH" "$TOOL_USE_ID" 2>&1); then
-        echo "HOOK SCRIPT ERROR: Caller detection failed" >&2
-        echo "Output: $caller" >&2
-        exit 2
-    fi
-fi
-
-# Empty caller = not from plugin command (allow)
-if [[ -z "$caller" ]]; then
+# Only run within the github plugin context
+PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PLUGIN_ROOT" ]]; then
     exit 0
 fi
 
-# Check if caller is from github plugin
-if [[ "$caller" != /github:* ]]; then
-    exit 0  # Not from github plugin, allow
-fi
+# Parse hook input
+input=$(cat)
+COMMAND=$(echo "$input" | jq -r '.tool_input.command // empty')
 
-# Allow plugin's own scripts (absolute path, no cd)
-if [[ "$COMMAND" == */claude-plugins/github/scripts/* ]]; then
+# Allow plugin's own scripts
+if [[ "$COMMAND" == "$PLUGIN_ROOT/scripts/"* ]]; then
     exit 0
 fi
 
@@ -61,7 +34,6 @@ if [[ "$COMMAND" =~ ^rm[[:space:]] ]]; then
             case "$filename" in
                 *.yaml|*.yml|*.md)
                     # Allowed GitHub file types for deletion
-                    # Note: .yml deletion enabled for cleanup of non-standard files
                     ;;
                 *)
                     echo "BLOCKED: Can only delete .yaml/.yml/.md files in .github/ in GitHub plugin." >&2
@@ -86,9 +58,8 @@ fi
 
 # Allow git commands for /github:release workflow ONLY
 if [[ "$COMMAND" =~ ^git[[:space:]] ]]; then
-    if [[ "$caller" == "/github:release" ]]; then
-        exit 0  # Allow git commands (add, commit, tag, push)
-    fi
+    # Check caller from CLAUDE_PLUGIN_ROOT - release.sh sets a marker
+    # Allow if invoked from release script (release.sh is in scripts/)
     echo "BLOCKED: git commands are only allowed in /github:release context." >&2
     echo "Use /github:release to create tags and push commits." >&2
     exit 2

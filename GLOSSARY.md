@@ -123,7 +123,6 @@ JSON object representing a message or tool call. Hooks use the transcript to
 determine plugin context.
 
 **Format**: One JSON object per line **Location**: Provided via stdin to hooks
-**Usage**: `detect-caller.py` parses transcript to find active agent
 
 ## Plugin Architecture
 
@@ -156,26 +155,17 @@ In this context:
 - Go hooks allow editing `*.go`, `go.mod`, `go.sum`
 - Go hooks block editing `Dockerfile`, `*.yaml`, `*.md`
 
-### detect-caller.py
+### Hook Scope Check
 
-Script that parses the transcript to determine which plugin agent is currently
-active.
+Hooks scope to their plugin using `CLAUDE_PLUGIN_ROOT`, which Claude Code sets
+to the active plugin's directory when a plugin command runs.
 
-**Logic**:
-
-1. Read transcript from stdin (JSONL format)
-2. Find most recent `Task` tool call with `subagent_type` field
-3. Extract plugin name from `subagent_type` (e.g., "docker:container" →
-   "docker")
-4. Return plugin name or "unknown"
-
-**Usage in hooks**:
+**Pattern**:
 
 ```bash
-PLUGIN=$(detect-caller.py < "$TRANSCRIPT")
-if [ "$PLUGIN" != "docker" ]; then
-  echo "BLOCKED: Cannot edit Dockerfile from $PLUGIN plugin context"
-  exit 2
+PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PLUGIN_ROOT" ]]; then
+    exit 0  # Not in this plugin's context — allow
 fi
 ```
 

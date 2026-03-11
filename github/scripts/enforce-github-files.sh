@@ -4,58 +4,28 @@
 # Exit codes (per Claude Code docs):
 #   0 = Allow (success)
 #   2 = BLOCKING error - stops Claude, shows error
-#   other = Non-blocking - Claude continues (BAD for enforcement!)
-#
-# CRITICAL: Any script failure MUST exit 2 to block Claude
 
 set -euo pipefail
-
-# Trap any error and convert to exit 2 (blocking)
 trap 'echo "HOOK SCRIPT ERROR: Unexpected failure in enforce-github-files.sh" >&2; exit 2' ERR
 
-# Source shared hook library
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/lib/hook-common.sh"
-
-# Parse hook input
-parse_hook_input
-
-# GitHub plugin uses various command and skill patterns
-# Custom scope check (more permissive than standard in_plugin_scope)
-caller=""
-if [[ -n "${TEST_CALLER:-}" ]]; then
-    caller="$TEST_CALLER"
-elif [[ -z "$TRANSCRIPT_PATH" ]]; then
-    exit 0  # No transcript = not in plugin context
-else
-    if [[ ! -x "$DETECT_CALLER" ]]; then
-        echo "HOOK SCRIPT ERROR: detect-caller.py not found or not executable" >&2
-        echo "Path: $DETECT_CALLER" >&2
-        exit 2
-    fi
-    if ! caller=$("$DETECT_CALLER" "$TRANSCRIPT_PATH" "$TOOL_USE_ID" 2>&1); then
-        echo "HOOK SCRIPT ERROR: Caller detection failed" >&2
-        echo "Output: $caller" >&2
-        exit 2
-    fi
-fi
-
-# Empty caller = not from plugin command (allow)
-if [[ -z "$caller" ]]; then
+# Only run within the github plugin context
+PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ "${CLAUDE_PLUGIN_ROOT:-}" != "$PLUGIN_ROOT" ]]; then
     exit 0
 fi
 
-# Check if caller is from github plugin
-if [[ "$caller" != /github:* ]]; then
-    exit 0  # Not from github plugin, allow
-fi
+# Parse hook input
+input=$(cat)
+TOOL_NAME=$(echo "$input" | jq -r '.tool_name // empty')
+FILE_PATH=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
 # Only check Write/Edit operations
 if [[ "$TOOL_NAME" != "Write" && "$TOOL_NAME" != "Edit" ]]; then
-    exit 0  # Allow - not a file write operation
+    exit 0
 fi
 
 # Normalize path to prevent traversal attacks
-normalized_path=$(normalize_path "$FILE_PATH")
+normalized_path=$(readlink -m "$FILE_PATH" 2>/dev/null || echo "$FILE_PATH")
 
 # Only allow specific files (exact match or pattern)
 allowed_files=(
@@ -74,14 +44,14 @@ fi
 # Check exact matches
 for allowed in "${allowed_files[@]}"; do
     if [[ "$relative_path" == "$allowed" ]]; then
-        exit 0  # Allow
+        exit 0
     fi
 done
 
 # Check pattern match for PULL_REQUEST_TEMPLATE/*.md
 # shellcheck disable=SC2053
 if [[ "$relative_path" == $allowed_pattern ]]; then
-    exit 0  # Allow
+    exit 0
 fi
 
 echo "BLOCKED: GitHub plugin can only modify:" >&2
@@ -95,4 +65,4 @@ echo "  - Go files (*.go) → use go:gocode" >&2
 echo "  - Dockerfile → use docker:container" >&2
 echo "  - Helm charts (*.yaml) → use helm:agent-dev" >&2
 echo "  - Other files → exit GitHub plugin scope first" >&2
-exit 2  # Block
+exit 2
