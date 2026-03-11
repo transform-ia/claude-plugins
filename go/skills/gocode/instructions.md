@@ -5,55 +5,38 @@
 ### NEVER
 
 - Use `os.Getenv()` — use envconfig struct tags
-- Use manual struct validation — use validator/v10 struct tags
 - Use `internal/` packages — all packages must be importable
 - Put `main.go` in `cmd/` — keep at repository root
-- Ship code without tests — every package MUST have `_test.go` files
-- Depend on concrete implementations for external resources (databases, APIs,
-  message queues) — always depend on interfaces
-- Write `main()` with manual cobra setup — use `gokit.Run()` or
-  `gokit.RunSingle()`
-- Write manual signal handling (`signal.NotifyContext`) — gokit owns it
-- Call `envconfig.Process()` or `validator.Struct()` directly — gokit owns
-  config lifecycle
-- Create `*zap.Logger` or `*otelzap.Logger` manually — gokit provides it via
-  `Context.Logger`
+- Write `main()` with manual cobra setup — use `gokit.Run()` or `gokit.RunSingle()`
+- Write manual signal handling, config loading, or logger creation — gokit owns all of it
 - Set up OTel providers manually — gokit owns telemetry initialization
-- Create `http.Server` manually for serving — use `gokit.ServeCommand()`
-- Register `/health` or `/metrics` handlers — gokit registers them
-  automatically
+- Create `http.Server` manually — use `gokit.ServeCommand()`
+- Register `/health` or `/metrics` handlers — gokit registers them automatically
+- Depend on concrete implementations for external resources — always depend on interfaces
+- Leave any function that does real work without a span
+- Leave any error path without `span.RecordError()` and a structured log entry
 
 ### ALWAYS
 
 - Wrap ALL errors: `fmt.Errorf("context: %w", err)`
 - Use MCP tools for semantic navigation (not grep)
-- Put `go.mod` and `main.go` at git root
-- Use `gokit.Run()` for multi-command apps, `gokit.RunSingle()` for
-  single-command apps
-- Use `gokit.ServeCommand()` for HTTP server commands
-- Use `gokit.NewCommand()` for non-HTTP commands (workers, migrations, CLI
-  tools)
+- Use `gokit.Run()` for multi-command apps, `gokit.RunSingle()` for single-command apps
+- Use `gokit.ServeCommand()` for HTTP server commands, `gokit.NewCommand()` for workers/CLI
 - Define per-command config structs with envconfig + validator tags
 - Access logger via `ctx.Logger.Ctx(ctx)` — never create loggers
-- Create spans in every public service method using `otel.Tracer().Start()`
-  and record errors with `span.RecordError()` — see Telemetry section below
-- Define metrics for key operations using `otel.Meter()` — see Telemetry
-  section below
+- **Instrument everything** — every function that does real work needs spans, logs, and metrics
 - **Ship tests with every change** — no PR is complete without tests
-- Define interfaces for external dependencies and accept them as constructor
-  parameters
 
 ## Required Libraries
 
-| Purpose    | Library                                |
-| ---------- | -------------------------------------- |
-| Framework  | github.com/transform-ia/gokit          |
-| Testing    | github.com/stretchr/testify            |
-| MCP Server | github.com/mark3labs/mcp-go            |
+| Purpose   | Library                       |
+| --------- | ----------------------------- |
+| Framework | github.com/transform-ia/gokit |
+| Testing   | github.com/stretchr/testify   |
+| MCP       | github.com/mark3labs/mcp-go   |
 
-All other libraries (cobra, envconfig, validator, otelzap, OTel, prometheus)
-are provided by gokit. Do NOT import them directly for functionality gokit
-provides.
+All other libraries (cobra, envconfig, validator, otelzap, OTel, prometheus) are provided
+by gokit. Do NOT import them directly.
 
 ## MCP Tools (gopls)
 
@@ -65,16 +48,6 @@ Prefer MCP tools over grep — they understand Go semantics:
     mcp__golang-*__callees      - What does this function call
     mcp__golang-*__hover        - Type information
     mcp__golang-*__diagnostics  - Compiler errors
-
-**When to use MCP tools:**
-
-- Renaming symbols across files → `references`
-- Understanding code flow → `callers` and `callees`
-- Finding implementations → `definition`
-- Checking errors before lint → `diagnostics`
-
-**When to use grep/glob:** string literals, comments, file patterns, non-Go
-files.
 
 ## Code Patterns
 
@@ -95,95 +68,12 @@ For domain-specific patterns, see `assets/directives/`:
 - `mcp-server.md` — MCP server with mcp-go
 - `testing.md` — Testing patterns
 
-## Testing Requirements
+## Telemetry
 
-**Every package MUST have tests.** Code without tests is incomplete code.
+gokit initializes all OTel providers. Your job is to instrument business code
+**densely**. Sparse telemetry is incomplete code — treat it the same as missing tests.
 
-- Write table-driven tests using `testify/assert` and `testify/require`
-- Test both success and error paths
-- Use `testify/mock` or hand-written fakes for external dependencies
-
-### Interface-Driven Design for Testability
-
-All components that connect to external resources MUST be accessed through
-interfaces.
-
-    type UserRepository interface {
-        GetByID(ctx context.Context, id string) (*User, error)
-        Create(ctx context.Context, user *User) error
-    }
-
-    type UserService struct {
-        repo   UserRepository
-        logger *otelzap.Logger
-    }
-
-    func NewUserService(repo UserRepository, logger *otelzap.Logger) *UserService {
-        return &UserService{repo: repo, logger: logger}
-    }
-
-**Rule of thumb:** If `NewXxx()` takes a concrete struct that talks to the
-network or disk, refactor it to accept an interface instead.
-
-### Key Patterns (Quick Reference)
-
-**Config (per-command struct):**
-
-    type ServeConfig struct {
-        Port     int    `envconfig:"PORT" default:"8080" validate:"required"`
-        LogLevel string `envconfig:"LOG_LEVEL" default:"info"`
-    }
-
-**Validation (validator/v10):** Common tags: `required`, `email`, `url`,
-`min=N,max=N`, `gte=N,lte=N`, `alphanum`, `omitempty`.
-
-**Error wrapping:** Always `fmt.Errorf("context: %w", err)`, never bare
-`return err`.
-
-## Telemetry in Business Code
-
-gokit handles all telemetry initialization. The patterns below show how to use
-OTel APIs in your business code. This is NOT optional — every service method
-MUST have traces, and every key operation MUST have metrics.
-
-### Traces
-
-Every public method on a service MUST create a span:
-
-    ctx, span := otel.Tracer("myapp").Start(ctx, "ServiceName.MethodName")
-    defer span.End()
-
-    span.SetAttributes(attribute.String("key", "value"))
-
-On error, record it on the span:
-
-    span.RecordError(err)
-    span.SetStatus(codes.Error, err.Error())
-
-### Metrics
-
-Define meters at package level, use in functions:
-
-    var requestCounter, _ = otel.Meter("myapp").Int64Counter(
-        "myapp_requests_total",
-        metric.WithDescription("Total requests processed"),
-    )
-
-    requestCounter.Add(ctx, 1, metric.WithAttributes(
-        attribute.String("method", "GetUser"),
-    ))
-
-Metric naming: prefix with `<service>_`, suffix with `_total` (counter),
-`_seconds` (histogram), `_bytes` (gauge).
-
-### Logs
-
-Use the logger from `ctx.Logger`. It automatically injects trace/span IDs:
-
-    ctx.Logger.Ctx(ctx).Info("user fetched", zap.String("user_id", id))
-    ctx.Logger.Ctx(ctx).Error("failed to fetch user", zap.Error(err))
-
-### Required Imports for Business Code
+### Required Imports
 
     import (
         "go.opentelemetry.io/otel"
@@ -193,47 +83,109 @@ Use the logger from `ctx.Logger`. It automatically injects trace/span IDs:
         "go.uber.org/zap"
     )
 
-### Environment Variables
+### Traces — every function that does real work
 
-Configured at the infrastructure level, NOT in application code:
+    ctx, span := otel.Tracer("myapp").Start(ctx, "Service.Method")
+    defer span.End()
 
-| Variable                               | Backend         | Notes |
-| -------------------------------------- | --------------- | --- |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`         | All signals     | Full URL with scheme required (e.g., `http://host:port`) |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`  | VictoriaTraces  | Full URL with path (e.g., `http://victoriatraces:9428/insert/opentelemetry/v1/traces`) |
-| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | VictoriaMetrics | Full URL with path (e.g., `http://victoriametrics:8428/opentelemetry/v1/metrics`) |
-| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | VictoriaLogs    | Full URL with path (e.g., `http://victorialogs:9428/insert/opentelemetry/v1/logs`) |
-| `OTEL_EXPORTER_OTLP_HEADERS`          | Auth            | Comma-separated `key=value` pairs (e.g., `"authorization=Bearer <token>"`) |
+    span.SetAttributes(
+        attribute.String("entity.id", id),
+        attribute.Int("batch.size", n),
+    )
 
-**Transport:** OTLP uses **HTTP** (not gRPC). The URL scheme controls TLS: `http://` for
-plain HTTP (internal Docker network), `https://` for TLS (external). The SDK reads
-`OTEL_EXPORTER_OTLP_HEADERS` automatically — no code changes needed to add auth.
+On error — always both RecordError AND SetStatus:
 
-**External ingestion endpoint:** `https://otel.robotinfra.com` (bearer token required).
-**Internal Docker network:** use container hostnames directly (e.g., `victoriametrics:8428`).
+    span.RecordError(err)
+    span.SetStatus(codes.Error, err.Error())
 
-When no endpoint is set, traces go to stdout and logs go to console.
+Nest spans for sub-operations (DB call, external API, validation step). A service
+method calling a repository should produce a parent span with a child span for the
+query. Never flatten work into a single span.
 
-## Troubleshooting
+### Metrics — define at package level, instrument key operations
 
-### "Go not found" or "golangci-lint not found"
+Six instrument types, all available via `otel.Meter("myapp")`:
 
-Go toolchain not installed locally. Install from go.dev and golangci-lint.run.
+    // Monotonically increasing counts
+    requestsTotal, _ := meter.Int64Counter("myapp.requests.total",
+        metric.WithDescription("Total requests processed"),
+        metric.WithUnit("{request}"),
+    )
 
-### "BLOCKED: Bash not allowed in Go plugin context"
+    // Current value (async, read at collection time)
+    _, _ = meter.Int64ObservableGauge("myapp.queue.depth",
+        metric.WithInt64Callback(func(_ context.Context, o metric.Int64Observer) error {
+            o.Observe(currentDepth)
+            return nil
+        }),
+    )
 
-Use `/go:*` slash commands instead of direct shell commands.
+    // Distribution of durations or sizes
+    duration, _ := meter.Int64Histogram("myapp.operation.duration_ms",
+        metric.WithUnit("ms"),
+    )
+    duration.Record(ctx, elapsed.Milliseconds())
 
-### "BLOCKED: Go plugin cannot modify linter configuration"
+**Metric naming:** `<service>.<noun>.<unit_or_type>` — e.g. `worker.jobs.total`,
+`api.request.duration_ms`, `queue.messages.depth`.
 
-`.golangci.yaml` is read-only. Discuss lint rule changes with the user.
+**Cardinality rule:** Never use high-cardinality values (IDs, user emails, request
+bodies) as metric attributes. Low-cardinality only: status, method, error_type,
+environment.
 
-### "LINT ERRORS: Please fix the issues above"
+What to measure — at minimum:
+- Request/job/event counters (total processed, total failed)
+- Queue or backlog depth (observable gauge)
+- Processing duration (histogram)
+- Payload or data sizes (histogram)
+- Resource utilization (CPU, connection pool — observable gauge)
 
-golangci-lint found errors during Stop hook. Review errors, fix code, and the
-hook will re-format and re-lint on next completion.
+### Logs — structured, at every meaningful event
 
-### MCP server not accessible
+    logger := ctx.Logger.Ctx(ctx) // propagates trace/span IDs automatically
 
-Verify gopls installed (`gopls version`), check `.mcp.json`, restart MCP
-server.
+    logger.Info("job started", zap.String("job_id", id), zap.Int("payload_bytes", n))
+    logger.Warn("slow operation", zap.Duration("duration", d), zap.String("op", name))
+    logger.Error("job failed", zap.Error(err), zap.String("job_id", id))
+
+Log at every: function entry (debug), success (info), warning condition (warn),
+and error (error). Always include the relevant entity IDs and key measurements as
+structured fields — never embed them in the message string.
+
+### Telemetry Density Checklist
+
+Before marking any feature complete, verify:
+
+- [ ] Every service method has a span with relevant attributes
+- [ ] Every error path calls `span.RecordError()` + logs at Error level
+- [ ] Every loop or batch operation has a counter for items processed
+- [ ] Every timed operation records to a histogram
+- [ ] Every "depth" or "size" state has a gauge
+- [ ] Every function entry/exit has debug/info logs with structured fields
+- [ ] No metric attribute has unbounded cardinality
+
+## Testing
+
+Every package MUST have `_test.go` files. Code without tests is incomplete.
+
+- Table-driven tests with `testify/assert` and `testify/require`
+- Test success and error paths
+- Use `testify/mock` or hand-written fakes for external dependencies
+- All external dependencies (DB, API, queue) accessed through interfaces so they
+  can be faked in tests
+
+## OTLP Environment Variables
+
+Configured at infra level, NOT in application code:
+
+| Variable                               | Example value |
+| -------------------------------------- | ------------- |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`  | `http://victoriatraces:9428/insert/opentelemetry/v1/traces` |
+| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | `http://victoriametrics:8428/opentelemetry/v1/metrics` |
+| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | `http://victorialogs:9428/insert/opentelemetry/v1/logs` |
+| `OTEL_EXPORTER_OTLP_HEADERS`          | `authorization=Bearer <token>` |
+| `OTEL_METRIC_EXPORT_INTERVAL`         | `10000` (ms, default 60000) |
+
+Transport is **HTTP** (not gRPC). URL scheme controls TLS: `http://` inside Docker,
+`https://` externally. External endpoint: `https://otel.robotinfra.com` (bearer token
+required). When no endpoint is set, traces fall back to stdout.
