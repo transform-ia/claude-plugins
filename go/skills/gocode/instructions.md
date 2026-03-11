@@ -184,9 +184,137 @@ Every package MUST have `_test.go` files. Code without tests is incomplete.
 
 - Table-driven tests with `testify/assert` and `testify/require`
 - Test success and error paths
-- Use `testify/mock` or hand-written fakes for external dependencies
+- Use hand-written fakes for external dependencies (prefer simple structs over
+  mock frameworks)
 - All external dependencies (DB, API, queue) accessed through interfaces so they
   can be faked in tests
+
+### OTel Testing with testkit
+
+gokit apps emit spans, metrics, and logs. Use `github.com/transform-ia/gokit/testkit`
+to capture and assert on all three signals in-process — no real OTel collector needed.
+
+```go
+import (
+    "context"
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "go.opentelemetry.io/otel/sdk/metric/metricdata"
+    sdktrace "go.opentelemetry.io/otel/sdk/trace"
+    "github.com/transform-ia/gokit/testkit"
+)
+
+func TestMyHandler(t *testing.T) {
+    tk := testkit.Setup(t)  // installs in-memory OTel providers; cleaned up via t.Cleanup
+    ctx := testkit.NewContext[Config](t, tk, &Config{Port: 8080})
+
+    // call your code that uses ctx.Logger, otel.Tracer(), otel.Meter()
+    err := myFunc(ctx)
+    require.NoError(t, err)
+
+    // Assert spans
+    ended := tk.Spans.Ended()
+    names := make([]string, len(ended))
+    for i, s := range ended { names[i] = s.Name() }
+    assert.Contains(t, names, "MyService.DoWork")
+
+    // Assert span status / events
+    for _, s := range ended {
+        if s.Name() == "MyService.DoWork" {
+            assert.Equal(t, codes.Ok, s.Status().Code)
+        }
+    }
+
+    // Assert metrics
+    var rm metricdata.ResourceMetrics
+    require.NoError(t, tk.Metrics.Collect(context.Background(), &rm))
+    // find counter by name and attribute value
+
+    // Assert logs
+    assert.NotEmpty(t, tk.Logs.Records())
+}
+```
+
+**`testkit.Setup(t)`** wires `tracetest.SpanRecorder`, `sdkmetric.ManualReader`,
+and `InMemoryLogExporter` as the global OTel providers. Call it once per test;
+providers are replaced for each test (no cross-test leakage).
+
+**`testkit.NewContext[T]`** creates a `*gokit.Context[T]` with a silent (discarding)
+zap core and `otelzap.WithMinLevel(DebugLevel)` so every log level flows through
+to the OTel bridge and appears in `tk.Logs.Records()`.
+
+### Testing HTTP Handlers
+
+Call `buildRoutes(ctx)` directly — no need to start an HTTP server:
+
+```go
+func TestGetWork_HappyPath(t *testing.T) {
+    tk := testkit.Setup(t)
+    ctx := testkit.NewContext[Config](t, tk, &Config{Port: 8080})
+    rts := buildRoutes(ctx)  // returns []gokit.Route
+
+    req := httptest.NewRequest(http.MethodGet, "/work", nil)
+    rec := httptest.NewRecorder()
+    // find the handler for the route pattern and invoke it
+    for _, r := range rts {
+        if r.Pattern == "GET /work" {
+            r.Handler.ServeHTTP(rec, req)
+        }
+    }
+
+    assert.Equal(t, http.StatusOK, rec.Code)
+    assert.Contains(t, spanNames(tk.Spans.Ended()), "work")
+}
+```
+
+### Testing Workers (infinite loops)
+
+Workers use `ctx.Done()` to exit. Use `context.WithTimeout` to run one iteration:
+
+```go
+func TestRun_ProcessesOneBatch(t *testing.T) {
+    tk := testkit.Setup(t)
+    ctx := testkit.NewContext[Config](t, tk, &Config{})
+
+    // give enough time for at least one batch (job sleep ≤ 30ms, batch ≤ 5 jobs)
+    cancelCtx, cancel := context.WithTimeout(ctx.Context, 400*time.Millisecond)
+    defer cancel()
+    ctx.Context = cancelCtx
+
+    require.NoError(t, run(ctx))
+
+    assert.Contains(t, spanNames(tk.Spans.Ended()), "batch.process")
+    assert.NotEmpty(t, tk.Logs.Records())
+}
+```
+
+### Asserting Metrics
+
+`tk.Metrics` is an `sdkmetric.ManualReader` — call `Collect` to pull the
+current state:
+
+```go
+var rm metricdata.ResourceMetrics
+require.NoError(t, tk.Metrics.Collect(context.Background(), &rm))
+
+// find a counter with a specific attribute value
+for _, sm := range rm.ScopeMetrics {
+    for _, m := range sm.Metrics {
+        if m.Name == "myapp.requests.total" {
+            sum := m.Data.(metricdata.Sum[int64])
+            for _, dp := range sum.DataPoints {
+                v, ok := dp.Attributes.Value(attribute.Key("endpoint"))
+                if ok && v.AsString() == "/work" {
+                    assert.Equal(t, int64(1), dp.Value)
+                }
+            }
+        }
+    }
+}
+```
+
+Note: attribute lookup uses `attribute.Key("keyname")`, not a plain string.
 
 ## OTLP Environment Variables
 

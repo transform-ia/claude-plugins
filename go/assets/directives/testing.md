@@ -68,6 +68,49 @@ func (m *MockQuickBooksClient) GetInvoice(ctx context.Context, id string) (*Invo
 }
 ```
 
+## OTel-Instrumented Code (testkit)
+
+For gokit apps, use `github.com/transform-ia/gokit/testkit` to assert on spans,
+metrics, and logs without a running OTel collector.
+
+```go
+func TestMyService(t *testing.T) {
+    tk := testkit.Setup(t)                                     // in-memory OTel providers
+    ctx := testkit.NewContext[Config](t, tk, &Config{...})     // gokit context
+
+    err := myCommandFn(ctx)
+    require.NoError(t, err)
+
+    // Spans
+    ended := tk.Spans.Ended()
+    require.Len(t, ended, 3)
+    assert.Equal(t, "MyService.DoWork", ended[0].Name())
+    assert.Equal(t, codes.Ok, ended[0].Status().Code)
+
+    // Error span
+    assert.Equal(t, codes.Error, ended[1].Status().Code)
+    require.Len(t, ended[1].Events(), 1)
+    assert.Equal(t, "exception", ended[1].Events()[0].Name)
+
+    // Metrics
+    var rm metricdata.ResourceMetrics
+    require.NoError(t, tk.Metrics.Collect(context.Background(), &rm))
+    sum := rm.ScopeMetrics[0].Metrics[0].Data.(metricdata.Sum[int64])
+    assert.Equal(t, int64(1), sum.DataPoints[0].Value)
+
+    // Logs (all levels including Info/Debug — testkit sets minLevel=Debug)
+    assert.NotEmpty(t, tk.Logs.Records())
+}
+```
+
+**Key behaviours:**
+- `testkit.Setup(t)` replaces global OTel providers; no cross-test leakage
+- `testkit.NewContext[T]` uses `otelzap.WithMinLevel(DebugLevel)` — Info/Debug
+  logs flow to `tk.Logs`; without this they are silently dropped
+- `tk.Metrics` is a `ManualReader` — call `Collect` to pull; metric state
+  accumulates across the test, not reset between calls
+- Attribute lookup in metric data requires `attribute.Key("name")`, not a string
+
 ## Test Coverage
 
 Target: >80% coverage on business logic packages.
