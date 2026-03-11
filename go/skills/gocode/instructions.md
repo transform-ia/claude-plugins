@@ -164,6 +164,20 @@ Before marking any feature complete, verify:
 - [ ] Every function entry/exit has debug/info logs with structured fields
 - [ ] No metric attribute has unbounded cardinality
 
+## Linting
+
+golangci-lint runs automatically as a Stop hook after every `/go:*` command —
+it formats and fixes your code, then blocks completion if errors remain. You do
+not need to invoke it manually during normal development.
+
+To run explicitly: `/go:golint <directory>`
+
+**Never skip or suppress lint errors.** If golangci-lint blocks, fix the
+reported issues. Do not add `//nolint` directives without a documented reason.
+
+`.golangci.yaml` is owned by the project — do not modify it without explicit
+user approval.
+
 ## Testing
 
 Every package MUST have `_test.go` files. Code without tests is incomplete.
