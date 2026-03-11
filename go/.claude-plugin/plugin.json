@@ -1,5 +1,13 @@
 {
   "name": "go",
   "version": "0.2.0",
-  "description": "Go development with local toolchain"
+  "description": "Go development with local toolchain",
+  "lspServers": {
+    "gopls": {
+      "command": "gopls",
+      "extensionToLanguage": {
+        ".go": "go"
+      }
+    }
+  }
 }
