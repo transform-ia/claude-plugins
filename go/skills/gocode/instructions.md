@@ -197,12 +197,20 @@ Use the logger from `ctx.Logger`. It automatically injects trace/span IDs:
 
 Configured at the infrastructure level, NOT in application code:
 
-| Variable                               | Backend         |
-| -------------------------------------- | --------------- |
-| `OTEL_EXPORTER_OTLP_ENDPOINT`         | All signals     |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`  | VictoriaTraces  |
-| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | VictoriaMetrics |
-| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | VictoriaLogs    |
+| Variable                               | Backend         | Notes |
+| -------------------------------------- | --------------- | --- |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`         | All signals     | Full URL with scheme required (e.g., `http://host:port`) |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`  | VictoriaTraces  | Full URL with path (e.g., `http://victoriatraces:9428/insert/opentelemetry/v1/traces`) |
+| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | VictoriaMetrics | Full URL with path (e.g., `http://victoriametrics:8428/opentelemetry/v1/metrics`) |
+| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`    | VictoriaLogs    | Full URL with path (e.g., `http://victorialogs:9428/insert/opentelemetry/v1/logs`) |
+| `OTEL_EXPORTER_OTLP_HEADERS`          | Auth            | Comma-separated `key=value` pairs (e.g., `"authorization=Bearer <token>"`) |
+
+**Transport:** OTLP uses **HTTP** (not gRPC). The URL scheme controls TLS: `http://` for
+plain HTTP (internal Docker network), `https://` for TLS (external). The SDK reads
+`OTEL_EXPORTER_OTLP_HEADERS` automatically — no code changes needed to add auth.
+
+**External ingestion endpoint:** `https://otel.robotinfra.com` (bearer token required).
+**Internal Docker network:** use container hostnames directly (e.g., `victoriametrics:8428`).
 
 When no endpoint is set, traces go to stdout and logs go to console.
 
