@@ -214,7 +214,7 @@ GitHub Actions build monitoring and status checking.
 
 ## Agents
 
-### github:cicd
+### github:cicd (agent)
 
 Development agent for GitHub workflows and CI/CD.
 
@@ -227,7 +227,7 @@ Development agent for GitHub workflows and CI/CD.
 
 ---
 
-### github:build-monitor
+### github:build-monitor (agent)
 
 Build monitoring agent for GitHub Actions.
 
