@@ -10,56 +10,56 @@
       "name": "docker",
       "source": "./docker",
       "description": "Dockerfile development, linting, and image tag discovery",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "author": { "name": "Transform IA" }
     },
     {
       "name": "github",
       "source": "./github",
       "description": "GitHub Actions workflows, CI/CD, Dependabot, and build monitoring",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "author": { "name": "Transform IA" }
     },
     {
       "name": "go",
       "source": "./go",
       "description": "Go development with local toolchain",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "author": { "name": "Transform IA" }
     },
     {
       "name": "graphql",
       "source": "./graphql",
       "description": "GraphQL API development with Hasura and codegen",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "author": { "name": "Transform IA" }
     },
     {
       "name": "markdown",
       "source": "./markdown",
       "description": "Markdown documentation linting and formatting",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "author": { "name": "Transform IA" }
     },
     {
       "name": "postgresql",
       "source": "./postgresql",
       "description": "PostgreSQL schema design, migrations, and query optimization",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "author": { "name": "Transform IA" }
     },
     {
       "name": "typescript",
       "source": "./typescript",
       "description": "TypeScript/React development with local toolchain",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "author": { "name": "Transform IA" }
     },
     {
       "name": "infrastructure",
       "source": "./infrastructure",
       "description": "Infrastructure operations via Ansible and container troubleshooting",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "author": { "name": "Transform IA" }
     },
     {
