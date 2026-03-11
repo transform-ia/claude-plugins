@@ -23,7 +23,7 @@
     {
       "name": "go",
       "source": "./go",
-      "description": "Go development with Kubernetes dev containers",
+      "description": "Go development with local toolchain",
       "version": "0.2.0",
       "author": { "name": "Transform IA" }
     },
@@ -51,7 +51,7 @@
     {
       "name": "typescript",
       "source": "./typescript",
-      "description": "TypeScript/React development with Kubernetes dev containers",
+      "description": "TypeScript/React development with local toolchain",
       "version": "0.2.0",
       "author": { "name": "Transform IA" }
     },
