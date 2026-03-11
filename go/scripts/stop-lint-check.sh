@@ -10,7 +10,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-DETECT_CALLER="$(cd "$PLUGIN_ROOT/../scripts" && pwd)/detect-caller.py"
+DETECT_CALLER="$SCRIPT_DIR/detect-caller.py"
 
 # Read hook input from stdin
 input=$(cat)
