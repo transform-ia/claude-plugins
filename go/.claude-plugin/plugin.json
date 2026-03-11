@@ -2,7 +2,6 @@
   "name": "go",
   "version": "0.4.0",
   "description": "Go development with local toolchain",
-  "hooks": "./hooks/hooks.json",
   "lspServers": {
     "gopls": {
       "command": "gopls",
