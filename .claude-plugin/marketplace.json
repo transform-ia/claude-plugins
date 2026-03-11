@@ -61,6 +61,13 @@
       "description": "Infrastructure operations via Ansible and container troubleshooting",
       "version": "0.1.0",
       "author": { "name": "Transform IA" }
+    },
+    {
+      "name": "grafana",
+      "source": "./grafana",
+      "description": "Grafana dashboards, queries, and alerting for the Victoria metrics stack",
+      "version": "0.1.0",
+      "author": { "name": "Transform IA" }
     }
   ]
 }
