@@ -148,6 +148,56 @@ harassment prevention policy (mandatory for all employers), and overtime rules.
 
 ---
 
+### `/quebec-legal-entity:quebec-land-access`
+
+**Purpose:** Interactive guide for negotiating and recording droits de passage
+(land access agreements) with private landowners for Quebec snowmobile trail
+networks. Covers trail inventory, cadastral landowner identification, FCMQ
+standard agreement templates, priority agreement negotiation, and annual
+renewal tracking. Without signed agreements, trails cross private land without
+legal basis.
+
+**Tags used:** `[SECTOR-SPECIFIC]`
+
+**Creates:** `qc-land-access.md`
+
+**Depends on:** `quebec-snowmobile-club` (SNOW-01 must be submitted)
+
+---
+
+### `/quebec-legal-entity:quebec-mrc-permits`
+
+**Purpose:** Guide for obtaining MRC and municipal authorizations for Quebec
+snowmobile trail infrastructure. Covers MRC trail corridor authorization
+(schéma d'aménagement), municipal road crossing permits, signage permits, and
+grooming depot construction permits where required. Requirements vary
+significantly by MRC — always consult the FCMQ regional representative first.
+
+**Tags used:** `[SECTOR-SPECIFIC]`
+
+**Creates:** `qc-mrc-permits.md`
+
+**Depends on:** `quebec-snowmobile-club` (SNOW-01 must be submitted)
+
+---
+
+### `/quebec-legal-entity:quebec-grants`
+
+**Purpose:** Advisory guide for grant programs available to Quebec snowmobile
+clubs beyond MTQ/PACM (which is covered in `quebec-snowmobile-club` SNOW-03).
+Covers Tourisme Québec PAIR (spring window), MRC Fonds de développement des
+territoires (FDT), Canada Summer Jobs (November application), Sport Canada /
+Canadian Heritage programs, and foundation programs. Tracks application windows
+and outcomes in a Program Tracker.
+
+**Tags used:** `[SECTOR-SPECIFIC]`
+
+**Creates:** `qc-grants.md`
+
+**Depends on:** `quebec-snowmobile-club` (FCMQ membership required for most programs)
+
+---
+
 ## Progress Tracking
 
 All skills read `qc-status.md` for a master overview, plus their own per-skill file
