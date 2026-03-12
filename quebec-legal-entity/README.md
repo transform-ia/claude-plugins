@@ -245,6 +245,27 @@ permits and expiry dates.
 
 ---
 
+### `/quebec-legal-entity:quebec-compliance-calendar`
+
+**Purpose:** Read-only compliance deadline aggregator. Reads all `qc-*.md`
+state files and produces a consolidated, chronologically sorted list of
+upcoming deadlines and recurring obligations grouped as: Overdue, Due in
+30 days, Due in 31–90 days, and Due in 91+ days. Always shows the PACM
+June–August window. Run at any time — especially useful at fiscal year start
+and before the June PACM window opens.
+
+**Tags used:** `[GENERIC]`
+
+**Creates:** Nothing — read-only utility skill
+
+**Depends on:** Nothing required. The more skills have been run, the more
+complete the output.
+
+**Note:** Does not add a line to `qc-status.md` — this is a utility reporter,
+not a compliance workflow with completion state.
+
+---
+
 ## Progress Tracking
 
 All skills read `qc-status.md` for a master overview, plus their own per-skill file
