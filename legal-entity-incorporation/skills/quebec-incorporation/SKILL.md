@@ -14,5 +14,7 @@ description: |
   DO NOT activate when:
   - User is specifically asking about OBNL/non-profit steps (use quebec-obnl)
   - User is asking about federal incorporation via Corporations Canada / CNCA
-allowed-tools: Read, Write(obnl-status.md), Edit(obnl-status.md), AskUserQuestion
+  - User is asking about snowmobile club operations or FCMQ affiliation (use snowmobile-club-qc)
+allowed-tools:
+  Read, Write(obnl-status.md), Edit(obnl-status.md)
 ---

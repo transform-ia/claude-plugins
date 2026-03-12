@@ -1,4 +1,4 @@
-# legal-entity-incorporation Plugin
+# Legal Entity Incorporation Plugin
 
 Interactive step-by-step guides for incorporating a Quebec legal entity, registering an OBNL
 (non-profit organization), and managing snowmobile club operations. Each skill reads and writes
@@ -56,7 +56,7 @@ your organization's incorporation documents.
 
 ---
 
-## Cost Estimates (2025)
+## Cost Estimates
 
 | Phase | Minimum | Recommended |
 |---|---|---|
