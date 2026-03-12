@@ -72,6 +72,7 @@ record the decision in `qc-sst.md`.
 **Who must have one:**
 
 Under the LSST modernization (Bill 59, phased 2023–2024):
+
 - **Groups I and II (high-risk sectors):** Written prevention program mandatory
   for ALL employers regardless of worker count
 - **Groups III and IV (lower-risk sectors):** Written prevention program
@@ -109,6 +110,7 @@ If a CSS is required, it must include worker and employer representatives.
 **Who must have one:** All employers with workers, regardless of size.
 
 A hazard register (registre des risques) identifies:
+
 - Physical hazards (equipment, environment)
 - Chemical hazards (products, fumes)
 - Ergonomic hazards (lifting, repetitive motion)
@@ -125,6 +127,7 @@ Update whenever activities, equipment, or worksite conditions change.
 **Who must have one:** All employers with workers, regardless of size.
 
 Document:
+
 - Emergency evacuation procedures
 - First aid kit location and first-aid-trained personnel
 - Emergency contact numbers (ambulance, CNESST accident reporting line)
@@ -140,6 +143,7 @@ Document:
 tractors, vehicles used in field operations).
 
 Key obligations for heavy equipment operators:
+
 - Operators must have appropriate training and competency documentation
 - Equipment must be inspected before each use and maintained per manufacturer
   requirements

@@ -108,6 +108,7 @@ Document a termination procedure that complies with ANT notice requirements:
 | 10+ years | 8 weeks |
 
 **Notes:**
+
 - Notice must be in writing
 - Pay in lieu of notice is acceptable
 - Termination for cause (serious misconduct) may not require notice — consult
@@ -130,6 +131,7 @@ ALL Quebec employers, regardless of size, must:
 **CNESST provides a free template** at cnt.gouv.qc.ca → "Harcèlement psychologique"
 
 The policy must include:
+
 - Definition of psychological harassment
 - Prohibited behaviours
 - Complaint procedure (who to contact, how complaints are handled)
