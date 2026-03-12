@@ -104,6 +104,50 @@ entity formation.
 
 ---
 
+### `/quebec-legal-entity:quebec-cnesst`
+
+**Purpose:** CNESST workers' compensation registration and ongoing compliance.
+Covers employer account registration, activity unit classification, annual salary
+declaration (DPA), and accident reporting procedures. Mandatory for any Quebec
+employer with at least one worker.
+
+**Tags used:** `[GENERIC]`, `[PROV]`
+
+**Creates:** `qc-cnesst.md`
+
+**Depends on:** `quebec-payroll` (presence of employees)
+
+---
+
+### `/quebec-legal-entity:quebec-sst`
+
+**Purpose:** Advisory workplace health and safety (SST) compliance guide under
+the LSST. Covers prevention program requirements (LSST Bill 59 risk groups),
+safety committee obligations, hazard identification, and heavy-equipment
+obligations for groomer/vehicle operators.
+
+**Tags used:** `[GENERIC]`, `[PROV]`
+
+**Creates:** `qc-sst.md`
+
+**Depends on:** `quebec-payroll` (presence of employees)
+
+---
+
+### `/quebec-legal-entity:quebec-labour-standards`
+
+**Purpose:** Advisory Quebec labour standards compliance guide under ANT.
+Covers employment contracts, minimum wage, notice of termination, psychological
+harassment prevention policy (mandatory for all employers), and overtime rules.
+
+**Tags used:** `[GENERIC]`, `[PROV]`
+
+**Creates:** `qc-labour-standards.md`
+
+**Depends on:** `quebec-payroll` (presence of employees)
+
+---
+
 ## Progress Tracking
 
 All skills read `qc-status.md` for a master overview, plus their own per-skill file
