@@ -108,7 +108,7 @@ The `instructions.md` file for this skill must include:
 
 | Step ID | Alias | Action | Tags | Cost (2025) | Delay |
 |---------|-------|--------|------|-------------|-------|
-| S1-01 | A2 | Name search at REQ (registreentreprises.gouv.qc.ca) | `[GENERIC][PROV]` | Free | Immediate |
+| S1-01 | A2a (name search) | Name search at REQ (registreentreprises.gouv.qc.ca) | `[GENERIC][PROV]` | Free | Immediate |
 | S1-02 | A2b (name reservation) | Name reservation — optional, 90-day hold | `[GENERIC][PROV]` | $27 regular / $40.50 priority | 2–5 bus. days |
 
 **Phase: Post-incorporation (requires letters patent + NEQ from Skill 2 step B2)**
@@ -186,7 +186,7 @@ allowed-tools: Read, Write(obnl-status.md), Edit(obnl-status.md), AskUserQuestio
 2. **Step-by-step prompts:** Present each step with action, required documents, cost, delay, and warnings. Ask the user to confirm before marking complete.
 3. **Resumption:** Skip to first unchecked step.
 4. **Critical warning placement:** Dissolution clause and director liability warnings must be shown before step S2-03 (by-laws drafting).
-5. **Milestone notification:** When B2 (letters patent + NEQ) is marked complete, instruct the user to update `obnl-status.md` with the NEQ number and B2_date, and to proceed with Skill 1 post-incorporation steps (S1-03 through S1-07).
+5. **Milestone notification:** When S2-05 (letters patent + NEQ) is marked complete, instruct the user to update `obnl-status.md` with the NEQ number and B2_date, and to proceed with Skill 1 post-incorporation steps S1-03 through S1-07. S1-08 (annual REQ update) is a recurring obligation that becomes relevant only after the first full year; defer its prompt to then.
 
 ### Steps
 
@@ -304,7 +304,7 @@ E2_next_window: [Year] June–August
 Last updated: YYYY-MM-DD
 
 ## Skill 1: quebec-incorporation
-- [ ] S1-01 (A2) - Name search completed
+- [ ] S1-01 (A2a) - Name search completed
 - [ ] S1-02 (A2b) - Name reservation (optional)
 --- Post-incorporation (requires Skill 2 step S2-05 complete) ---
 - [ ] S1-03 (D1) - Initial REQ declaration filed (within 60 days = D1_deadline)
