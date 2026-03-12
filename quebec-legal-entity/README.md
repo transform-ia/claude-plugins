@@ -289,6 +289,63 @@ to `qc-status.md` on first run.
 
 ---
 
+### `/quebec-legal-entity:quebec-banking`
+
+**Purpose:** Business banking setup and controls guide. Covers institution
+selection (with options for community OBNLs and for-profits), authorized
+signatories policy via board resolution, online banking and e-transfer
+configuration, dual-signature threshold for OBNLs (BNK-04 — referenced by
+expense approval workflow in EXP-06), and recording banking information in the
+minute book. Complements INC-04 (account opening) with deeper operational
+guidance.
+
+**Tags used:** `[GENERIC]`
+
+**Creates:** `qc-banking.md`
+
+**Depends on:** `quebec-incorporation` (INC-04 recommended first — bank
+account should exist before configuring controls)
+
+---
+
+### `/quebec-legal-entity:quebec-document-management`
+
+**Purpose:** Advisory digital archiving guide. Covers digital record validity
+under Quebec's LCCJTI and CRA electronic records policy (scanned documents are
+valid, with two hard legal exceptions: notarized docs and letters patent),
+scanning workflow (300 dpi, PDF/A format), file naming convention
+(`YYYY-MM-DD_category_description.pdf`), backup strategy (two locations
+minimum), and 6-year retention calendar. Distinguishes hard legal exceptions
+from contractual wet-signature requirements (case-by-case).
+
+**Tags used:** `[GENERIC]`
+
+**Creates:** `qc-document-management.md`
+
+**Depends on:** Nothing required — run at any time after entity formation
+
+---
+
+### `/quebec-legal-entity:quebec-expenses`
+
+**Purpose:** Advisory expense management guide. Covers written expense policy,
+three-tier ITC receipt requirements (under $30 no receipt, $30–$149.99
+simplified receipt without registration number, $150+ full invoice with
+GST/QST registration numbers), CRA automobile allowance mileage rate (verify
+annually at canada.ca — 2025 example: $0.72/km first 5,000 km / $0.66/km
+thereafter), board and volunteer reimbursement vs. taxable honorariums, per
+diem policy, and approval workflow cross-referencing BNK-04 dual-signature
+threshold.
+
+**Tags used:** `[GENERIC]`
+
+**Creates:** `qc-expenses.md`
+
+**Depends on:** `quebec-banking` (BNK-04 dual-signature threshold used by
+EXP-06 approval workflow)
+
+---
+
 ## Progress Tracking
 
 All skills read `qc-status.md` for a master overview, plus their own per-skill file
