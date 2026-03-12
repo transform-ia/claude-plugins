@@ -31,12 +31,14 @@ directly. All ~197 FCMQ-member snowmobile clubs use this route.
 ## NEVER / ALWAYS
 
 ### NEVER
+
 - Suggest federal CNCA incorporation for a Quebec-only organization
 - Skip the dissolution clause warning before drafting by-laws
 - Mark B2 complete without recording the NEQ and B2_date in the state file
 - Suggest filing RE-303 online — paper submission (mail or in person) only as of 2025
 
 ### ALWAYS
+
 - Warn about director personal liability before step S2-03
 - Show the dissolution clause requirement before step S2-03
 - After S2-05: calculate D1_deadline = B2_date + 60 calendar days and
@@ -59,6 +61,7 @@ Assemble at least 3 founding members (requérants fondateurs). Under Quebec Part
 all founders must be natural persons (individuals), not corporations.
 
 Define:
+
 - The organization's legal name (in French or French-first)
 - Mission and objectives (must be non-profit, non-commercial)
 - Territory of operations
@@ -101,6 +104,7 @@ Complete Form RE-303 ("Demande de constitution en personne morale sans but lucra
 **Available at:** registreentreprises.gouv.qc.ca → "Formulaires"
 
 **Required fields:**
+
 - Organization name (French required)
 - Registered office address (must be in Quebec)
 - Names and complete addresses of all 3+ founders
@@ -111,6 +115,7 @@ Complete Form RE-303 ("Demande de constitution en personne morale sans but lucra
 
 **Sworn declaration (déclaration sous serment):**
 One founder must sign a sworn declaration before:
+
 - A commissioner of oaths (commissaire à l'assermentation) — available free or
   ~$5–10 at many city halls, REQ offices, and law offices
 - Or a notary (~$50–100)
@@ -129,6 +134,7 @@ Draft the by-laws. These are NOT filed with the government but must be adopted
 at the constitutive general assembly (S2-06).
 
 **Required content:**
+
 - Organization name and head office
 - Mission and objectives
 - Membership classes, admission criteria, dues structure
@@ -144,6 +150,7 @@ at the constitutive general assembly (S2-06).
 - Amendment procedure for by-laws
 
 **Options:**
+
 - DIY using a template (ESPACE OBNL: espacesobnl.ca has free templates)
 - Lawyer-reviewed draft ($500–$2,000 — recommended for clubs expecting
   significant government funding)
@@ -164,23 +171,27 @@ Submit Form RE-303 and all required documents to the Registraire des entreprises
 for Part III OBNLs as of 2025).
 
 **Address:**
-```
+
+```text
 Registraire des entreprises
 787 boulevard Lebourgneuf, bureau 200
 Québec (QC) G2J 0C4
 ```
 
 **Required documents in the envelope:**
+
 1. Completed and signed Form RE-303
 2. Sworn declaration (déclaration sous serment) — original with wet signature
 3. Proof of name search / name reservation confirmation
 4. Payment (cheque payable to "Ministère des Finances du Québec")
 
 **Fees:**
+
 - Regular service: **$199.00**
 - Priority service: **$298.50**
 
 **Processing time:**
+
 - Regular: ~10 business days after receipt
 - Priority: ~5 business days after receipt
 
@@ -198,13 +209,16 @@ address. The NEQ (10-digit Numéro d'entreprise du Québec) is assigned at the s
 **The organization is legally constituted as of the date on the letters patent.**
 
 **Immediately upon receiving:**
+
 1. Record the NEQ in `obnl-status.md` (replace "pending")
 2. Record the B2_date (date on the letters patent)
 3. Calculate D1_deadline = B2_date + 60 calendar days
 4. Update `obnl-status.md` with all three values
 
 **Prompt the user explicitly** (surface all three values):
+
 > "🎉 Your organization is legally incorporated! Record these values now:
+>
 > - NEQ: [the 10-digit number on your letters patent]
 > - Date of letters patent (B2_date): [date on the document]
 > - Initial REQ declaration deadline (D1_deadline): B2_date + 60 calendar days
@@ -225,6 +239,7 @@ Hold the constitutive general assembly (assemblée générale constitutive).
 This must take place AFTER receiving letters patent.
 
 **Mandatory agenda items:**
+
 1. Adoption of by-laws (règlements administratifs)
 2. Election of the board of directors
 3. Appointment of officers (president, secretary, treasurer minimum)
@@ -252,6 +267,7 @@ Create and maintain the corporate minute book (registre de l'organisme).
 This is a legal obligation under the Quebec Companies Act.
 
 **Required contents:**
+
 - Original letters patent
 - Current by-laws (and all future amendments)
 - Minutes of all general assemblies and board meetings
@@ -300,6 +316,7 @@ Claim exemption under ITA paragraph 149(1)(l) (NPO for social welfare,
 civic improvement, pleasure, or recreation — not profit).
 
 Also file **T1044 NPO Information Return** if:
+
 - Total assets exceeded $200,000 at the end of the previous year, OR
 - Total revenues exceeded $100,000 in the year
 
@@ -321,6 +338,7 @@ per year.
 **Minimum notice:** 10 days to members (unless by-laws specify longer).
 
 **Mandatory agenda:**
+
 - Approval of financial statements
 - Election/re-election of directors
 - Approval of budget
@@ -342,6 +360,7 @@ Prepare annual financial statements: balance sheet (bilan) and income statement
 (état des résultats).
 
 These must be presented to members at the AGA and are required for:
+
 - Tax return preparation (S2-08, S2-09)
 - Government funding applications (PACM)
 - FCMQ annual reporting

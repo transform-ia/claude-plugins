@@ -88,9 +88,10 @@ marking it done in `obnl-status.md`.
 **What to do:**
 Search the Registre des entreprises du Québec to confirm the desired name is available.
 
-**URL:** https://www.registreentreprises.gouv.qc.ca (public search, no login needed)
+**URL:** <https://www.registreentreprises.gouv.qc.ca> (public search, no login needed)
 
 **Rules:**
+
 - Name must comply with the Charter of the French Language: primarily French, or
   French-first (e.g., "Club de motoneige X inc." not "X Snowmobile Club inc.")
 - Must not be identical or confusingly similar to an existing registered entity
@@ -133,7 +134,7 @@ a week or if the name is distinctive and worth protecting.
 When the user returns with S2-05 complete, confirm their NEQ is recorded in `obnl-status.md`
 and calculate the D1 deadline:
 
-```
+```text
 D1_deadline = B2_date + 60 calendar days
 ```
 
@@ -151,6 +152,7 @@ File the initial declaration within 60 days of receiving your letters patent.
 **Where:** Mon Bureau at registreentreprises.gouv.qc.ca (requires login/account)
 
 **Required information:**
+
 - Directors' names and addresses
 - Registered office address
 - Description of activities
@@ -225,6 +227,7 @@ Register with CRA for: CPP (not QPP for Quebec employers), EI, federal income ta
 Open a bank account in the organization's name. Most banks require an appointment.
 
 **Required documents (typical):**
+
 - Letters patent (original or certified copy)
 - NEQ number
 - Current by-laws
@@ -233,6 +236,7 @@ Open a bank account in the organization's name. Most banks require an appointmen
 - Government-issued photo ID for all authorized signatories
 
 **Recommended institutions for Quebec OBNLs:**
+
 - Desjardins Caisse (local credit unions — strongly recommended for community
   organizations; often have OBNL-specific accounts with reduced/waived fees)
 - Banque Nationale

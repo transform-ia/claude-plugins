@@ -59,7 +59,7 @@ your organization's incorporation documents.
 ## Cost Estimates
 
 | Phase | Minimum | Recommended |
-|---|---|---|
+| --- | --- | --- |
 | Startup (one-time) | ~$200–$250 | ~$800–$2,500 |
 | Annual (ongoing) | ~$540/year | ~$2,500–$5,500/year |
 
@@ -71,7 +71,7 @@ registrations. Annual costs include renewal fees, accounting, and insurance.
 ## Step Tags
 
 | Tag | Meaning |
-|---|---|
+| --- | --- |
 | `[GENERIC]` | Applies to any Quebec legal entity |
 | `[OBNL]` | Applies to non-profits only |
 | `[SECTOR-SPECIFIC]` | Applies to snowmobile clubs only |

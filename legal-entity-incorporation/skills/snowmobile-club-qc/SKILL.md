@@ -19,5 +19,5 @@ description: |
   - User is asking about other trail organizations (ATV, cycling, hiking — this
     skill is specific to snowmobile clubs affiliated with FCMQ)
 allowed-tools:
-  Read, Write(obnl-status.md), Edit(obnl-status.md)
+  Read, Write(obnl-status.md), Edit(obnl-status.md), AskUserQuestion
 ---

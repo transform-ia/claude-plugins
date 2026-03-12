@@ -18,5 +18,5 @@ description: |
   - User wants federal non-profit via Corporations Canada / CNCA
   - User is asking only about snowmobile sector steps (use snowmobile-club-qc)
 allowed-tools:
-  Read, Write(obnl-status.md), Edit(obnl-status.md)
+  Read, Write(obnl-status.md), Edit(obnl-status.md), AskUserQuestion
 ---

@@ -16,5 +16,5 @@ description: |
   - User is asking about federal incorporation via Corporations Canada / CNCA
   - User is asking about snowmobile club operations or FCMQ affiliation (use snowmobile-club-qc)
 allowed-tools:
-  Read, Write(obnl-status.md), Edit(obnl-status.md)
+  Read, Write(obnl-status.md), Edit(obnl-status.md), AskUserQuestion
 ---

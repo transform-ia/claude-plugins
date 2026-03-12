@@ -37,11 +37,13 @@ assembly held).
 ## NEVER / ALWAYS
 
 ### NEVER
+
 - Suggest the club can issue charitable tax receipts (it cannot — 149(1)(l) NPO)
 - Skip the PACM calendar warning at skill start
 - Mark E4 (trail designation) complete before the user confirms MTQ approval
 
 ### ALWAYS
+
 - Remind the user that FCMQ contact should happen early — board meeting
   schedule affects the admission timeline
 - Warn that missing the June–August PACM window means waiting a full year
@@ -63,16 +65,19 @@ du Québec (FCMQ).
 follow a schedule. The earlier you apply, the sooner you can access funding.
 
 **Contact:**
-- Email: info@fcmq.qc.ca
+
+- Email: <info@fcmq.qc.ca>
 - Phone: 418-847-0898
 - Website: fcmq.qc.ca
 
 **Admission conditions:**
+
 - Must be a legally constituted OBNL (letters patent required)
 - Must operate or intend to operate a snowmobile trail network
 - Application submitted to and approved by the FCMQ board of directors
 
 **What membership gives you:**
+
 - Access to the 30,000+ km FCMQ trail network
 - Eligibility for MTQ/PACM financial assistance (Volet 1 + Volet 2)
 - Group civil liability insurance ($1,000,000)
@@ -115,16 +120,19 @@ Current program runs through March 31, 2027.
 **Two funding components:**
 
 **Volet 1 — Trail maintenance (entretien des sentiers):**
+
 - Largest funding component
 - Apply directly to MTQ during the annual call for projects
 - Amount distributed based on trail kilometers, maintenance costs, regional factors
 - Example: ~$545,000 distributed to Abitibi-Témiscamingue clubs in one cycle
 
 **Volet 2 — Safety and club support (sécurité et soutien):**
+
 - Administered through FCMQ
 - Contact FCMQ directly for this component
 
 **Eligibility:**
+
 - Must be an active FCMQ member (S3-02 must be complete)
 - Demonstrated snowmobile trail maintenance mission
 - Must submit within the call-for-projects period
@@ -143,15 +151,18 @@ the application year (E2_next_window).
 Ensure adequate insurance coverage for the club and its activities.
 
 **FCMQ base coverage (included with membership):**
+
 - $1,000,000 civil liability for the club and its activities
 - Covers: trail maintenance operations, club events, member activities on trails
 
 **Additional coverage recommended:**
+
 - Directors and officers (D&O) liability — protects board members personally
 - Property insurance for any equipment owned (snowgroomers, tools)
 - Event insurance for organized races or public events
 
 **Contact FCMQ's group insurer for member rates:**
+
 - La Capitale / Intact (FCMQ preferred insurer — confirm current insurer with FCMQ)
 - Expected range: $1,500–$4,000/year for D&O + equipment coverage on top of
   FCMQ base
@@ -174,6 +185,7 @@ Québec under the Quebec Off-Highway Vehicles Act (Loi sur les véhicules hors r
 collect trail access revenue.
 
 **Process:**
+
 - Work with your FCMQ regional representative — FCMQ assists clubs through this
   process
 - Submit trail network map and documentation to MTQ
@@ -192,6 +204,7 @@ collect trail access revenue.
 Renew FCMQ membership annually and fulfill annual reporting obligations.
 
 **Annual obligations:**
+
 - Renew membership with FCMQ (before the deadline they specify)
 - Submit trail maintenance reports and activity statistics
 - Provide financial data as required by FCMQ
@@ -212,12 +225,14 @@ When all S3 steps are checked, prompt:
 annual obligations:
 
 **Provincial:**
+
 - S1-08: REQ annual update declaration ($41)
 - S2-08: CO-17.SP tax return (Revenu Québec)
 - S2-10: Annual general assembly
 - S3-06: FCMQ renewal + PACM application (June–August window)
 
 **Federal:**
+
 - S2-09: T2 + T1044 (CRA)
 
 **Tip:** Set calendar reminders for the June PACM window and your REQ update
