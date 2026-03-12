@@ -40,7 +40,7 @@ All tools operate directly on the local filesystem.
 ### Available plugins
 
 This repository contains: go, typescript, docker, github,
-markdown, mcp, graphql, postgresql
+markdown, mcp, graphql, postgresql, quebec-legal-entity
 
 ## Repo Linting
 
@@ -129,3 +129,9 @@ Plugins follow a task-driven model:
 
 Plugins are loaded by Claude Code from plugin directories. No separate
 deployment needed - changes take effect when Claude Code reloads plugins.
+
+## Skill Development Notes
+
+- `AskUserQuestion` is a valid `allowed-tools` entry in SKILL.md
+- Duplicate headings (MD024) must be disambiguated — e.g. two sections both named `### TAX-06 — Annual recurring` need distinct names
+- Nested code fences in instructions.md: use 4 backticks for the outer fence when inner content contains 3-backtick code blocks
