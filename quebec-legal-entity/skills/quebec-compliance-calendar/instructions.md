@@ -25,8 +25,8 @@ It is read-only — it does not modify any state file.
    state files:
    - **February 28**: T4/RL-1 slips (CRA/RQ) — include if `qc-payroll.md`
      exists and PAY-08 is not `[n/a]`
-   - **February 28**: CNESST DPA (annual salary declaration) — include if
-     `qc-cnesst.md` exists
+   - **March 15**: CNESST employer cotisation declaration — include if
+     `qc-cnesst.md` exists and entity is CNESST registered
    - **March 31**: GST/QST annual return — include if `qc-gst-qst.md` exists
      and filer is annual with a December 31 year-end; check the state file to
      confirm filing frequency before including
