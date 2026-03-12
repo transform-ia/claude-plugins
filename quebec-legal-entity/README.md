@@ -266,6 +266,29 @@ not a compliance workflow with completion state.
 
 ---
 
+### `/quebec-legal-entity:quebec-forprofit-governance`
+
+**Purpose:** For-profit corporate governance guide. Covers share structure
+definition (authorized vs issued shares, share classes), initial share
+issuance via organizational resolution and share register update,
+shareholders' agreement (strongly recommended for 2+ shareholders: right of
+first refusal, shotgun clause, valuation method), for-profit minute book
+assembly, first annual shareholders' meeting (AGM within 15 months under
+LSAQ), and annual governance resolutions. Exits with an informational message
+if the entity type in `qc-status.md` is OBNL.
+
+**Tags used:** `[GENERIC]`
+
+**Creates:** `qc-forprofit-governance.md`
+
+**Depends on:** `quebec-incorporation` (INC-03 must be complete — corporation
+must have a NEQ before governance setup)
+
+**Note:** Adds `- [ ] quebec-forprofit-governance — not started (for-profit only)`
+to `qc-status.md` on first run.
+
+---
+
 ## Progress Tracking
 
 All skills read `qc-status.md` for a master overview, plus their own per-skill file
