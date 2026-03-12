@@ -198,6 +198,53 @@ and outcomes in a Program Tracker.
 
 ---
 
+### `/quebec-legal-entity:quebec-privacy`
+
+**Purpose:** Law 25 (Act respecting the protection of personal information in
+the private sector) compliance guide. Covers privacy officer designation,
+personal information inventory, privacy policy publication, consent mechanisms,
+Privacy Impact Assessments (PIAs), breach response (72-hour CAI notification),
+and individual rights procedures. Applies to any organization that collects
+personal information — including membership lists, website analytics, and
+employee records. All three Law 25 phases (Sept 2022, Sept 2023, Sept 2024)
+are in effect.
+
+**Tags used:** `[GENERIC]`, `[PROV]`
+
+**Creates:** `qc-privacy.md`
+
+---
+
+### `/quebec-legal-entity:quebec-trademark`
+
+**Purpose:** Advisory trademark registration guide. Explains the distinction
+between REQ name registration (corporate registry only, no trademark rights)
+and CIPO trademark registration (nationwide brand protection). Covers need
+assessment, CIPO database search, application (~$458 first class online),
+and post-registration maintenance. Most small local OBNLs do not need
+trademark registration; the skill helps assess and document the decision.
+
+**Tags used:** `[GENERIC]`
+
+**Creates:** `qc-trademark.md`
+
+---
+
+### `/quebec-legal-entity:quebec-construction-permits`
+
+**Purpose:** RBQ and CCQ compliance guide for Quebec entities undertaking
+construction work. Covers scope definition, municipal building permit
+application, RBQ contractor license verification (mandatory; owner liability
+for unlicensed contractors), and CCQ jurisdiction confirmation (applies by
+type of work, not union status). Includes a Permit Log for tracking issued
+permits and expiry dates.
+
+**Tags used:** `[GENERIC]`, `[PROV]`
+
+**Creates:** `qc-construction-permits.md`
+
+---
+
 ## Progress Tracking
 
 All skills read `qc-status.md` for a master overview, plus their own per-skill file
