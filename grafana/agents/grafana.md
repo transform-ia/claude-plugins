@@ -20,6 +20,9 @@ tools:
   - Grep
   - SlashCommand(/grafana:*)
   - mcp__plugin_grafana_grafana__*
+  - mcp__plugin_grafana_victoriametrics__*
+  - mcp__plugin_grafana_victorialogs__*
+  - mcp__plugin_grafana_victoriatraces__*
 ---
 
 # Grafana Agent

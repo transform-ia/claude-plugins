@@ -1,6 +1,6 @@
 {
   "name": "grafana",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Grafana dashboards, queries, and alerting for the Victoria metrics stack",
   "mcpServers": {
     "grafana": {
@@ -14,6 +14,24 @@
       ],
       "env": {
         "GRAFANA_SERVICE_ACCOUNT_TOKEN": "${GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+      }
+    },
+    "victoriametrics": {
+      "url": "https://vm-mcp.robotinfra.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${VICTORIA_MCP_TOKEN}"
+      }
+    },
+    "victorialogs": {
+      "url": "https://vl-mcp.robotinfra.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${VICTORIA_MCP_TOKEN}"
+      }
+    },
+    "victoriatraces": {
+      "url": "https://vt-mcp.robotinfra.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${VICTORIA_MCP_TOKEN}"
       }
     }
   }

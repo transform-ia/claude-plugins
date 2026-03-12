@@ -16,32 +16,44 @@
 
 ## Setup
 
-The MCP server runs locally via Docker. First-time setup:
+**Grafana MCP** (runs locally via Docker):
 ```bash
 /grafana:setup <admin-password>
 # Then add the printed GRAFANA_SERVICE_ACCOUNT_TOKEN export to ~/.bashrc
 ```
-
-Admin password is at `docker.secrets.grafana.admin_password` in the infra repo's
+Admin password: `docker.secrets.grafana.admin_password` in the infra repo's
 `inventory/host_vars/robotinfra-tnvt.yaml`.
+
+**Victoria MCP servers** (run on `robotinfra-tnvt`, accessed via HTTPS):
+```bash
+# Add to ~/.bashrc:
+export VICTORIA_MCP_TOKEN='<token>'
+# Token: docker.secrets.victoria_mcp.bearer_token in inventory/host_vars/robotinfra-tnvt.yaml
+```
+Endpoints: `vm-mcp.robotinfra.com`, `vl-mcp.robotinfra.com`, `vt-mcp.robotinfra.com`
 
 ## MCP Tools Available
 
-**Dashboards:**
+**Grafana** (`mcp__plugin_grafana_grafana__*`):
 - `list_dashboards` / `search_dashboards` — find by name/tag
 - `get_dashboard` — full dashboard JSON by UID
 - `create_dashboard` / `update_dashboard` — save changes
-
-**Querying:**
 - `query_datasource` — PromQL against VictoriaMetrics or LogQL against VictoriaLogs
 - `list_datasources` — all configured datasources and their UIDs
-
-**Alerting:**
-- `list_alert_rules` — all alert rules
-- `list_alert_instances` — currently firing alerts
-
-**Annotations:**
+- `list_alert_rules` / `list_alert_instances`
 - `create_annotation` / `list_annotations`
+
+**VictoriaMetrics** (`mcp__plugin_grafana_victoriametrics__*`):
+- Direct PromQL queries against VictoriaMetrics at `http://victoriametrics:8428`
+- Use for metrics exploration, instant/range queries, label discovery
+
+**VictoriaLogs** (`mcp__plugin_grafana_victorialogs__*`):
+- Direct LogQL queries against VictoriaLogs at `http://victorialogs:9428`
+- Use for log search, filtering, and streaming log tails
+
+**VictoriaTraces** (`mcp__plugin_grafana_victoriatraces__*`):
+- Direct trace queries against VictoriaTraces at `http://victoriatraces:9428`
+- Use for trace search by service, operation, or trace ID
 
 ## PromQL Patterns for VictoriaMetrics
 
