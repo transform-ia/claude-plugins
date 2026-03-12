@@ -16,21 +16,17 @@
 
 ## Setup
 
-**Grafana MCP** (runs locally via Docker):
-```bash
-/grafana:setup <admin-password>
-# Then add the printed GRAFANA_SERVICE_ACCOUNT_TOKEN export to ~/.bashrc
-```
-Admin password: `docker.secrets.grafana.admin_password` in the infra repo's
-`inventory/host_vars/robotinfra-tnvt.yaml`.
+All MCP servers run on `robotinfra-tnvt` and are accessed via HTTPS. One token
+covers all four servers:
 
-**Victoria MCP servers** (run on `robotinfra-tnvt`, accessed via HTTPS):
 ```bash
 # Add to ~/.bashrc:
 export VICTORIA_MCP_TOKEN='<token>'
 # Token: docker.secrets.victoria_mcp.bearer_token in inventory/host_vars/robotinfra-tnvt.yaml
 ```
-Endpoints: `vm-mcp.robotinfra.com`, `vl-mcp.robotinfra.com`, `vt-mcp.robotinfra.com`
+
+Endpoints: `grafana-mcp.robotinfra.com`, `vm-mcp.robotinfra.com`,
+`vl-mcp.robotinfra.com`, `vt-mcp.robotinfra.com`
 
 ## MCP Tools Available
 
