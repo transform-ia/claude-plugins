@@ -7,11 +7,7 @@
 %%                   texlive-fonts-recommended texlive-fonts-extra pandoc
 %% ============================================================
 
-\documentclass[
-  $if(fontsize)$$fontsize$,$endif$
-  a4paper,
-  oneside
-]{article}
+\documentclass[$if(fontsize)$$fontsize$$else$12pt$endif$,a4paper,oneside]{article}
 
 %% ============================================================
 %% ENCODING (must come first for pdflatex)
@@ -67,7 +63,6 @@
 %% inconsolata → clean monospace for code
 %% lmodern → Latin Modern for math and fallback
 %% ============================================================
-\usepackage{lmodern}
 \usepackage[scaled=0.92]{helvet}
 \usepackage[scaled=0.85]{inconsolata}
 
@@ -182,7 +177,9 @@
 %% ============================================================
 %% CODE BLOCKS
 %% Pandoc wraps highlighted code in Shaded > Highlighting.
-%% $highlighting-macros$ defines Shaded as empty; we override it.
+%% Load fancyvrb + tcolorbox first, then let Pandoc inject its
+%% highlighting-macros (which define Shaded as a no-op), then
+%% immediately redefine Shaded with our branded tcolorbox version.
 %% ============================================================
 \usepackage{fancyvrb}
 \usepackage[breakable,skins,listings]{tcolorbox}
@@ -296,9 +293,16 @@ $endif$
 }
 
 %% ============================================================
-%% STRIKETHROUGH (Pandoc uses \sout from ulem)
+%% STRIKETHROUGH
+%% Pandoc 3.x outputs \st{text} for ~~strikethrough~~.
+%% Defined via TikZ (already loaded) — no extra package needed.
 %% ============================================================
-\usepackage[normalem]{ulem}
+\newcommand{\st}[1]{%
+  \tikz[baseline=(t.base)]{%
+    \node[inner sep=0pt](t){#1};%
+    \draw[black,thin](t.west)--(t.east);%
+  }%
+}
 
 %% ============================================================
 %% HYPERLINKS — load near-last
