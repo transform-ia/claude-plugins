@@ -1,7 +1,10 @@
 %% ============================================================
 %% Acme Corp Branded PDF Template
-%% For use with Pandoc + XeLaTeX
+%% For use with Pandoc + pdflatex (no XeTeX required)
 %% Run: bash generate.sh
+%% Ubuntu install:
+%%   sudo apt install texlive texlive-latex-extra \
+%%                   texlive-fonts-recommended texlive-fonts-extra pandoc
 %% ============================================================
 
 \documentclass[
@@ -11,11 +14,14 @@
 ]{article}
 
 %% ============================================================
-%% ENGINE & CORE PACKAGES
+%% ENCODING (must come first for pdflatex)
 %% ============================================================
-\usepackage{iftex}
-\usepackage{fontspec}
-\usepackage[math-style=TeX]{unicode-math}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+%% ============================================================
+%% CORE PACKAGES
+%% ============================================================
 \usepackage[dvipsnames,svgnames,x11names]{xcolor}
 \usepackage{geometry}
 \usepackage{microtype}
@@ -56,33 +62,17 @@
 }
 
 %% ============================================================
-%% FONTS — Helvetica Neue with fallback chain
-%% Pass mainfont/sansfont/monofont via --variable to override
+%% FONTS (pdflatex-compatible)
+%% helvet  → Helvetica-like sans-serif (simulates Helvetica Neue)
+%% inconsolata → clean monospace for code
+%% lmodern → Latin Modern for math and fallback
 %% ============================================================
-\IfFontExistsTF{$if(mainfont)$$mainfont$$else$Helvetica Neue$endif$}{%
-  \setmainfont[Ligatures=TeX,Scale=1.0]
-    {$if(mainfont)$$mainfont$$else$Helvetica Neue$endif$}%
-  \setsansfont[Ligatures=TeX,Scale=1.0]
-    {$if(sansfont)$$sansfont$$else$$if(mainfont)$$mainfont$$else$Helvetica Neue$endif$$endif$}%
-}{%
-  \IfFontExistsTF{Helvetica}{%
-    \setmainfont[Ligatures=TeX]{Helvetica}%
-    \setsansfont[Ligatures=TeX]{Helvetica}%
-  }{%
-    \setmainfont[Ligatures=TeX]{Latin Modern Roman}%
-    \setsansfont[Ligatures=TeX]{Latin Modern Sans}%
-  }%
-}
-\IfFontExistsTF{$if(monofont)$$monofont$$else$JetBrains Mono$endif$}{%
-  \setmonofont[Scale=0.85]
-    {$if(monofont)$$monofont$$else$JetBrains Mono$endif$}%
-}{%
-  \IfFontExistsTF{Source Code Pro}{%
-    \setmonofont[Scale=0.85]{Source Code Pro}%
-  }{%
-    \setmonofont[Scale=0.85]{Latin Modern Mono}%
-  }%
-}
+\usepackage{lmodern}
+\usepackage[scaled=0.92]{helvet}
+\usepackage[scaled=0.85]{inconsolata}
+
+%% Use sans-serif (Helvetica) as the default document typeface
+\renewcommand\familydefault{\sfdefault}
 
 %% ============================================================
 %% LINE SPACING
@@ -192,8 +182,7 @@
 %% ============================================================
 %% CODE BLOCKS
 %% Pandoc wraps highlighted code in Shaded > Highlighting.
-%% Strategy: let $highlighting-macros$ define Shaded first,
-%% then immediately redefine it with our tcolorbox styling.
+%% $highlighting-macros$ defines Shaded as empty; we override it.
 %% ============================================================
 \usepackage{fancyvrb}
 \usepackage[breakable,skins,listings]{tcolorbox}
@@ -202,7 +191,6 @@ $if(highlighting-macros)$
 $highlighting-macros$
 $endif$
 
-% Override Shaded with branded framed code box
 \renewenvironment{Shaded}{%
   \begin{tcolorbox}[
     breakable,
@@ -215,7 +203,7 @@ $endif$
     arc=2pt,
     outer arc=2pt,
     before upper={\setstretch{1.1}},
-    fontupper=\small
+    fontupper=\small\ttfamily
   ]%
 }{%
   \end{tcolorbox}%
@@ -230,7 +218,7 @@ $endif$
 }
 
 %% ============================================================
-%% BLOCKQUOTES — left-bar style with pale blue background
+%% BLOCKQUOTES — left-bar with pale blue background
 %% ============================================================
 \usepackage{mdframed}
 \newmdenv[
@@ -288,7 +276,6 @@ $endif$
   skip=6pt,
   justification=centering
 }
-% Default float placement
 \makeatletter\def\fps@figure{H}\makeatother
 
 %% ============================================================
@@ -314,7 +301,7 @@ $endif$
 \usepackage[normalem]{ulem}
 
 %% ============================================================
-%% HYPERLINKS — load near-last to avoid conflicts
+%% HYPERLINKS — load near-last
 %% ============================================================
 \usepackage{hyperref}
 \hypersetup{
@@ -388,7 +375,7 @@ $endfor$
     $endif$
     \vspace{1cm}
   \end{titlepage}
-  \pagecolor{white}%  % Reset page color for all subsequent pages
+  \pagecolor{white}%
 }
 
 %% ============================================================
