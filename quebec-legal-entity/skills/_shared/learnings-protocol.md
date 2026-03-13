@@ -32,6 +32,7 @@ Record a learning when you discover **any** of the following during a session:
 - A user correction that would apply to all future users of this skill
 
 **Do not record:**
+
 - One-off user-specific decisions (those belong in state files like `qc-*.md`)
 - Preferences unique to this user's organization
 - Anything already captured in the state file
@@ -55,7 +56,7 @@ Record a learning when you discover **any** of the following during a session:
 **Source:** [where you learned this — user correction, government website, etc.]
 ```
 
-3. Continue the session normally. You do not need to edit `instructions.md`
+1. Continue the session normally. You do not need to edit `instructions.md`
    directly — the learnings file is read at every session start and overrides
    the original instructions where they conflict.
 
