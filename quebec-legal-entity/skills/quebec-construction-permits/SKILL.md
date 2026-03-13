@@ -25,5 +25,9 @@ description: |
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
   Write(qc-construction-permits.md), Edit(qc-construction-permits.md),
-  AskUserQuestion
+  AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-construction-permits/learnings.md),
+  Write(skills/quebec-construction-permits/learnings.md),
+  Edit(skills/quebec-construction-permits/learnings.md)
 ---

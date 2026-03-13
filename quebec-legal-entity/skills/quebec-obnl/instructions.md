@@ -13,6 +13,10 @@ directly. All ~197 FCMQ-member snowmobile clubs use this route.
 
 ## On Start: Read State File and Check Prerequisites
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-obnl/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md`. If absent, tell the user:
    > "This skill is step 2 of a chain for Quebec legal entity registration:
    > 1. `/quebec-legal-entity:quebec-incorporation` — generic steps (name search, REQ)

@@ -19,5 +19,9 @@ description: |
   - User is asking about payroll deductions (use quebec-payroll)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-gst-qst.md), Edit(qc-gst-qst.md), AskUserQuestion
+  Write(qc-gst-qst.md), Edit(qc-gst-qst.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-gst-qst/learnings.md),
+  Write(skills/quebec-gst-qst/learnings.md),
+  Edit(skills/quebec-gst-qst/learnings.md)
 ---

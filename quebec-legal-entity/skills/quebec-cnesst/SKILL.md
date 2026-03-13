@@ -23,5 +23,9 @@ description: |
   - User has no employees
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-cnesst.md), Edit(qc-cnesst.md), AskUserQuestion
+  Write(qc-cnesst.md), Edit(qc-cnesst.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-cnesst/learnings.md),
+  Write(skills/quebec-cnesst/learnings.md),
+  Edit(skills/quebec-cnesst/learnings.md)
 ---

@@ -7,6 +7,10 @@ The steps differ depending on your entity type — read from `qc-status.md`.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-income-tax/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `Entity type` from `qc-status.md`. If not set, ask:
    "Is your organization a **for-profit corporation** or an **OBNL** (non-profit)?"
    Record the answer in `qc-status.md`.

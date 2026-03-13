@@ -7,6 +7,10 @@ under the Act respecting labour standards (Loi sur les normes du travail / ANT).
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-labour-standards/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md`. If `quebec-payroll` is `[n/a]` (no employees), inform
    the user: "Labour standards obligations require employees. Return here if
    you hire staff." Exit.

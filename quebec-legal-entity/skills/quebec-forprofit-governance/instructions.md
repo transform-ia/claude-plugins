@@ -8,6 +8,10 @@ and annual governance resolutions.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-forprofit-governance/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md`. Check the entity type field:
    - If entity type is **OBNL**: inform the user:
      > "This skill is for for-profit corporations only. For OBNL governance,

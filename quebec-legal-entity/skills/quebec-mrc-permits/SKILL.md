@@ -24,5 +24,9 @@ description: |
     (use quebec-construction-permits)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-mrc-permits.md), Edit(qc-mrc-permits.md), AskUserQuestion
+  Write(qc-mrc-permits.md), Edit(qc-mrc-permits.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-mrc-permits/learnings.md),
+  Write(skills/quebec-mrc-permits/learnings.md),
+  Edit(skills/quebec-mrc-permits/learnings.md)
 ---

@@ -11,6 +11,10 @@ then return here for post-incorporation steps once you have your letters patent 
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-incorporation/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. **Check for legacy file:** If `obnl-status.md` exists in the working directory,
    stop and tell the user:
    > "A legacy state file (`obnl-status.md`) was found from a previous version of

@@ -7,6 +7,10 @@ Quebec snowmobile trail infrastructure.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-mrc-permits/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md`. If `quebec-snowmobile-club` is `not started` or absent,
    tell the user: "MRC and municipal permits require active FCMQ membership
    context. Complete `/quebec-legal-entity:quebec-snowmobile-club` first."

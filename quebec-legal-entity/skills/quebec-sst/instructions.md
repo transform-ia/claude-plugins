@@ -7,6 +7,10 @@ obligations under Quebec's Act respecting occupational health and safety (LSST).
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-sst/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md`. If `quebec-payroll` is `[n/a]` (no employees), inform
    the user: "SST obligations are not triggered without employees or workers.
    Return here if you hire staff or engage contractors." Exit.

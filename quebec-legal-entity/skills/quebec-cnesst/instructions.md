@@ -7,6 +7,10 @@ ongoing compliance for a Quebec employer.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-cnesst/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md`. Check the `quebec-payroll` line:
    - `[n/a]` (no employees) → tell user: "CNESST only applies to employers
      with workers. Return here if you hire employees." Exit.

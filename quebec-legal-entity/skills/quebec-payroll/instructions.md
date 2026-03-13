@@ -7,6 +7,10 @@ that employs paid staff.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-payroll/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md`. If `quebec-payroll` is already `[n/a]`, ask:
    "Payroll was previously marked not applicable. Do you now have employees?"
    If yes, reset to `- [ ] quebec-payroll — not started` in `qc-status.md`.

@@ -23,5 +23,9 @@ description: |
   - User is asking about payroll remittances (use quebec-payroll)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-banking.md), Edit(qc-banking.md), AskUserQuestion
+  Write(qc-banking.md), Edit(qc-banking.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-banking/learnings.md),
+  Write(skills/quebec-banking/learnings.md),
+  Edit(skills/quebec-banking/learnings.md)
 ---

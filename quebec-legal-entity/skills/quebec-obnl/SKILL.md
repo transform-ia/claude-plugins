@@ -19,5 +19,9 @@ description: |
   - User is asking only about snowmobile sector steps (use quebec-snowmobile-club)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-obnl.md), Edit(qc-obnl.md), AskUserQuestion
+  Write(qc-obnl.md), Edit(qc-obnl.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-obnl/learnings.md),
+  Write(skills/quebec-obnl/learnings.md),
+  Edit(skills/quebec-obnl/learnings.md)
 ---

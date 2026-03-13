@@ -8,6 +8,10 @@ those decisions, but does not file anything with a government body.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-insurance/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md` for entity type (for-profit or OBNL) and Organization name.
 2. Read `qc-insurance.md` if present; create it from the template below if absent.
 3. Show current coverage log.

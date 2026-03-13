@@ -22,5 +22,9 @@ description: |
   - User is asking about accounting software setup (use quebec-accounting)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-expenses.md), Edit(qc-expenses.md), AskUserQuestion
+  Write(qc-expenses.md), Edit(qc-expenses.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-expenses/learnings.md),
+  Write(skills/quebec-expenses/learnings.md),
+  Edit(skills/quebec-expenses/learnings.md)
 ---

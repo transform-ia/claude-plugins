@@ -18,5 +18,9 @@ description: |
   - User is asking about payroll records (use quebec-payroll)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-accounting.md), Edit(qc-accounting.md), AskUserQuestion
+  Write(qc-accounting.md), Edit(qc-accounting.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-accounting/learnings.md),
+  Write(skills/quebec-accounting/learnings.md),
+  Edit(skills/quebec-accounting/learnings.md)
 ---

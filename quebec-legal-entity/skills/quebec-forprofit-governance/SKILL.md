@@ -25,5 +25,9 @@ description: |
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
   Write(qc-forprofit-governance.md), Edit(qc-forprofit-governance.md),
-  AskUserQuestion
+  AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-forprofit-governance/learnings.md),
+  Write(skills/quebec-forprofit-governance/learnings.md),
+  Edit(skills/quebec-forprofit-governance/learnings.md)
 ---

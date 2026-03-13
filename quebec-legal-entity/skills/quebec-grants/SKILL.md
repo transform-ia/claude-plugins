@@ -22,5 +22,9 @@ description: |
   - User is asking about FCMQ membership funding (covered in quebec-snowmobile-club)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-grants.md), Edit(qc-grants.md), AskUserQuestion
+  Write(qc-grants.md), Edit(qc-grants.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-grants/learnings.md),
+  Write(skills/quebec-grants/learnings.md),
+  Edit(skills/quebec-grants/learnings.md)
 ---

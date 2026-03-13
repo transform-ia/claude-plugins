@@ -8,6 +8,10 @@ It is read-only — it does not modify any state file.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-compliance-calendar/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md` to get the entity type and Organization name.
 2. Read all present `qc-*.md` files from the working directory. Read each file
    that exists; skip silently if a file is absent (it means that skill has not

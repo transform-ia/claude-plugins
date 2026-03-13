@@ -27,5 +27,9 @@ description: |
   - User is asking about federal PIPEDA only (this skill covers Quebec Law 25)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-privacy.md), Edit(qc-privacy.md), AskUserQuestion
+  Write(qc-privacy.md), Edit(qc-privacy.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-privacy/learnings.md),
+  Write(skills/quebec-privacy/learnings.md),
+  Edit(skills/quebec-privacy/learnings.md)
 ---

@@ -21,5 +21,9 @@ description: |
   - User already has trademark counsel handling this
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-trademark.md), Edit(qc-trademark.md), AskUserQuestion
+  Write(qc-trademark.md), Edit(qc-trademark.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-trademark/learnings.md),
+  Write(skills/quebec-trademark/learnings.md),
+  Edit(skills/quebec-trademark/learnings.md)
 ---

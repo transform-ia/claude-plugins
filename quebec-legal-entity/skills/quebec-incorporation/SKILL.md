@@ -19,5 +19,9 @@ description: |
   - User is asking about snowmobile club sector steps (use quebec-snowmobile-club)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-incorporation.md), Edit(qc-incorporation.md), AskUserQuestion
+  Write(qc-incorporation.md), Edit(qc-incorporation.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-incorporation/learnings.md),
+  Write(skills/quebec-incorporation/learnings.md),
+  Edit(skills/quebec-incorporation/learnings.md)
 ---

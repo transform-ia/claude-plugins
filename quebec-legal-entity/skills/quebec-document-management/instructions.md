@@ -9,6 +9,10 @@ must remain as paper originals.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-document-management/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md` for Organization name.
 2. Read `qc-document-management.md` if present; create it from the template
    below if absent.

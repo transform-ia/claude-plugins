@@ -26,5 +26,9 @@ description: |
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
   Write(qc-document-management.md), Edit(qc-document-management.md),
-  AskUserQuestion
+  AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-document-management/learnings.md),
+  Write(skills/quebec-document-management/learnings.md),
+  Edit(skills/quebec-document-management/learnings.md)
 ---

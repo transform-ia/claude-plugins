@@ -7,6 +7,10 @@ clubs beyond the MTQ/PACM program (already covered in `quebec-snowmobile-club`).
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-grants/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md`. If `quebec-snowmobile-club` is `not started` or absent,
    warn: "Most grant programs require active FCMQ membership. Consider completing
    `/quebec-legal-entity:quebec-snowmobile-club` first. You may still review

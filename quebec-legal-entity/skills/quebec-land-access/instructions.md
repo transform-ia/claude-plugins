@@ -7,6 +7,10 @@ access agreements) with private landowners for Quebec snowmobile trail networks.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-land-access/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md`. If `quebec-snowmobile-club` is `not started` or absent,
    tell the user: "Complete `/quebec-legal-entity:quebec-snowmobile-club` first
    — FCMQ membership (SNOW-01) must be submitted before negotiating land access."

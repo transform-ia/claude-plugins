@@ -21,5 +21,9 @@ description: |
   - User wants to work through a specific compliance area (use the
     dedicated skill for that area)
 allowed-tools:
-  Read, AskUserQuestion
+  Read, AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-compliance-calendar/learnings.md),
+  Write(skills/quebec-compliance-calendar/learnings.md),
+  Edit(skills/quebec-compliance-calendar/learnings.md)
 ---

@@ -10,6 +10,10 @@ other provinces where CRA handles GST directly.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-gst-qst/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md` for entity type and Organization name.
 2. Read `qc-gst-qst.md` if present; create it from the template below if absent.
 3. Show current GST/QST status; jump to first unchecked step.

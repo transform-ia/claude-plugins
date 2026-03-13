@@ -8,6 +8,10 @@ Run it once when setting up the organization, and revisit if circumstances chang
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-accounting/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md` for entity type and Organization name.
 2. Read `qc-accounting.md` if present; show existing decisions; offer to revisit any.
 3. Walk through each ACC section that has not yet been decided.

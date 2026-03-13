@@ -22,5 +22,9 @@ description: |
   - User is asking about MRC or municipal permits (use quebec-mrc-permits)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-land-access.md), Edit(qc-land-access.md), AskUserQuestion
+  Write(qc-land-access.md), Edit(qc-land-access.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-land-access/learnings.md),
+  Write(skills/quebec-land-access/learnings.md),
+  Edit(skills/quebec-land-access/learnings.md)
 ---

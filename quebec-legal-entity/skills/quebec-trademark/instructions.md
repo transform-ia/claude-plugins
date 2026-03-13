@@ -8,6 +8,10 @@ how to file, and records those decisions.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-trademark/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md` for Organization name.
 2. Read `qc-trademark.md` if present; create it from the template below if absent.
 3. Show current decisions; walk through any undecided sections.

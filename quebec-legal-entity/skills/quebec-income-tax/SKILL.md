@@ -19,5 +19,9 @@ description: |
   - User is asking about personal income taxes (out of scope)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-income-tax.md), Edit(qc-income-tax.md), AskUserQuestion
+  Write(qc-income-tax.md), Edit(qc-income-tax.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-income-tax/learnings.md),
+  Write(skills/quebec-income-tax/learnings.md),
+  Edit(skills/quebec-income-tax/learnings.md)
 ---

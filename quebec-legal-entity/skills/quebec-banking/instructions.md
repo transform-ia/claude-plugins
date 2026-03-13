@@ -9,6 +9,10 @@ signatories policy, online banking configuration, and dual-signature controls.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-banking/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md` for entity type (for-profit or OBNL) and Organization name.
 2. Read `qc-banking.md` if present; create it from the template below if absent.
 3. Present current status; jump to first unchecked step.

@@ -7,6 +7,10 @@ requirements for a Quebec entity undertaking construction work.
 
 ## On Start
 
+**Before proceeding:** Read `skills/_shared/learnings-protocol.md`. Then read
+`skills/quebec-construction-permits/learnings.md` if it exists and incorporate any entries into your
+working knowledge for this session.
+
 1. Read `qc-status.md` for Organization name.
 2. Read `qc-construction-permits.md` if present; create it from the template
    below if absent.

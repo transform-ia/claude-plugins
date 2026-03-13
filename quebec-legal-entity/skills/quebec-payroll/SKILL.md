@@ -18,5 +18,9 @@ description: |
   - User is asking about corporate income taxes (use quebec-income-tax)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-payroll.md), Edit(qc-payroll.md), AskUserQuestion
+  Write(qc-payroll.md), Edit(qc-payroll.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-payroll/learnings.md),
+  Write(skills/quebec-payroll/learnings.md),
+  Edit(skills/quebec-payroll/learnings.md)
 ---

@@ -19,5 +19,9 @@ description: |
   - User is asking about employee benefits or group insurance programs
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-insurance.md), Edit(qc-insurance.md), AskUserQuestion
+  Write(qc-insurance.md), Edit(qc-insurance.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-insurance/learnings.md),
+  Write(skills/quebec-insurance/learnings.md),
+  Edit(skills/quebec-insurance/learnings.md)
 ---

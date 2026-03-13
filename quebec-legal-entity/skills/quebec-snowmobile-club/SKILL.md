@@ -20,5 +20,9 @@ description: |
     skill is specific to snowmobile clubs affiliated with FCMQ)
 allowed-tools:
   Read, Write(qc-status.md), Edit(qc-status.md),
-  Write(qc-snowmobile-club.md), Edit(qc-snowmobile-club.md), AskUserQuestion
+  Write(qc-snowmobile-club.md), Edit(qc-snowmobile-club.md), AskUserQuestion,
+  Read(skills/_shared/learnings-protocol.md),
+  Read(skills/quebec-snowmobile-club/learnings.md),
+  Write(skills/quebec-snowmobile-club/learnings.md),
+  Edit(skills/quebec-snowmobile-club/learnings.md)
 ---
