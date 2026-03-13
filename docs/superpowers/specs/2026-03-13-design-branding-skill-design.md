@@ -19,9 +19,12 @@ design/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── skills/
+│   ├── _shared/
+│   │   └── learnings-protocol.md  (copy from quebec-legal-entity/skills/_shared/)
 │   └── branding/
 │       ├── SKILL.md
-│       └── instructions.md
+│       ├── instructions.md
+│       └── learnings.md           (created on first self-improvement, not pre-created)
 └── README.md
 ```
 
@@ -29,7 +32,11 @@ design/
 
 ## SKILL.md
 
-```markdown
+> **Format note:** The actual `SKILL.md` file must be bare YAML between `---`
+> delimiters with no surrounding code fence. The block below is shown in a
+> code fence for display purposes only — the file starts with `---` on line 1.
+
+```yaml
 ---
 name: branding
 description: |
@@ -111,26 +118,47 @@ Never ask two questions in the same message.
 
 | # | Question |
 | --- | --- |
-| P-01 | Pick three to five adjectives that describe the brand's personality. You can choose from this list or add your own: Bold · Subtle · Playful · Serious · Warm · Cool · Minimal · Rich · Approachable · Authoritative · Innovative · Traditional · Local · Global · Honest · Premium · Energetic · Calm |
-| P-02 | Which brand archetype fits best? Choose one: Hero · Sage · Creator · Caregiver · Explorer · Innocent · Ruler · Magician · Outlaw · Jester · Lover · Regular Person. (Brief reminder of each: Hero = courage and achievement; Sage = knowledge and truth; Creator = imagination and craft; Caregiver = nurturing and protection; Explorer = freedom and discovery; Innocent = optimism and simplicity; Ruler = control and stability; Magician = transformation; Outlaw = disruption; Jester = fun and irreverence; Lover = passion and beauty; Regular Person = belonging and reliability.) |
-| P-03 | Name two or three brands you admire — not necessarily in your industry. What specifically do you admire about each? |
-| P-04 | Name two or three brands you must NOT look like. What specifically should you avoid from each? |
+| P-01 | Pick three to five adjectives that describe the brand's personality (from the list below, or your own). |
+| P-02 | Which brand archetype fits best? (Brief reminder of each provided when asked.) |
+| P-03 | Name two or three brands you admire — not necessarily in your industry. What do you admire about each? |
+| P-04 | Name two or three brands you must NOT look like. What should you avoid from each? |
+
+**P-01 adjective list:** Bold · Subtle · Playful · Serious · Warm · Cool · Minimal · Rich ·
+Approachable · Authoritative · Innovative · Traditional · Local · Global · Honest ·
+Premium · Energetic · Calm (custom adjectives also accepted)
+
+**P-02 archetype list:** Hero · Sage · Creator · Caregiver · Explorer · Innocent · Ruler ·
+Magician · Outlaw · Jester · Lover · Regular Person
+Brief reminders: Hero = courage/achievement; Sage = knowledge/truth; Creator = imagination/craft;
+Caregiver = nurturing/protection; Explorer = freedom/discovery; Innocent = optimism/simplicity;
+Ruler = control/stability; Magician = transformation; Outlaw = disruption; Jester = fun/irreverence;
+Lover = passion/beauty; Regular Person = belonging/reliability.
 
 #### Phase 4 — Visual Direction (3 questions)
 
 | # | Question |
 | --- | --- |
-| V-01 | Color direction: warm, cool, or neutral? Any specific colors to include (with hex codes if you have them) or explicitly avoid? |
-| V-02 | Typography feel — pick one: Clean & minimal (geometric sans-serif) · Humanist & approachable (rounded, friendly) · Bold & expressive (high contrast, display) · Elegant & refined (serif, editorial) · Technical & precise (monospace, structured) |
-| V-03 | Logo form preference: Wordmark (company name as styled text) · Lettermark (initials only) · Icon + wordmark (symbol alongside text) · Abstract symbol (standalone mark) · No preference |
+| V-01 | Color direction: warm, cool, or neutral? Any specific colors to include or avoid? |
+| V-02 | Typography feel — pick one (options below). |
+| V-03 | Logo form preference — pick one (options below). |
+
+**V-02 typography options:** Clean & minimal (geometric sans-serif) · Humanist & approachable
+(rounded, friendly) · Bold & expressive (high contrast, display) · Elegant & refined
+(serif, editorial) · Technical & precise (monospace, structured)
+
+**V-03 logo form options:** Wordmark (company name as styled text) · Lettermark (initials only) ·
+Icon + wordmark (symbol alongside text) · Abstract symbol (standalone mark) · No preference
 
 #### Phase 5 — Context (3 questions)
 
 | # | Question |
 | --- | --- |
-| C-01 | Where will the brand be used? Select all that apply: Website · Mobile app · Print (business cards, flyers) · Social media · Packaging · Signage · Email · Presentations |
-| C-02 | Any cultural, language, or accessibility considerations? (e.g. bilingual, specific market, colour-blindness awareness) If none, say so. |
+| C-01 | Where will the brand be used? Select all that apply (options below). |
+| C-02 | Any cultural, language, or accessibility considerations? If none, say so. |
 | C-03 | One word: how should someone feel the very first time they see this brand? |
+
+**C-01 use context options:** Website · Mobile app · Print (business cards, flyers) ·
+Social media · Packaging · Signage · Email · Presentations
 
 ---
 
@@ -197,9 +225,9 @@ Use Nano Banana 2 exclusively (`gemini-3.1-flash-image-preview`).
 Write prompts as narrative prose paragraphs — not comma-separated keyword lists.
 Each prompt should describe scene, intent, mood, and specific colours.
 
-Structure:
+Structure (shown with 4-backtick outer fence because inner content contains code blocks):
 
-```markdown
+````markdown
 # Logo & Visual Prompts — [Company Name]
 Model: gemini-3.1-flash-image-preview (Nano Banana 2)
 Generated: [date]
@@ -235,6 +263,7 @@ Prompt:
 describes layout, colour use, typography placement, brand feel.]"
 
 ## API Quick-Start
+
 ```python
 from google import genai
 client = genai.Client()
@@ -242,37 +271,44 @@ response = client.models.generate_content(
     model="gemini-3.1-flash-image-preview",
     contents=PROMPT_CONCEPT_1,  # paste from above
 )
-\```
 ```
+````
 
 #### File 3: `brand-tokens.json`
 
-Include both JSON design tokens and a CSS custom properties block as a comment
-or separate section in the same file.
+The file contains a JSON object with a top-level `"css"` key whose value is
+the CSS custom properties block as a string. This keeps the file valid JSON
+while bundling both formats:
+
+```json
+{
+  "color": { "primary": "#D4501A", "..." : "..." },
+  "typography": { "..." : "..." },
+  "spacing": { "..." : "..." },
+  "radius": { "..." : "..." },
+  "shadow": { "..." : "..." },
+  "css": ":root {\n  --color-primary: #D4501A;\n  /* all tokens as CSS variables */\n}"
+}
+```
+
+The implementer should also write a short comment at the top of the file
+(as a `"_comment"` key) explaining how to use the `css` value.
 
 Tokens to include:
 
-| Token group | Tokens |
-| --- | --- |
-| `color` | `primary`, `secondary`, `accent`, `neutral-50`, `neutral-100`, `neutral-900`, `text-primary`, `text-secondary`, `background` |
-| `typography` | `font-heading`, `font-body`, `size-xs` (0.75rem), `size-sm` (0.875rem), `size-base` (1rem), `size-lg` (1.25rem), `size-xl` (1.5rem), `size-2xl` (2.25rem), `size-3xl` (3rem), `weight-regular` (400), `weight-medium` (500), `weight-bold` (700), `line-height-tight` (1.2), `line-height-base` (1.6) |
-| `spacing` | `xs` (4px), `sm` (8px), `md` (16px), `lg` (24px), `xl` (32px), `2xl` (64px) |
-| `radius` | `sm` (4px), `md` (8px), `lg` (16px), `full` (9999px) |
-| `shadow` | `sm`, `md`, `lg` — derived from primary colour with low opacity |
+**Token groups:**
+
+- `color`: `primary`, `secondary`, `accent`, `neutral-50`, `neutral-100`, `neutral-900`,
+  `text-primary`, `text-secondary`, `background`
+- `typography`: `font-heading`, `font-body`, `size-xs` through `size-3xl`
+  (0.75 → 3rem scale), `weight-regular/medium/bold`, `line-height-tight/base`
+- `spacing`: `xs` (4px), `sm` (8px), `md` (16px), `lg` (24px), `xl` (32px), `2xl` (64px)
+- `radius`: `sm` (4px), `md` (8px), `lg` (16px), `full` (9999px)
+- `shadow`: `sm`, `md`, `lg` — derived from primary colour with low opacity
 
 All colour values derived from brand answers — never use generic defaults like
 `#007bff` or `#333333`. Derive colours systematically: generate tints and shades
 from the primary/secondary brand colours.
-
-Include a CSS block:
-
-```css
-/* CSS Custom Properties — paste into your :root */
-:root {
-  --color-primary: #...;
-  /* ... all tokens as CSS variables ... */
-}
-```
 
 ---
 
@@ -280,14 +316,12 @@ Include a CSS block:
 
 After generating all three files, summarise:
 
-> "Brand kit complete. Three files created:
-> - `brand.md` — strategy, voice, and visual guidelines
-> - `brand-prompts.md` — 5 Nano Banana 2 prompts (3 logo concepts, photography, social)
-> - `brand-tokens.json` — design tokens + CSS variables
->
-> Next steps: run the logo prompts in [AI Studio](https://aistudio.google.com)
-> or via the Gemini API, pick the direction that resonates, then return to
-> refine `brand.md` with your chosen logo form and final colour decisions."
+> "Brand kit complete. Three files created: `brand.md` (strategy, voice, and visual
+> guidelines), `brand-prompts.md` (5 Nano Banana 2 prompts: 3 logo concepts, photography,
+> social), and `brand-tokens.json` (design tokens + CSS variables).
+> Next steps: run the logo prompts in AI Studio or via the Gemini API, pick the
+> direction that resonates, then return to refine `brand.md` with your chosen logo
+> form and final colour decisions."
 
 ---
 
@@ -318,14 +352,14 @@ After generating all three files, summarise:
 
 ## Key Notes
 
-> **Nano Banana 2 prompts are prose, not keywords:** The model (`gemini-3.1-flash-image-preview`)
-> performs best with narrative descriptions that convey intent, mood, and context.
-> Keyword lists produce worse results. Every prompt must be 3-5 complete sentences.
-
+> **Nano Banana 2 prompts are prose, not keywords:** The model
+> (`gemini-3.1-flash-image-preview`) performs best with narrative descriptions
+> that convey intent, mood, and context. Keyword lists produce worse results.
+> Every prompt must be 3-5 complete sentences.
+>
 > **Tokens are derived, not generic:** Every colour in `brand-tokens.json` must
-> trace back to a brand answer. The skill should derive tints (lighter variants)
-> and shades (darker variants) of the primary and secondary colours to build
-> the full palette — not invent unrelated colours.
+> trace back to a brand answer. Derive tints and shades from the primary and
+> secondary brand colours — do not invent unrelated colours.
 
 ---
 
