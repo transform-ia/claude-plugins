@@ -267,6 +267,26 @@ Run `/typescript:gql-types <dir>` to regenerate types.
 
 Check package.json dependencies, run `npm install`, verify import paths.
 
+## React Admin Projects
+
+When building an admin UI with [react-admin](https://marmelab.com/react-admin/) + Hasura:
+
+- **Always use `@transform-ia/ra-kit`** (`npm install github:transform-ia/ra-kit`) for:
+  - `AppLayout` — versioned AppBar with extensible UserMenu
+  - `ChangePasswordMenuItem` — "Change Password" dialog in user menu
+- Every resource table **must** have an `id UUID` column — ra-data-hasura v0.7+ hardcodes `.id` in its parser. See graphql plugin for schema requirements.
+- **Never define `appBar` as an inline component or factory** inside a render function — react-admin remounts on new component references, breaking UserMenu state. Use the `AppLayout` from ra-kit (which uses React context internally) or define components at module level.
+- `TOKEN_KEY` default in ra-kit is `admin_token` — this is the localStorage key for the admin JWT.
+
+```tsx
+// AppLayout wiring (in your project)
+import { AppLayout, ChangePasswordMenuItem } from '@transform-ia/ra-kit'
+declare const __APP_VERSION__: string
+export const MyLayout = (props: LayoutProps) => (
+  <AppLayout {...props} version={__APP_VERSION__} userMenuItems={<ChangePasswordMenuItem />} />
+)
+```
+
 ## OAuth2 PKCE Integration
 
 - Generate verifier (96+ random bytes → base64url, 128 chars) + challenge (SHA-256 → base64url) client-side
