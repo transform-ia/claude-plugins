@@ -58,8 +58,8 @@
     {
       "name": "infrastructure",
       "source": "./infrastructure",
-      "description": "Infrastructure operations via Ansible and container troubleshooting",
-      "version": "0.4.1",
+      "description": "Infrastructure operations via Ansible, container troubleshooting, and OTEL observability",
+      "version": "0.5.0",
       "author": { "name": "Transform IA" }
     },
     {
